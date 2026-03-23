@@ -27,6 +27,9 @@ target/
 .m2
 
 # H2 database files (file-based persistence)
+db/
+!db/
+!db/.gitkeep
 *.mv.db
 *.h2.db
 *.lock.db

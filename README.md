@@ -19,9 +19,9 @@ mvn spring-boot:run
    - `http://localhost:8080/v1`
 
 3. H2 database setup:
-   - Database is stored in `./tripplanning` (file-based H2).
+   - Database is stored in `./db/tripplanning` (file-based H2).
    - H2 console is enabled at `http://localhost:8080/h2-console`.
-   - JDBC URL: `jdbc:h2:file:./tripplanning;DB_CLOSE_DELAY=-1;AUTO_SERVER=TRUE`
+   - JDBC URL: `jdbc:h2:file:./db/tripplanning;DB_CLOSE_DELAY=-1;AUTO_SERVER=TRUE`
    - User: `sa`
    - Password: (empty)
 
@@ -35,6 +35,8 @@ These endpoints provide a frontend-friendly reference for request/response schem
 ## Current API Endpoints
 
 - `POST /v1/users` - register a user
+- `GET /v1/users` - list all users
+- `GET /v1/users/{id}` - get one user including all trips
 - `POST /v1/trips` - create a trip
 - `GET /v1/trips` - list trips
 - `GET /v1/trips/{id}` - get trip details by id
