@@ -37,9 +37,15 @@ These endpoints provide a frontend-friendly reference for request/response schem
 - `POST /v1/users` - register a user
 - `GET /v1/users` - list all users
 - `GET /v1/users/{id}` - get one user including all trips
+- `PUT /v1/users/{id}` - fully replace a user
+- `PATCH /v1/users/{id}` - partially update a user
+- `DELETE /v1/users/{id}` - delete a user and their trips
 - `POST /v1/trips` - create a trip
 - `GET /v1/trips` - list trips
 - `GET /v1/trips/{id}` - get trip details by id
+- `PUT /v1/trips/{id}` - fully replace a trip
+- `PATCH /v1/trips/{id}` - partially update a trip
+- `DELETE /v1/trips/{id}` - delete a trip
 
 ## Project Structure (Overview)
 

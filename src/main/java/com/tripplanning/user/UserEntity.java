@@ -33,5 +33,12 @@ public class UserEntity {
   @Column(nullable = false, length = 255)
   private String name;
 
+  public void setEmail(String email) {
+    this.email = email;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
 }
 

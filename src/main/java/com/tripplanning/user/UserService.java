@@ -2,17 +2,20 @@ package com.tripplanning.user;
 
 import com.tripplanning.api.dto.UserCreateRequest;
 import com.tripplanning.api.dto.UserDetailsResponse;
+import com.tripplanning.api.dto.UserPatchRequest;
+import com.tripplanning.api.dto.UserPutRequest;
 import com.tripplanning.api.dto.UserResponse;
 import com.tripplanning.api.exception.EmailAlreadyExistsException;
 import com.tripplanning.api.exception.InvalidInputException;
 import com.tripplanning.api.exception.ResourceNotFoundException;
+import com.tripplanning.api.dto.TripListItemResponse;
 import com.tripplanning.trip.TripEntity;
 import com.tripplanning.trip.TripRepository;
-import com.tripplanning.api.dto.TripListItemResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -27,16 +30,50 @@ public class UserService {
 
   @Transactional
   public UserResponse register(UserCreateRequest request) {
-    Optional<UserEntity> existing = userRepository.findByEmail(request.email());
-    if (existing.isPresent()) {
-      throw new EmailAlreadyExistsException(
-          "Email already exists.",
-          java.util.List.of("email")
-      );
-    }
+    ensureEmailIsUnique(request.email(), null);
 
     UserEntity created = userRepository.save(new UserEntity(request.email(), request.name()));
     return new UserResponse(created.getId(), created.getEmail(), created.getName());
+  }
+
+  @Transactional
+  public UserResponse replaceUser(Long id, UserPutRequest request) {
+    UserEntity user = requireExistingUserForCrud(id);
+    ensureEmailIsUnique(request.email(), user.getId());
+
+    user.setEmail(request.email());
+    user.setName(request.name());
+    return mapUser(user);
+  }
+
+  @Transactional
+  public UserResponse patchUser(Long id, UserPatchRequest request) {
+    UserEntity user = requireExistingUserForCrud(id);
+    boolean hasChanges = false;
+
+    if (request.email() != null) {
+      ensureEmailIsUnique(request.email(), user.getId());
+      user.setEmail(request.email());
+      hasChanges = true;
+    }
+
+    if (request.name() != null) {
+      user.setName(request.name());
+      hasChanges = true;
+    }
+
+    if (!hasChanges) {
+      throw new InvalidInputException("No updatable fields provided.", List.of("request"));
+    }
+
+    return mapUser(user);
+  }
+
+  @Transactional
+  public void deleteUser(Long id) {
+    UserEntity user = requireExistingUserForCrud(id);
+    tripRepository.deleteByUserId(user.getId());
+    userRepository.delete(user);
   }
 
   @Transactional(readOnly = true)
@@ -87,6 +124,27 @@ public class UserService {
 
   private TripListItemResponse mapTripListItem(TripEntity trip) {
     return new TripListItemResponse(trip.getId(), trip.getTitle(), trip.getStartDate());
+  }
+
+  private void ensureEmailIsUnique(String email, Long currentUserId) {
+    Optional<UserEntity> existing = userRepository.findByEmail(email);
+    if (existing.isPresent() && !Objects.equals(existing.get().getId(), currentUserId)) {
+      throw new EmailAlreadyExistsException("Email already exists.", List.of("email"));
+    }
+  }
+
+  private UserEntity requireExistingUserForCrud(Long id) {
+    if (id == null) {
+      throw new InvalidInputException("Missing required id.", List.of("id"));
+    }
+
+    return userRepository
+        .findById(id)
+        .orElseThrow(() -> new ResourceNotFoundException("User does not exist.", List.of("id")));
+  }
+
+  private UserResponse mapUser(UserEntity user) {
+    return new UserResponse(user.getId(), user.getEmail(), user.getName());
   }
 }
 

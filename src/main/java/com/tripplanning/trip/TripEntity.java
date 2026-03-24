@@ -68,4 +68,27 @@ public class TripEntity {
   @Column(nullable = false)
   private String longDescription;
 
+  public void setUser(UserEntity user) {
+    this.user = user;
+  }
+
+  public void setTitle(String title) {
+    this.title = title;
+  }
+
+  public void setDestination(String destination) {
+    this.destination = destination;
+  }
+
+  public void setStartDate(LocalDate startDate) {
+    this.startDate = startDate;
+  }
+
+  public void setShortDescription(String shortDescription) {
+    this.shortDescription = shortDescription;
+  }
+
+  public void setLongDescription(String longDescription) {
+    this.longDescription = longDescription;
+  }
 }
