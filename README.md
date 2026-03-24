@@ -67,3 +67,20 @@ These endpoints provide a frontend-friendly reference for request/response schem
 ```bash
 mvn test
 ```
+
+## Docker
+
+Build image:
+
+```bash
+docker build -t trip-backend:local .
+```
+
+Run container:
+
+```bash
+docker run --rm -p 8080:8080 trip-backend:local
+```
+
+API base URL inside local Docker run:
+- `http://localhost:8080/v1`
