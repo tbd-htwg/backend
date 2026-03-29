@@ -34,7 +34,7 @@ public class TripController {
   @PostMapping("/trips")
   public ResponseEntity<TripDetailsResponse> create(@Valid @RequestBody TripCreateRequest request) {
     TripDetailsResponse created = tripService.create(request);
-    return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    return ResponseEntity.ok().body(created);
   }
 
   @GetMapping("/trips")

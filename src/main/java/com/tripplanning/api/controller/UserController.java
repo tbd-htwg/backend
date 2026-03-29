@@ -33,7 +33,7 @@ public class UserController {
   @PostMapping("/users")
   public ResponseEntity<UserResponse> register(@Valid @RequestBody UserCreateRequest request) {
     UserResponse created = userService.register(request);
-    return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    return ResponseEntity.ok().body(created);
   }
 
   @GetMapping("/users")
