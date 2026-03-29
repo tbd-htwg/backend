@@ -1,10 +1,10 @@
 package com.tripplanning.trip;
 
-import com.tripplanning.api.dto.TripCreateRequest;
-import com.tripplanning.api.dto.TripDetailsResponse;
-import com.tripplanning.api.dto.TripListItemResponse;
-import com.tripplanning.api.dto.TripPatchRequest;
-import com.tripplanning.api.dto.TripPutRequest;
+import com.tripplanning.api.dto.request.TripCreateRequest;
+import com.tripplanning.api.dto.request.TripPatchRequest;
+import com.tripplanning.api.dto.request.TripPutRequest;
+import com.tripplanning.api.dto.response.TripDetailsResponse;
+import com.tripplanning.api.dto.response.TripListItemResponse;
 import com.tripplanning.api.exception.InvalidInputException;
 import com.tripplanning.api.exception.ResourceNotFoundException;
 import com.tripplanning.user.UserEntity;

@@ -1,10 +1,10 @@
 package com.tripplanning.api.controller;
 
-import com.tripplanning.api.dto.UserCreateRequest;
-import com.tripplanning.api.dto.UserDetailsResponse;
-import com.tripplanning.api.dto.UserPatchRequest;
-import com.tripplanning.api.dto.UserPutRequest;
-import com.tripplanning.api.dto.UserResponse;
+import com.tripplanning.api.dto.request.UserCreateRequest;
+import com.tripplanning.api.dto.request.UserPatchRequest;
+import com.tripplanning.api.dto.request.UserPutRequest;
+import com.tripplanning.api.dto.response.UserDetailsResponse;
+import com.tripplanning.api.dto.response.UserResponse;
 import com.tripplanning.user.UserService;
 import jakarta.validation.Valid;
 import java.util.List;

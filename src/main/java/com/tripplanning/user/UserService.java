@@ -1,14 +1,14 @@
 package com.tripplanning.user;
 
-import com.tripplanning.api.dto.UserCreateRequest;
-import com.tripplanning.api.dto.UserDetailsResponse;
-import com.tripplanning.api.dto.UserPatchRequest;
-import com.tripplanning.api.dto.UserPutRequest;
-import com.tripplanning.api.dto.UserResponse;
+import com.tripplanning.api.dto.request.UserCreateRequest;
+import com.tripplanning.api.dto.request.UserPatchRequest;
+import com.tripplanning.api.dto.request.UserPutRequest;
+import com.tripplanning.api.dto.response.TripListItemResponse;
+import com.tripplanning.api.dto.response.UserDetailsResponse;
+import com.tripplanning.api.dto.response.UserResponse;
 import com.tripplanning.api.exception.EmailAlreadyExistsException;
 import com.tripplanning.api.exception.InvalidInputException;
 import com.tripplanning.api.exception.ResourceNotFoundException;
-import com.tripplanning.api.dto.TripListItemResponse;
 import com.tripplanning.trip.TripEntity;
 import com.tripplanning.trip.TripRepository;
 import org.springframework.stereotype.Service;
