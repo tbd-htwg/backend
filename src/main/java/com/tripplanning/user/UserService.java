@@ -33,13 +33,13 @@ public class UserService {
     ensureEmailIsUnique(request.email(), null);
 
     UserEntity created = userRepository.save(new UserEntity(request.email(), request.name()));
-    return new UserResponse(created.getId(), created.getEmail(), created.getName());
+    return new UserResponse(created.getUser_id(), created.getEmail(), created.getName());
   }
 
   @Transactional
   public UserResponse replaceUser(Long id, UserPutRequest request) {
     UserEntity user = requireExistingUserForCrud(id);
-    ensureEmailIsUnique(request.email(), user.getId());
+    ensureEmailIsUnique(request.email(), user.getUser_id());
 
     user.setEmail(request.email());
     user.setName(request.name());
@@ -52,7 +52,7 @@ public class UserService {
     boolean hasChanges = false;
 
     if (request.email() != null) {
-      ensureEmailIsUnique(request.email(), user.getId());
+      ensureEmailIsUnique(request.email(), user.getUser_id());
       user.setEmail(request.email());
       hasChanges = true;
     }
@@ -72,7 +72,7 @@ public class UserService {
   @Transactional
   public void deleteUser(Long id) {
     UserEntity user = requireExistingUserForCrud(id);
-    tripRepository.deleteByUserId(user.getId());
+    tripRepository.deleteByUserId(user.getUser_id());
     userRepository.delete(user);
   }
 
@@ -95,7 +95,7 @@ public class UserService {
     return userRepository
         .findAll()
         .stream()
-        .map(user -> new UserResponse(user.getId(), user.getEmail(), user.getName()))
+        .map(user -> new UserResponse(user.getUser_id(), user.getEmail(), user.getName()))
         .toList();
   }
 
@@ -115,7 +115,7 @@ public class UserService {
         .toList();
 
     return new UserDetailsResponse(
-        user.getId(),
+        user.getUser_id(),
         user.getEmail(),
         user.getName(),
         trips
@@ -123,12 +123,12 @@ public class UserService {
   }
 
   private TripListItemResponse mapTripListItem(TripEntity trip) {
-    return new TripListItemResponse(trip.getId(), trip.getTitle(), trip.getStartDate());
+    return new TripListItemResponse(trip.getTrip_id(), trip.getTitle(), trip.getStartDate());
   }
 
   private void ensureEmailIsUnique(String email, Long currentUserId) {
     Optional<UserEntity> existing = userRepository.findByEmail(email);
-    if (existing.isPresent() && !Objects.equals(existing.get().getId(), currentUserId)) {
+    if (existing.isPresent() && !Objects.equals(existing.get().getUser_id(), currentUserId)) {
       throw new EmailAlreadyExistsException("Email already exists.", List.of("email"));
     }
   }
@@ -144,7 +144,7 @@ public class UserService {
   }
 
   private UserResponse mapUser(UserEntity user) {
-    return new UserResponse(user.getId(), user.getEmail(), user.getName());
+    return new UserResponse(user.getUser_id(), user.getEmail(), user.getName());
   }
 }
 

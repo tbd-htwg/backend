@@ -103,7 +103,7 @@ public class TripService {
 
     TripEntity saved = tripRepository.save(entity);
     return new TripDetailsResponse(
-        saved.getId(),
+        saved.getTrip_id(),
         saved.getTitle(),
         saved.getDestination(),
         saved.getStartDate(),
@@ -116,7 +116,7 @@ public class TripService {
     return tripRepository
         .findAll()
         .stream()
-        .map(t -> new TripListItemResponse(t.getId(), t.getTitle(), t.getStartDate()))
+        .map(t -> new TripListItemResponse(t.getTrip_id(), t.getTitle(), t.getStartDate()))
         .toList();
   }
 
@@ -132,7 +132,7 @@ public class TripService {
 
   private TripDetailsResponse mapTripDetails(TripEntity trip) {
     return new TripDetailsResponse(
-      trip.getId(),
+      trip.getTrip_id(),
       trip.getTitle(),
       trip.getDestination(),
       trip.getStartDate(),

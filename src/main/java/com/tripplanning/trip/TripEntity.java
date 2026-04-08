@@ -1,5 +1,7 @@
 package com.tripplanning.trip;
 
+import com.tripplanning.accommodation.AccomEntity;
+import com.tripplanning.transport.TransportEntity;
 import com.tripplanning.user.UserEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -7,7 +9,9 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
 import jakarta.persistence.Lob;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
@@ -16,6 +20,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -44,11 +50,28 @@ public class TripEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
+  private Long trip_id;
 
   @ManyToOne(optional = false)
   @JoinColumn(name = "user_id", nullable = false)
   private UserEntity user;
+
+  @ManyToMany
+  @JoinTable(name = "trip_transport", 
+    joinColumns = @JoinColumn(name = "trip_id"),
+    inverseJoinColumns = @JoinColumn(name = "transport_id")
+  )
+
+  private List<TransportEntity> transports = new ArrayList<>();
+
+  @ManyToMany
+  @JoinTable(name = "trip_accommodation",
+    joinColumns = @JoinColumn(name = "trip_id"),
+    inverseJoinColumns = @JoinColumn(name = "accom_id")
+  )
+
+  private List<AccomEntity> acommodations = new ArrayList<>();
+
 
   @Column(nullable = false, length = 255)
   private String title;
