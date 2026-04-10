@@ -1,11 +1,19 @@
 package com.tripplanning.user;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import com.tripplanning.trip.TripEntity;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
 import jakarta.persistence.Lob;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -43,6 +51,14 @@ public class UserEntity {
   @Lob
   @Column
   private String description;
+
+  @ManyToMany
+  @JoinTable(
+  name = "user_likes_trips", 
+  joinColumns = @JoinColumn(name = "user_id"),
+  inverseJoinColumns = @JoinColumn(name = "trip_id")
+)
+private List<TripEntity> likedTrips = new ArrayList<>();
 
   public void setEmail(String email) {
     this.email = email;

@@ -1,5 +1,10 @@
 package com.tripplanning.location;
 
-public interface LocationRepository {
+import java.util.Optional;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+public interface LocationRepository extends JpaRepository<LocationEntity, Long> {
+    Optional<LocationEntity> findByName(String name); 
+    // sucht, ob exakte Location vorhanden; falls nicht, Neuanlage
 
 }

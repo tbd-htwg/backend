@@ -25,8 +25,8 @@ import lombok.NoArgsConstructor;
 
 public class CommentEntity {
 
-    public CommentEntity (UserEntity author, TripEntity trip, String comment) {
-        this.author = author;
+    public CommentEntity (UserEntity user, TripEntity trip, String comment) {
+        this.user = user;
         this.trip = trip;
         this.comment = comment;
     }
@@ -44,7 +44,7 @@ public class CommentEntity {
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "user_id")
-    private UserEntity author;
+    private UserEntity user;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "trip_id")
