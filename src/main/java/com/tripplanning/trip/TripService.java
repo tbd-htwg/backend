@@ -1,29 +1,43 @@
 package com.tripplanning.trip;
 
+import com.tripplanning.api.dto.request.AddStopRequest;
+import com.tripplanning.api.dto.request.CommentRequest;
 import com.tripplanning.api.dto.request.TripCreateRequest;
 import com.tripplanning.api.dto.request.TripPatchRequest;
 import com.tripplanning.api.dto.request.TripPutRequest;
+import com.tripplanning.api.dto.response.CommentResponse;
+import com.tripplanning.api.dto.response.StopResponse;
 import com.tripplanning.api.dto.response.TripDetailsResponse;
 import com.tripplanning.api.dto.response.TripListItemResponse;
 import com.tripplanning.api.exception.InvalidInputException;
 import com.tripplanning.api.exception.ResourceNotFoundException;
+import com.tripplanning.comment.CommentEntity;
+import com.tripplanning.comment.CommentRepository;
+import com.tripplanning.comment.CommentService;
+import com.tripplanning.location.LocationEntity;
+import com.tripplanning.location.LocationRepository;
+import com.tripplanning.location.LocationService;
+import com.tripplanning.tripLocation.TripLocationEntity;
+import com.tripplanning.tripLocation.TripLocationRepository;
+import com.tripplanning.tripLocation.TripLocationService;
 import com.tripplanning.user.UserEntity;
 import com.tripplanning.user.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import lombok.RequiredArgsConstructor;
+
 
 import java.util.List;
-
 @Service
+@RequiredArgsConstructor
 public class TripService {
 
-  private final TripRepository tripRepository;
-  private final UserService userService;
+private final TripRepository tripRepository;
+    private final UserService userService;
+    private final CommentService commentService;
+    private final LocationService locationService;
+    private final TripLocationService tripLocationService;
 
-  public TripService(TripRepository tripRepository, UserService userService) {
-    this.tripRepository = tripRepository;
-    this.userService = userService;
-  }
 
   @Transactional
   public TripDetailsResponse create(TripCreateRequest request) {
@@ -89,7 +103,6 @@ public class TripService {
     tripRepository.delete(trip);
   }
 
-  // Separate method keeps the JSON parsing/validation concerns away from entity creation.
   @Transactional
   private TripDetailsResponse createForUser(TripCreateRequest request, UserEntity user) {
     TripEntity entity = new TripEntity(
@@ -140,5 +153,42 @@ public class TripService {
       trip.getLongDescription()
     );
   }
+
+  @Transactional
+    public void toggleLike(long trip_id, long user_id) {
+        TripEntity trip = requireTripById(trip_id);
+        UserEntity user = userService.requireUserById(user_id);
+
+        if (trip.getLikedByUsers().contains(user)) {
+            trip.getLikedByUsers().remove(user); // entfernt User, wenn vorhanden
+        } else {
+            trip.getLikedByUsers().add(user); // fügt User hinzu, falls noch nicht vorhanden
+        }
+    }
+
+    @Transactional
+    public CommentResponse addCommentToTrip(long tripId, CommentRequest request) {
+        TripEntity trip = requireTripById(tripId);
+        UserEntity author = userService.requireUserById(request.userId());
+        
+        return commentService.addComment(author, trip, request.content());
+    }
+
+    @Transactional(readOnly = true)
+    public List<CommentResponse> getTripComments(long tripId) {
+        return commentService.getCommentsByTrip(tripId);
+    }
+
+    @Transactional
+    public StopResponse addStopToTrip(long tripId, AddStopRequest request) {
+        TripEntity trip = requireTripById(tripId);
+        LocationEntity location = locationService.getOrCreateLocation(request.name());
+        return tripLocationService.addStop(trip, location, request);
+    }
+
+    @Transactional(readOnly = true)
+    public List<StopResponse> getTripStops(long tripId) {
+        return tripLocationService.getStopsByTrip(tripId);
+    }
 }
 

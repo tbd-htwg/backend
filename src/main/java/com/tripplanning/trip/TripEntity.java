@@ -68,10 +68,12 @@ public class TripEntity {
   @JoinTable(name = "trip_accommodation",
     joinColumns = @JoinColumn(name = "trip_id"),
     inverseJoinColumns = @JoinColumn(name = "accom_id")
-  )
-
+)
   private List<AccomEntity> acommodations = new ArrayList<>();
 
+
+  @ManyToMany(mappedBy = "likedTrips")
+  private List<UserEntity> likedByUsers = new ArrayList<>();
 
   @Column(nullable = false, length = 255)
   private String title;
