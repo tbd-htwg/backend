@@ -32,8 +32,8 @@ public class UserService {
   public UserResponse register(UserCreateRequest request) {
     ensureEmailIsUnique(request.email(), null);
 
-    UserEntity created = userRepository.save(new UserEntity(request.email(), request.name()));
-    return new UserResponse(created.getUser_id(), created.getEmail(), created.getName());
+    UserEntity created = userRepository.save(new UserEntity(request.email(), request.name(), request.imageUrl(), request.description()));
+    return new UserResponse(created.getUser_id(), created.getEmail(), created.getName(), created.getImageUrl(), created.getDescription());
   }
 
   @Transactional
@@ -43,6 +43,8 @@ public class UserService {
 
     user.setEmail(request.email());
     user.setName(request.name());
+    user.setImageUrl(request.imageUrl());
+    user.setDescription(request.description());
     return mapUser(user);
   }
 
@@ -59,6 +61,16 @@ public class UserService {
 
     if (request.name() != null) {
       user.setName(request.name());
+      hasChanges = true;
+    }
+
+    if (request.imageUrl() != null) {
+      user.setImageUrl(request.imageUrl());
+      hasChanges = true;
+    }
+
+    if (request.description() != null) {
+      user.setDescription(request.description());
       hasChanges = true;
     }
 
@@ -95,7 +107,7 @@ public class UserService {
     return userRepository
         .findAll()
         .stream()
-        .map(user -> new UserResponse(user.getUser_id(), user.getEmail(), user.getName()))
+        .map(user -> new UserResponse(user.getUser_id(), user.getEmail(), user.getName(), user.getImageUrl(), user.getDescription()))
         .toList();
   }
 
@@ -109,7 +121,12 @@ public class UserService {
         .findById(id)
         .orElseThrow(() -> new ResourceNotFoundException("User does not exist.", List.of("id")));
 
-    List<TripListItemResponse> trips = tripRepository.findByUserId(id)
+    List<TripListItemResponse> ownTrips = tripRepository.findByUserId(id)
+        .stream()
+        .map(this::mapTripListItem)
+        .toList();
+
+      List<TripListItemResponse> likedTrips = tripRepository.findByLikedByUsersId(id)
         .stream()
         .map(this::mapTripListItem)
         .toList();
@@ -118,7 +135,10 @@ public class UserService {
         user.getUser_id(),
         user.getEmail(),
         user.getName(),
-        trips
+        user.getImageUrl(),
+        user.getDescription(),
+        ownTrips,
+        likedTrips
     );
   }
 
@@ -144,7 +164,7 @@ public class UserService {
   }
 
   private UserResponse mapUser(UserEntity user) {
-    return new UserResponse(user.getUser_id(), user.getEmail(), user.getName());
+    return new UserResponse(user.getUser_id(), user.getEmail(), user.getName(), user.getImageUrl(), user.getDescription());
   }
 }
 
