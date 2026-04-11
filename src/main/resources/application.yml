@@ -8,10 +8,10 @@ tripplanning:
 
 spring:
   datasource:
-    url: jdbc:h2:file:./db/tripplanning;DB_CLOSE_DELAY=-1;AUTO_SERVER=TRUE
-    username: sa
-    password:
-    driverClassName: org.h2.Driver
+    url: jdbc:postgresql://db:5432/tripplanning
+    username: postgres
+    password: secret
+    driverClassName: org.postgresql.Driver
 
   h2:
     console:
@@ -33,4 +33,3 @@ springdoc:
     path: /v3/api-docs
   swagger-ui:
     path: /swagger-ui/index.html
-
