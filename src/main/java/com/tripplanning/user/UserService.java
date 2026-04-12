@@ -13,20 +13,19 @@ import com.tripplanning.trip.TripEntity;
 import com.tripplanning.trip.TripRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import lombok.RequiredArgsConstructor;
+
 
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class UserService {
   private final UserRepository userRepository;
   private final TripRepository tripRepository;
 
-  public UserService(UserRepository userRepository, TripRepository tripRepository) {
-    this.userRepository = userRepository;
-    this.tripRepository = tripRepository;
-  }
 
   @Transactional
   public UserResponse register(UserCreateRequest request) {

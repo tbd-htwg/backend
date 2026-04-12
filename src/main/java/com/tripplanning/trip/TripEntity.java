@@ -16,7 +16,9 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
@@ -29,8 +31,10 @@ import jakarta.validation.constraints.NotNull;
 @Entity
 @Table(name = "trips")
 @Getter
+@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
+@Builder
 public class TripEntity {
   
   public TripEntity(
@@ -56,22 +60,23 @@ public class TripEntity {
   @JoinColumn(name = "user_id", nullable = false)
   private UserEntity user;
 
+  @Builder.Default
   @ManyToMany
   @JoinTable(name = "trip_transport", 
     joinColumns = @JoinColumn(name = "trip_id"),
     inverseJoinColumns = @JoinColumn(name = "transport_id")
   )
-
   private List<TransportEntity> transports = new ArrayList<>();
 
+  @Builder.Default
   @ManyToMany
   @JoinTable(name = "trip_accommodation",
     joinColumns = @JoinColumn(name = "trip_id"),
     inverseJoinColumns = @JoinColumn(name = "accom_id")
-)
-  private List<AccomEntity> acommodations = new ArrayList<>();
+  )
+  private List<AccomEntity> accommodations = new ArrayList<>();
 
-
+  @Builder.Default
   @ManyToMany(mappedBy = "likedTrips")
   private List<UserEntity> likedByUsers = new ArrayList<>();
 
@@ -93,27 +98,4 @@ public class TripEntity {
   @Column(nullable = false)
   private String longDescription;
 
-  public void setUser(UserEntity user) {
-    this.user = user;
-  }
-
-  public void setTitle(String title) {
-    this.title = title;
-  }
-
-  public void setDestination(String destination) {
-    this.destination = destination;
-  }
-
-  public void setStartDate(LocalDate startDate) {
-    this.startDate = startDate;
-  }
-
-  public void setShortDescription(String shortDescription) {
-    this.shortDescription = shortDescription;
-  }
-
-  public void setLongDescription(String longDescription) {
-    this.longDescription = longDescription;
-  }
 }

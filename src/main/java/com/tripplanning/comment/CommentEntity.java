@@ -25,19 +25,19 @@ import lombok.NoArgsConstructor;
 
 public class CommentEntity {
 
-    public CommentEntity (UserEntity user, TripEntity trip, String comment) {
+    public CommentEntity (UserEntity user, TripEntity trip, String content) {
         this.user = user;
         this.trip = trip;
-        this.comment = comment;
+        this.content = content;
     }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long comment_id;
+    private long content_id;
 
     @Lob
     @Column(nullable = false)
-    private String comment;
+    private String content;
 
     @Column(nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
@@ -51,8 +51,8 @@ public class CommentEntity {
     private TripEntity trip;
 
     //zum nachträglichen Bearbeiten von Kommentaren
-    public void setComment (String comment) {
-        this.comment = comment;
+    public void setContent (String content) {
+        this.content = content;
     }
 
 }

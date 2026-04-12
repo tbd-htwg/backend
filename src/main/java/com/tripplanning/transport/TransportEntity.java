@@ -14,6 +14,7 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.NoArgsConstructor;
 
 @Entity
@@ -34,11 +35,7 @@ public class TransportEntity {
     @Column(nullable = false, length = 50)
     private String type;
 
-    public void setType (String type) {
-        this.type = type;
-    }
-
-    @ManyToMany(mappedBy = "transport")
+    @ManyToMany(mappedBy = "transports")
     private List<TripEntity> trips = new ArrayList<>();
 
 
