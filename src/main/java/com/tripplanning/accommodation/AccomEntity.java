@@ -13,13 +13,19 @@ import jakarta.persistence.Id;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "accommodation")
 @Getter
+@Setter
+@Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
 
 public class AccomEntity {
 
@@ -40,19 +46,8 @@ public class AccomEntity {
     private String name;
     private String address;
 
-    public void setName (String name) {
-        this.name = name;
-    }
-
-    public void setType (String type) {
-        this.type = type;
-    }
-
-    public void setAddress (String address) {
-        this.address = address;
-    }
-
-    @ManyToMany(mappedBy = "accommodation")
+    @Builder.Default
+    @ManyToMany(mappedBy = "accommodations")
     private List<TripEntity> trips = new ArrayList<>();
 
 }
