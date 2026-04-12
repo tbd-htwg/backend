@@ -17,12 +17,16 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "users")
 @Getter
+@Setter
+@Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 
@@ -35,6 +39,7 @@ public class UserEntity {
     this.description = description;
   }
 
+ 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long user_id;
@@ -45,13 +50,14 @@ public class UserEntity {
   @Column(nullable = false, length = 255)
   private String name;
 
-  @Column(nullable = false, length = 500)
+  @Column(nullable = true, length = 500)
   private String imageUrl;
 
   @Lob
-  @Column
+  @Column(nullable = true)
   private String description;
 
+  @Builder.Default
   @ManyToMany
   @JoinTable(
   name = "user_likes_trips", 
@@ -60,20 +66,5 @@ public class UserEntity {
 )
 private List<TripEntity> likedTrips = new ArrayList<>();
 
-  public void setEmail(String email) {
-    this.email = email;
   }
-
-  public void setName(String name) {
-    this.name = name;
-  }
-
-  public void setImageUrl(String imageUrl) {
-    this.imageUrl = imageUrl;
-  }
-
-  public void setDescription(String description) {
-    this.description = description;
-  }
-}
 

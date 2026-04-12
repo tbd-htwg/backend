@@ -21,9 +21,9 @@ public class CommentService {
         CommentEntity saved = commentRepository.save(comment);
         
         return new CommentResponse(
-            saved.getComment_id(), 
+            saved.getContent_id(), 
             author.getName(), 
-            saved.getComment(), 
+            saved.getContent(), 
             saved.getCreatedAt()
         );
     }
@@ -32,9 +32,9 @@ public class CommentService {
     public List<CommentResponse> getCommentsByTrip(long tripId) {
         return commentRepository.findByTripIdOrderByCreatedAtDesc(tripId).stream()
             .map(c -> new CommentResponse(
-                c.getComment_id(), 
+                c.getContent_id(), 
                 c.getUser().getName(), 
-                c.getComment(), 
+                c.getContent(), 
                 c.getCreatedAt()
             ))
             .toList();
