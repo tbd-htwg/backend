@@ -27,6 +27,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Transactional
 class CrudEndpointsIntegrationTest {
 
+  private static final String TEST_IMAGE_URL = "https://example.com/avatar.png";
+  private static final String TEST_DESCRIPTION = "Integration test user";
+
   @Autowired
   private MockMvc mockMvc;
 
@@ -39,15 +42,19 @@ class CrudEndpointsIntegrationTest {
   @Autowired
   private TripRepository tripRepository;
 
+  private UserEntity testUser(String email, String name) {
+    return new UserEntity(email, name, TEST_IMAGE_URL, TEST_DESCRIPTION);
+  }
+
   @Test
   void putUserUpdatesAllFields() throws Exception {
-    UserEntity user = userRepository.save(new UserEntity("old@example.com", "Old Name"));
+    UserEntity user = userRepository.save(testUser("old@example.com", "Old Name"));
     String body = objectMapper.writeValueAsString(Map.of(
         "email", "new@example.com",
         "name", "New Name"
     ));
 
-    mockMvc.perform(put("/v1/users/{id}", user.getId())
+    mockMvc.perform(put("/v1/users/{id}", user.getUser_id())
             .contentType(MediaType.APPLICATION_JSON)
             .content(body))
         .andExpect(status().isOk())
@@ -57,11 +64,11 @@ class CrudEndpointsIntegrationTest {
 
   @Test
   void patchUserWithDuplicateEmailReturnsConflict() throws Exception {
-    UserEntity existing = userRepository.save(new UserEntity("taken@example.com", "Taken"));
-    UserEntity toUpdate = userRepository.save(new UserEntity("free@example.com", "Free"));
+    UserEntity existing = userRepository.save(testUser("taken@example.com", "Taken"));
+    UserEntity toUpdate = userRepository.save(testUser("free@example.com", "Free"));
     String body = objectMapper.writeValueAsString(Map.of("email", existing.getEmail()));
 
-    mockMvc.perform(patch("/v1/users/{id}", toUpdate.getId())
+    mockMvc.perform(patch("/v1/users/{id}", toUpdate.getUser_id())
             .contentType(MediaType.APPLICATION_JSON)
             .content(body))
         .andExpect(status().isConflict())
@@ -70,10 +77,10 @@ class CrudEndpointsIntegrationTest {
 
   @Test
   void patchUserWithoutFieldsReturnsBadRequest() throws Exception {
-    UserEntity user = userRepository.save(new UserEntity("user@example.com", "User"));
+    UserEntity user = userRepository.save(testUser("user@example.com", "User"));
     String body = objectMapper.writeValueAsString(Map.of());
 
-    mockMvc.perform(patch("/v1/users/{id}", user.getId())
+    mockMvc.perform(patch("/v1/users/{id}", user.getUser_id())
             .contentType(MediaType.APPLICATION_JSON)
             .content(body))
         .andExpect(status().isBadRequest())
@@ -82,7 +89,7 @@ class CrudEndpointsIntegrationTest {
 
   @Test
   void deleteUserRemovesUserAndTrips() throws Exception {
-    UserEntity user = userRepository.save(new UserEntity("delete-user@example.com", "Delete User"));
+    UserEntity user = userRepository.save(testUser("delete-user@example.com", "Delete User"));
     tripRepository.save(new TripEntity(
         user,
         "Trip 1",
@@ -92,17 +99,17 @@ class CrudEndpointsIntegrationTest {
         "Long description"
     ));
 
-    mockMvc.perform(delete("/v1/users/{id}", user.getId()))
+    mockMvc.perform(delete("/v1/users/{id}", user.getUser_id()))
         .andExpect(status().isNoContent());
 
-    org.assertj.core.api.Assertions.assertThat(userRepository.findById(user.getId())).isEmpty();
-    org.assertj.core.api.Assertions.assertThat(tripRepository.findByUserId(user.getId())).isEmpty();
+    org.assertj.core.api.Assertions.assertThat(userRepository.findById(user.getUser_id())).isEmpty();
+    org.assertj.core.api.Assertions.assertThat(tripRepository.findByUserId(user.getUser_id())).isEmpty();
   }
 
   @Test
   void putTripUpdatesAllFieldsIncludingUser() throws Exception {
-    UserEntity ownerA = userRepository.save(new UserEntity("owner-a@example.com", "Owner A"));
-    UserEntity ownerB = userRepository.save(new UserEntity("owner-b@example.com", "Owner B"));
+    UserEntity ownerA = userRepository.save(testUser("owner-a@example.com", "Owner A"));
+    UserEntity ownerB = userRepository.save(testUser("owner-b@example.com", "Owner B"));
     TripEntity trip = tripRepository.save(new TripEntity(
         ownerA,
         "Old Title",
@@ -113,7 +120,7 @@ class CrudEndpointsIntegrationTest {
     ));
 
     String body = objectMapper.writeValueAsString(Map.of(
-        "userId", ownerB.getId(),
+        "userId", ownerB.getUser_id(),
         "title", "New Title",
         "destination", "Rome",
         "startDate", "2026-07-15",
@@ -121,7 +128,7 @@ class CrudEndpointsIntegrationTest {
         "longDescription", "New long"
     ));
 
-    mockMvc.perform(put("/v1/trips/{id}", trip.getId())
+    mockMvc.perform(put("/v1/trips/{id}", trip.getTrip_id())
             .contentType(MediaType.APPLICATION_JSON)
             .content(body))
         .andExpect(status().isOk())
@@ -131,7 +138,7 @@ class CrudEndpointsIntegrationTest {
 
   @Test
   void patchTripWithoutFieldsReturnsBadRequest() throws Exception {
-    UserEntity user = userRepository.save(new UserEntity("trip-owner@example.com", "Trip Owner"));
+    UserEntity user = userRepository.save(testUser("trip-owner@example.com", "Trip Owner"));
     TripEntity trip = tripRepository.save(new TripEntity(
         user,
         "Trip",
@@ -142,7 +149,7 @@ class CrudEndpointsIntegrationTest {
     ));
     String body = objectMapper.writeValueAsString(Map.of());
 
-    mockMvc.perform(patch("/v1/trips/{id}", trip.getId())
+    mockMvc.perform(patch("/v1/trips/{id}", trip.getTrip_id())
             .contentType(MediaType.APPLICATION_JSON)
             .content(body))
         .andExpect(status().isBadRequest())
@@ -151,7 +158,7 @@ class CrudEndpointsIntegrationTest {
 
   @Test
   void deleteTripReturnsNoContentAndRemovesTrip() throws Exception {
-    UserEntity user = userRepository.save(new UserEntity("delete-trip@example.com", "Trip User"));
+    UserEntity user = userRepository.save(testUser("delete-trip@example.com", "Trip User"));
     TripEntity trip = tripRepository.save(new TripEntity(
         user,
         "Trip To Delete",
@@ -161,10 +168,10 @@ class CrudEndpointsIntegrationTest {
         "Long"
     ));
 
-    mockMvc.perform(delete("/v1/trips/{id}", trip.getId()))
+    mockMvc.perform(delete("/v1/trips/{id}", trip.getTrip_id()))
         .andExpect(status().isNoContent());
 
-    org.assertj.core.api.Assertions.assertThat(tripRepository.findById(trip.getId())).isEmpty();
+    org.assertj.core.api.Assertions.assertThat(tripRepository.findById(trip.getTrip_id())).isEmpty();
   }
 
   @Test

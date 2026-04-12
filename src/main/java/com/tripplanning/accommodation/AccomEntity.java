@@ -52,7 +52,7 @@ public class AccomEntity {
         this.address = address;
     }
 
-    @ManyToMany(mappedBy = "accommodation")
+    @ManyToMany(mappedBy = "acommodations")
     private List<TripEntity> trips = new ArrayList<>();
 
 }

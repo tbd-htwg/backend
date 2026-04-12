@@ -38,7 +38,7 @@ public class TransportEntity {
         this.type = type;
     }
 
-    @ManyToMany(mappedBy = "transport")
+    @ManyToMany(mappedBy = "transports")
     private List<TripEntity> trips = new ArrayList<>();
 
 
