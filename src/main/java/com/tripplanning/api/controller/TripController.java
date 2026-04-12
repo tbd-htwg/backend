@@ -7,6 +7,7 @@ import com.tripplanning.api.dto.response.TripDetailsResponse;
 import com.tripplanning.api.dto.response.TripListItemResponse;
 import com.tripplanning.trip.TripService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
