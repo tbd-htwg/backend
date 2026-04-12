@@ -14,34 +14,27 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TripLocationService {
 
-    private final TripLocationRepository tripLocationRepository;
+  private final TripLocationRepository tripLocationRepository;
 
-    @Transactional
-    public StopResponse addStop(TripEntity trip, LocationEntity location, AddStopRequest request) {
-        TripLocationEntity stop = new TripLocationEntity(
-            trip, 
-            location, 
-            request.imageUrl(), 
-            request.description()
-        );
-        
-        TripLocationEntity saved = tripLocationRepository.save(stop);
-        return mapToResponse(saved);
-    }
+  @Transactional
+  public StopResponse addStop(TripEntity trip, LocationEntity location, AddStopRequest request) {
+    TripLocationEntity stop =
+        new TripLocationEntity(trip, location, request.imageUrl(), request.description());
 
-    @Transactional(readOnly = true)
-    public List<StopResponse> getStopsByTrip(long tripId) {
-        return tripLocationRepository.findByTripId(tripId).stream()
-            .map(this::mapToResponse)
-            .toList();
-    }
+    TripLocationEntity saved = tripLocationRepository.save(stop);
+    return mapToResponse(saved);
+  }
 
-    private StopResponse mapToResponse(TripLocationEntity entity) {
-        return new StopResponse(
-            entity.getId(), 
-            entity.getLocation().getName(), 
-            entity.getDescription(), 
-            entity.getImageUrl()
-        );
-    }
+  @Transactional(readOnly = true)
+  public List<StopResponse> getStopsByTrip(long tripId) {
+    return tripLocationRepository.findByTrip_TripId(tripId).stream().map(this::mapToResponse).toList();
+  }
+
+  private StopResponse mapToResponse(TripLocationEntity entity) {
+    return new StopResponse(
+        entity.getId(),
+        entity.getLocation().getName(),
+        entity.getDescription(),
+        entity.getImageUrl());
+  }
 }

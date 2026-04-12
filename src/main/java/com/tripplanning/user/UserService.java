@@ -9,6 +9,7 @@ import com.tripplanning.api.dto.response.UserResponse;
 import com.tripplanning.api.exception.EmailAlreadyExistsException;
 import com.tripplanning.api.exception.InvalidInputException;
 import com.tripplanning.api.exception.ResourceNotFoundException;
+import com.tripplanning.comment.CommentRepository;
 import com.tripplanning.trip.TripEntity;
 import com.tripplanning.trip.TripRepository;
 import org.springframework.stereotype.Service;
@@ -22,24 +23,29 @@ import java.util.Optional;
 public class UserService {
   private final UserRepository userRepository;
   private final TripRepository tripRepository;
+  private final CommentRepository commentRepository;
 
-  public UserService(UserRepository userRepository, TripRepository tripRepository) {
+  public UserService(UserRepository userRepository, TripRepository tripRepository, CommentRepository commentRepository) {
     this.userRepository = userRepository;
     this.tripRepository = tripRepository;
+    this.commentRepository = commentRepository;
   }
 
   @Transactional
   public UserResponse register(UserCreateRequest request) {
     ensureEmailIsUnique(request.email(), null);
 
-    UserEntity created = userRepository.save(new UserEntity(request.email(), request.name(), request.imageUrl(), request.description()));
-    return new UserResponse(created.getUser_id(), created.getEmail(), created.getName(), created.getImageUrl(), created.getDescription());
+    UserEntity created =
+        userRepository.save(
+            new UserEntity(request.email(), request.name(), request.imageUrl(), request.description()));
+    return new UserResponse(
+        created.getUserId(), created.getEmail(), created.getName(), created.getImageUrl(), created.getDescription());
   }
 
   @Transactional
   public UserResponse replaceUser(Long id, UserPutRequest request) {
     UserEntity user = requireExistingUserForCrud(id);
-    ensureEmailIsUnique(request.email(), user.getUser_id());
+    ensureEmailIsUnique(request.email(), user.getUserId());
 
     user.setEmail(request.email());
     user.setName(request.name());
@@ -54,7 +60,7 @@ public class UserService {
     boolean hasChanges = false;
 
     if (request.email() != null) {
-      ensureEmailIsUnique(request.email(), user.getUser_id());
+      ensureEmailIsUnique(request.email(), user.getUserId());
       user.setEmail(request.email());
       hasChanges = true;
     }
@@ -84,7 +90,13 @@ public class UserService {
   @Transactional
   public void deleteUser(Long id) {
     UserEntity user = requireExistingUserForCrud(id);
-    tripRepository.deleteByUserId(user.getUser_id());
+    Long userId = user.getUserId();
+    commentRepository.deleteByUser_UserId(userId);
+    user =
+        userRepository
+            .findById(userId)
+            .orElseThrow(() -> new ResourceNotFoundException("User does not exist.", List.of("id")));
+    user.getLikedTrips().clear();
     userRepository.delete(user);
   }
 
@@ -96,18 +108,16 @@ public class UserService {
 
     return userRepository
         .findById(userId)
-        .orElseThrow(() -> new InvalidInputException(
-            "Invalid userId.",
-            java.util.List.of("userId")
-        ));
+        .orElseThrow(() -> new InvalidInputException("Invalid userId.", java.util.List.of("userId")));
   }
 
   @Transactional(readOnly = true)
   public List<UserResponse> listUsers() {
-    return userRepository
-        .findAll()
-        .stream()
-        .map(user -> new UserResponse(user.getUser_id(), user.getEmail(), user.getName(), user.getImageUrl(), user.getDescription()))
+    return userRepository.findAll().stream()
+        .map(
+            user ->
+                new UserResponse(
+                    user.getUserId(), user.getEmail(), user.getName(), user.getImageUrl(), user.getDescription()))
         .toList();
   }
 
@@ -117,38 +127,34 @@ public class UserService {
       throw new InvalidInputException("Missing required id.", List.of("id"));
     }
 
-    UserEntity user = userRepository
-        .findById(id)
-        .orElseThrow(() -> new ResourceNotFoundException("User does not exist.", List.of("id")));
+    UserEntity user =
+        userRepository
+            .findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("User does not exist.", List.of("id")));
 
-    List<TripListItemResponse> ownTrips = tripRepository.findByUserId(id)
-        .stream()
-        .map(this::mapTripListItem)
-        .toList();
+    List<TripListItemResponse> ownTrips =
+        tripRepository.findByUser_UserId(id).stream().map(this::mapTripListItem).toList();
 
-      List<TripListItemResponse> likedTrips = tripRepository.findByLikedByUsersId(id)
-        .stream()
-        .map(this::mapTripListItem)
-        .toList();
+    List<TripListItemResponse> likedTrips =
+        tripRepository.findByLikedByUsers_UserId(id).stream().map(this::mapTripListItem).toList();
 
     return new UserDetailsResponse(
-        user.getUser_id(),
+        user.getUserId(),
         user.getEmail(),
         user.getName(),
         user.getImageUrl(),
         user.getDescription(),
         ownTrips,
-        likedTrips
-    );
+        likedTrips);
   }
 
   private TripListItemResponse mapTripListItem(TripEntity trip) {
-    return new TripListItemResponse(trip.getTrip_id(), trip.getTitle(), trip.getStartDate());
+    return new TripListItemResponse(trip.getTripId(), trip.getTitle(), trip.getStartDate());
   }
 
   private void ensureEmailIsUnique(String email, Long currentUserId) {
     Optional<UserEntity> existing = userRepository.findByEmail(email);
-    if (existing.isPresent() && !Objects.equals(existing.get().getUser_id(), currentUserId)) {
+    if (existing.isPresent() && !Objects.equals(existing.get().getUserId(), currentUserId)) {
       throw new EmailAlreadyExistsException("Email already exists.", List.of("email"));
     }
   }
@@ -164,7 +170,6 @@ public class UserService {
   }
 
   private UserResponse mapUser(UserEntity user) {
-    return new UserResponse(user.getUser_id(), user.getEmail(), user.getName(), user.getImageUrl(), user.getDescription());
+    return new UserResponse(user.getUserId(), user.getEmail(), user.getName(), user.getImageUrl(), user.getDescription());
   }
 }
-

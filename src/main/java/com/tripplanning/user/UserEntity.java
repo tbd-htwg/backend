@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.tripplanning.trip.TripEntity;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -14,9 +15,9 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -24,7 +25,6 @@ import lombok.NoArgsConstructor;
 @Table(name = "users")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
 
 public class UserEntity {
 
@@ -37,7 +37,8 @@ public class UserEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long user_id;
+  @Column(name = "user_id")
+  private Long userId;
 
   @Column(nullable = false, unique = true, length = 320)
   private String email;
@@ -54,11 +55,13 @@ public class UserEntity {
 
   @ManyToMany
   @JoinTable(
-  name = "user_likes_trips", 
-  joinColumns = @JoinColumn(name = "user_id"),
-  inverseJoinColumns = @JoinColumn(name = "trip_id")
-)
-private List<TripEntity> likedTrips = new ArrayList<>();
+      name = "user_likes_trips",
+      joinColumns = @JoinColumn(name = "user_id"),
+      inverseJoinColumns = @JoinColumn(name = "trip_id"))
+  private List<TripEntity> likedTrips = new ArrayList<>();
+
+  @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<TripEntity> trips = new ArrayList<>();
 
   public void setEmail(String email) {
     this.email = email;
@@ -76,4 +79,3 @@ private List<TripEntity> likedTrips = new ArrayList<>();
     this.description = description;
   }
 }
-

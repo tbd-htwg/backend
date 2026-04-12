@@ -95,6 +95,8 @@ private final TripRepository tripRepository;
   @Transactional
   public void deleteTrip(long id) {
     TripEntity trip = requireTripById(id);
+    trip.getTripLocations().size();
+    trip.getComments().size();
     tripRepository.delete(trip);
   }
 
@@ -111,7 +113,7 @@ private final TripRepository tripRepository;
 
     TripEntity saved = tripRepository.save(entity);
     return new TripDetailsResponse(
-        saved.getTrip_id(),
+        saved.getTripId(),
         saved.getTitle(),
         saved.getDestination(),
         saved.getStartDate(),
@@ -124,7 +126,7 @@ private final TripRepository tripRepository;
     return tripRepository
         .findAll()
         .stream()
-        .map(t -> new TripListItemResponse(t.getTrip_id(), t.getTitle(), t.getStartDate()))
+        .map(t -> new TripListItemResponse(t.getTripId(), t.getTitle(), t.getStartDate()))
         .toList();
   }
 
@@ -140,7 +142,7 @@ private final TripRepository tripRepository;
 
   private TripDetailsResponse mapTripDetails(TripEntity trip) {
     return new TripDetailsResponse(
-      trip.getTrip_id(),
+      trip.getTripId(),
       trip.getTitle(),
       trip.getDestination(),
       trip.getStartDate(),
@@ -154,10 +156,10 @@ private final TripRepository tripRepository;
         TripEntity trip = requireTripById(trip_id);
         UserEntity user = userService.requireUserById(user_id);
 
-        if (trip.getLikedByUsers().contains(user)) {
-            trip.getLikedByUsers().remove(user); // entfernt User, wenn vorhanden
+        if (user.getLikedTrips().contains(trip)) {
+            user.getLikedTrips().remove(trip);
         } else {
-            trip.getLikedByUsers().add(user); // fügt User hinzu, falls noch nicht vorhanden
+            user.getLikedTrips().add(trip);
         }
     }
 

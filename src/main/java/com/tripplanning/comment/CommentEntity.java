@@ -25,34 +25,34 @@ import lombok.NoArgsConstructor;
 
 public class CommentEntity {
 
-    public CommentEntity (UserEntity user, TripEntity trip, String comment) {
-        this.user = user;
-        this.trip = trip;
-        this.comment = comment;
-    }
+  public CommentEntity(UserEntity user, TripEntity trip, String comment) {
+    this.user = user;
+    this.trip = trip;
+    this.comment = comment;
+    trip.getComments().add(this);
+  }
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long comment_id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Column(name = "comment_id")
+  private long commentId;
 
-    @Lob
-    @Column(nullable = false)
-    private String comment;
+  @Lob
+  @Column(nullable = false)
+  private String comment;
 
-    @Column(nullable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
+  @Column(nullable = false)
+  private LocalDateTime createdAt = LocalDateTime.now();
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "user_id")
-    private UserEntity user;
+  @ManyToOne(optional = false)
+  @JoinColumn(name = "user_id")
+  private UserEntity user;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "trip_id")
-    private TripEntity trip;
+  @ManyToOne(optional = false)
+  @JoinColumn(name = "trip_id")
+  private TripEntity trip;
 
-    //zum nachträglichen Bearbeiten von Kommentaren
-    public void setComment (String comment) {
-        this.comment = comment;
-    }
-
+  public void setComment(String comment) {
+    this.comment = comment;
+  }
 }

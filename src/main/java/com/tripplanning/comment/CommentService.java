@@ -13,30 +13,30 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CommentService {
 
-    private final CommentRepository commentRepository;
+  private final CommentRepository commentRepository;
 
-    @Transactional
-    public CommentResponse addComment(UserEntity author, TripEntity trip, String content) {
-        CommentEntity comment = new CommentEntity(author, trip, content);
-        CommentEntity saved = commentRepository.save(comment);
-        
-        return new CommentResponse(
-            saved.getComment_id(), 
-            author.getName(), 
-            saved.getComment(), 
-            saved.getCreatedAt()
-        );
-    }
+  @Transactional
+  public CommentResponse addComment(UserEntity author, TripEntity trip, String content) {
+    CommentEntity comment = new CommentEntity(author, trip, content);
+    CommentEntity saved = commentRepository.save(comment);
 
-    @Transactional(readOnly = true)
-    public List<CommentResponse> getCommentsByTrip(long tripId) {
-        return commentRepository.findByTripIdOrderByCreatedAtDesc(tripId).stream()
-            .map(c -> new CommentResponse(
-                c.getComment_id(), 
-                c.getUser().getName(), 
-                c.getComment(), 
-                c.getCreatedAt()
-            ))
-            .toList();
-    }
+    return new CommentResponse(
+        saved.getCommentId(),
+        author.getName(),
+        saved.getComment(),
+        saved.getCreatedAt());
+  }
+
+  @Transactional(readOnly = true)
+  public List<CommentResponse> getCommentsByTrip(long tripId) {
+    return commentRepository.findByTrip_TripIdOrderByCreatedAtDesc(tripId).stream()
+        .map(
+            c ->
+                new CommentResponse(
+                    c.getCommentId(),
+                    c.getUser().getName(),
+                    c.getComment(),
+                    c.getCreatedAt()))
+        .toList();
+  }
 }

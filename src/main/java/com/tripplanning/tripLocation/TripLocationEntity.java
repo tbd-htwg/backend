@@ -23,29 +23,30 @@ import lombok.NoArgsConstructor;
 
 public class TripLocationEntity {
 
-    @Id // ermöglicht, dass eine Location auch mehrmals während eines Trips besucht werden kann
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "trip_id")
-    private TripEntity trip;
+  @ManyToOne(optional = false)
+  @JoinColumn(name = "trip_id")
+  private TripEntity trip;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "location_id")
-    private LocationEntity location;
+  /** Shared catalog row; no cascade remove — only this stop row is removed with the trip. */
+  @ManyToOne(optional = false)
+  @JoinColumn(name = "location_id")
+  private LocationEntity location;
 
-    @Column(length = 500)
-    private String imageUrl; // Spezifische User Fotos
+  @Column(length = 500)
+  private String imageUrl;
 
-    @Lob
-    private String description; // Persönliche User Beschreibung
+  @Lob
+  private String description;
 
-    public TripLocationEntity(TripEntity trip, LocationEntity location, String imageUrl, String description) {
-        this.trip = trip;
-        this.location = location;
-        this.imageUrl = imageUrl;
-        this.description = description;
-    }
+  public TripLocationEntity(TripEntity trip, LocationEntity location, String imageUrl, String description) {
+    this.trip = trip;
+    this.location = location;
+    this.imageUrl = imageUrl;
+    this.description = description;
+    trip.getTripLocations().add(this);
+  }
 }
-
