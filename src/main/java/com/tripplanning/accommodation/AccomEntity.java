@@ -37,7 +37,7 @@ public class AccomEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long accom_id;
+    private long id;
 
     @Column(nullable = false, length = 50)
     private String type;

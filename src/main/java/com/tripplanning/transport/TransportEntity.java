@@ -20,6 +20,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @Table(name = "transport")
 @Getter
+@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 
 public class TransportEntity {
@@ -30,7 +31,7 @@ public class TransportEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long transport_id;
+    private long id;
 
     @Column(nullable = false, length = 50)
     private String type;

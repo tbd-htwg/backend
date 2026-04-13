@@ -26,7 +26,7 @@ public class LocationEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long location_id;
+    private long id;
 
     @Column(nullable = false, unique = true) // LocationEnitity als Liste aus eindeutigen Orten
     private String name;
