@@ -54,25 +54,25 @@ public class TripEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long trip_id;
+  private Long id;
 
   @ManyToOne(optional = false)
-  @JoinColumn(name = "user_id", nullable = false)
+  @JoinColumn(name = "userId", nullable = false)
   private UserEntity user;
 
   @Builder.Default
   @ManyToMany
-  @JoinTable(name = "trip_transport", 
-    joinColumns = @JoinColumn(name = "trip_id"),
-    inverseJoinColumns = @JoinColumn(name = "transport_id")
+  @JoinTable(name = "tripTransport", 
+    joinColumns = @JoinColumn(name = "tripId"),
+    inverseJoinColumns = @JoinColumn(name = "transportId")
   )
   private List<TransportEntity> transports = new ArrayList<>();
 
   @Builder.Default
   @ManyToMany
-  @JoinTable(name = "trip_accommodation",
-    joinColumns = @JoinColumn(name = "trip_id"),
-    inverseJoinColumns = @JoinColumn(name = "accom_id")
+  @JoinTable(name = "tripAccommodation",
+    joinColumns = @JoinColumn(name = "tripId"),
+    inverseJoinColumns = @JoinColumn(name = "accomId")
   )
   private List<AccomEntity> accommodations = new ArrayList<>();
 

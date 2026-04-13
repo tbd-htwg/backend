@@ -28,11 +28,11 @@ public class TripLocationEntity {
     private Long id;
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "trip_id")
+    @JoinColumn(name = "tripId")
     private TripEntity trip;
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "location_id")
+    @JoinColumn(name = "locationId")
     private LocationEntity location;
 
     @Column(length = 500)
