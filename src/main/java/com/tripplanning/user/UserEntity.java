@@ -42,7 +42,7 @@ public class UserEntity {
  
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long user_id;
+  private Long id;
 
   @Column(nullable = false, unique = true, length = 320)
   private String email;
@@ -60,9 +60,9 @@ public class UserEntity {
   @Builder.Default
   @ManyToMany
   @JoinTable(
-  name = "user_likes_trips", 
-  joinColumns = @JoinColumn(name = "user_id"),
-  inverseJoinColumns = @JoinColumn(name = "trip_id")
+  name = "userLikesTrips", 
+  joinColumns = @JoinColumn(name = "userId"),
+  inverseJoinColumns = @JoinColumn(name = "tripId")
 )
 private List<TripEntity> likedTrips = new ArrayList<>();
 

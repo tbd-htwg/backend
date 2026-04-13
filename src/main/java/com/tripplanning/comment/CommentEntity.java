@@ -33,7 +33,7 @@ public class CommentEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long content_id;
+    private long id;
 
     @Lob
     @Column(nullable = false)
@@ -43,11 +43,11 @@ public class CommentEntity {
     private LocalDateTime createdAt = LocalDateTime.now();
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "userId")
     private UserEntity user;
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "trip_id")
+    @JoinColumn(name = "tripId")
     private TripEntity trip;
 
     //zum nachträglichen Bearbeiten von Kommentaren
