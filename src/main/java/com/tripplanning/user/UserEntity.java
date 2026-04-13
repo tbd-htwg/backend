@@ -47,7 +47,7 @@ public class UserEntity {
   @Column(nullable = false, unique = true, length = 320)
   private String email;
 
-  @Column(nullable = false, length = 255)
+  @Column(nullable = false, unique = true, length = 255)
   private String name;
 
   @Column(nullable = true, length = 500)

@@ -13,12 +13,18 @@ import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
-@Table(name = "trip_locations")
+@Table(name = "tripLocations")
 @Getter
+@Setter
+@Builder
+@AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 
 public class TripLocationEntity {
@@ -35,11 +41,12 @@ public class TripLocationEntity {
     @JoinColumn(name = "locationId")
     private LocationEntity location;
 
-    @Column(length = 500)
-    private String imageUrl; // Spezifische User Fotos
+    @Column(nullable = true, length = 500)
+    private String imageUrl; // Spezifische User Fotos optional
 
     @Lob
-    private String description; // Persönliche User Beschreibung
+    @Column(nullable = true)
+    private String description; // Persönliche User Beschreibung optional
 
     public TripLocationEntity(TripEntity trip, LocationEntity location, String imageUrl, String description) {
         this.trip = trip;
