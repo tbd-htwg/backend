@@ -1,0 +1,13 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Spring Boot (local)",
+      "request": "launch",
+      "mainClass": "com.tripplanning.Application",
+      "projectName": "tripplanning-backend",
+      "vmArgs": "-Dspring.profiles.active=local"
+    }
+  ]
+}
