@@ -4,7 +4,7 @@ server:
 # Comma-separated. Override in production via CORS_ALLOWED_ORIGINS if needed.
 tripplanning:
   cors:
-    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173,https://tbd-htwg.de,https://www.tbd-htwg.de}
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173,https://tbd-htwg.de,https://www.tbd-htwg.de,https://iaas.tbd-htwg.de,https://paas.tbd-htwg.de}
 
 spring:
   datasource:
