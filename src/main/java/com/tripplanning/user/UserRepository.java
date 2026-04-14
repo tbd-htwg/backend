@@ -5,7 +5,7 @@ import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
 import java.util.Optional;
 
-@RepositoryRestResource
+@RepositoryRestResource(path = "users", collectionResourceRel = "users")
 public interface UserRepository extends JpaRepository<UserEntity, Long> {
   Optional<UserEntity> findByEmail(String email);
 }

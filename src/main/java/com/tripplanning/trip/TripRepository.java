@@ -7,7 +7,7 @@ import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
 import java.util.List;
 
-@RepositoryRestResource
+@RepositoryRestResource(path = "trips", collectionResourceRel = "trips")
 public interface TripRepository extends JpaRepository<TripEntity, Long> {
   List<TripEntity> findByUserId(Long userId);
   void deleteByUserId(Long userId);
