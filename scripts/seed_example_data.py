@@ -237,16 +237,16 @@ def main() -> int:
 
     print("Creating likes...")
     user_values = list(users_by_key.values())
-    for trip_idx, trip_data in enumerate(trips_by_key.values()):
-        trip_id = int(trip_data["id"])
-        owner_user_id = int(trip_data["owner_user_id"])
-        like_candidates = [
-            user_values[(trip_idx + 1) % len(user_values)],
-            user_values[(trip_idx + 2) % len(user_values)],
-        ]
-        like_uris = [u.uri for u in like_candidates if u.id != owner_user_id]
-        if like_uris:
-            client.write_uri_list("PATCH", f"/trips/{trip_id}/likedByUsers", like_uris)
+    trip_values = list(trips_by_key.values())
+    # Likes are persisted from the owning side: UserEntity.likedTrips.
+    for user_idx, user_ref in enumerate(user_values):
+        liked_trip_uris: List[str] = []
+        for offset in (1, 4, 7):
+            trip_data = trip_values[(user_idx * 3 + offset) % len(trip_values)]
+            if int(trip_data["owner_user_id"]) != user_ref.id:
+                liked_trip_uris.append(str(trip_data["uri"]))
+        if liked_trip_uris:
+            client.write_uri_list("PUT", f"/users/{user_ref.id}/likedTrips", liked_trip_uris)
 
     print("Creating comments...")
     for trip_idx, trip_data in enumerate(trips_by_key.values()):
