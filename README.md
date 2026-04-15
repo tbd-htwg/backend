@@ -16,7 +16,7 @@ mvn spring-boot:run
 ```
 
 2. The API is available at:
-   - `http://localhost:8080/v1`
+   - `http://localhost:8080/api/v2`
 
 3. H2 database setup:
    - Database is stored in `./db/tripplanning` (file-based H2).
@@ -36,10 +36,10 @@ python3 scripts/seed_example_data.py
 With custom API target:
 
 ```bash
-ROOT_URL=http://localhost:8080 BASE_PATH=/v1 python3 scripts/seed_example_data.py
+ROOT_URL=http://localhost:8080 BASE_PATH=/api/v2 python3 scripts/seed_example_data.py
 ```
 
-If your deployment exposes the API under a prefix, set `BASE_PATH` accordingly (for example `/v1`).
+If your deployment exposes the API under a prefix, set `BASE_PATH` accordingly (for example `/api/v2`).
 
 ## API Reference (OpenAPI / Swagger)
 
@@ -51,28 +51,28 @@ These endpoints provide a frontend-friendly reference for request/response schem
 ## Current API Endpoints
 
 This project currently uses Spring Data REST repositories, not handwritten controllers.
-Endpoints are inferred from repository resources and are available under the base path `/`.
+Endpoints are inferred from repository resources and are available under the base path `/api/v2`.
 
 Main collection resources currently exposed:
 
-- `GET/POST /users`
-- `GET/PUT/PATCH/DELETE /users/{id}`
-- `GET/POST /trips`
-- `GET/PUT/PATCH/DELETE /trips/{id}`
+- `GET/POST /api/v2/users`
+- `GET/PUT/PATCH/DELETE /api/v2/users/{id}`
+- `GET/POST /api/v2/trips`
+- `GET/PUT/PATCH/DELETE /api/v2/trips/{id}`
 
 Depending on repository methods, Spring Data REST may additionally expose search endpoints under:
 
-- `/users/search`
-- `/trips/search`
+- `/api/v2/users/search`
+- `/api/v2/trips/search`
 
 ## Project Structure (Overview)
 
 - `com.tripplanning`
   - Spring Boot application entrypoint (`Application`).
 - `com.tripplanning.user`
-  - `UserEntity` and `UserRepository` (Spring Data REST resource `/users`).
+  - `UserEntity` and `UserRepository` (Spring Data REST resource `/api/v2/users`).
 - `com.tripplanning.trip`
-  - `TripEntity` and `TripRepository` (Spring Data REST resource `/trips`).
+  - `TripEntity` and `TripRepository` (Spring Data REST resource `/api/v2/trips`).
 - `com.tripplanning.accommodation`
   - `AccomEntity` and `AccomRepository`.
 - `com.tripplanning.transport`
@@ -107,4 +107,4 @@ docker run --rm -p 8080:8080 trip-backend:local
 ```
 
 API base URL inside local Docker run:
-- `http://localhost:8080/v1`
+- `http://localhost:8080/api/v2`

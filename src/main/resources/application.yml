@@ -24,6 +24,10 @@ spring:
     serialization:
       write-dates-as-timestamps: false
 
+  data:
+    rest:
+      base-path: /api/v2
+
 springdoc:
   api-docs:
     path: /v3/api-docs
