@@ -9,7 +9,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
@@ -44,8 +43,7 @@ public class TripLocationEntity {
     @Column(nullable = true, length = 500)
     private String imageUrl; // Spezifische User Fotos optional
 
-    @Lob
-    @Column(nullable = true)
+    @Column(nullable = true, columnDefinition = "TEXT")
     private String description; // Persönliche User Beschreibung optional
 
     public TripLocationEntity(TripEntity trip, LocationEntity location, String imageUrl, String description) {
