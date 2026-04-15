@@ -25,6 +25,22 @@ mvn spring-boot:run
    - User: `sa`
    - Password: (empty)
 
+## Seed Example Data
+
+Seed realistic demo data (users, trips, locations, accommodations, transports, likes, comments):
+
+```bash
+python3 scripts/seed_example_data.py
+```
+
+With custom API target:
+
+```bash
+ROOT_URL=http://localhost:8080 BASE_PATH=/v1 python3 scripts/seed_example_data.py
+```
+
+If your deployment exposes the API under a prefix, set `BASE_PATH` accordingly (for example `/v1`).
+
 ## API Reference (OpenAPI / Swagger)
 
 - OpenAPI JSON: `http://localhost:8080/v3/api-docs`
