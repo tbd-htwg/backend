@@ -16,7 +16,7 @@ mvn spring-boot:run
 ```
 
 2. The API is available at:
-   - `http://localhost:8080/v1`
+   - `http://localhost:8080/api/v2`
 
 3. H2 database setup:
    - Database is stored in `./db/tripplanning` (file-based H2).
@@ -24,6 +24,22 @@ mvn spring-boot:run
    - JDBC URL: `jdbc:h2:file:./db/tripplanning;DB_CLOSE_DELAY=-1;AUTO_SERVER=TRUE`
    - User: `sa`
    - Password: (empty)
+
+## Seed Example Data
+
+Seed realistic demo data (users, trips, locations, accommodations, transports, likes, comments):
+
+```bash
+python3 scripts/seed_example_data.py
+```
+
+With custom API target:
+
+```bash
+ROOT_URL=http://localhost:8080 BASE_PATH=/api/v2 python3 scripts/seed_example_data.py
+```
+
+If your deployment exposes the API under a prefix, set `BASE_PATH` accordingly (for example `/api/v2`).
 
 ## API Reference (OpenAPI / Swagger)
 
@@ -34,33 +50,41 @@ These endpoints provide a frontend-friendly reference for request/response schem
 
 ## Current API Endpoints
 
-- `POST /v1/users` - register a user
-- `GET /v1/users` - list all users
-- `GET /v1/users/{id}` - get one user including all trips
-- `PUT /v1/users/{id}` - fully replace a user
-- `PATCH /v1/users/{id}` - partially update a user
-- `DELETE /v1/users/{id}` - delete a user and their trips
-- `POST /v1/trips` - create a trip
-- `GET /v1/trips` - list trips
-- `GET /v1/trips/{id}` - get trip details by id
-- `PUT /v1/trips/{id}` - fully replace a trip
-- `PATCH /v1/trips/{id}` - partially update a trip
-- `DELETE /v1/trips/{id}` - delete a trip
+This project currently uses Spring Data REST repositories, not handwritten controllers.
+Endpoints are inferred from repository resources and are available under the base path `/api/v2`.
+
+Main collection resources currently exposed:
+
+- `GET/POST /api/v2/users`
+- `GET/PUT/PATCH/DELETE /api/v2/users/{id}`
+- `GET/POST /api/v2/trips`
+- `GET/PUT/PATCH/DELETE /api/v2/trips/{id}`
+
+Depending on repository methods, Spring Data REST may additionally expose search endpoints under:
+
+- `/api/v2/users/search`
+- `/api/v2/trips/search`
 
 ## Project Structure (Overview)
 
-- `com.tripplanning.api.controller`
-  - REST controllers (`UserController`, `TripController`) with `/v1` endpoints.
-- `com.tripplanning.api.dto`
-  - Immutable API payloads (Java records) for request/response models.
-- `com.tripplanning.api.exception`
-  - API-level exceptions and centralized exception handler.
+- `com.tripplanning`
+  - Spring Boot application entrypoint (`Application`).
 - `com.tripplanning.user`
-  - `UserEntity`, `UserRepository`, and `UserService` for user domain logic and persistence.
+  - `UserEntity` and `UserRepository` (Spring Data REST resource `/api/v2/users`).
 - `com.tripplanning.trip`
-  - `TripEntity`, `TripRepository`, and `TripService` for trip domain logic and persistence.
+  - `TripEntity` and `TripRepository` (Spring Data REST resource `/api/v2/trips`).
+- `com.tripplanning.accommodation`
+  - `AccomEntity` and `AccomRepository`.
+- `com.tripplanning.transport`
+  - `TransportEntity` and `TransportRepository`.
+- `com.tripplanning.comment`
+  - `CommentEntity` and `CommentRepository`.
+- `com.tripplanning.location`
+  - `LocationEntity` and `LocationRepository`.
+- `com.tripplanning.tripLocation`
+  - `TripLocationEntity` and `TripLocationRepository`.
 - `com.tripplanning.api.config`
-  - OpenAPI/Swagger configuration.
+  - Security and OpenAPI configuration.
 
 ## Run Tests
 
@@ -83,4 +107,4 @@ docker run --rm -p 8080:8080 trip-backend:local
 ```
 
 API base URL inside local Docker run:
-- `http://localhost:8080/v1`
+- `http://localhost:8080/api/v2`

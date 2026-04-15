@@ -1,5 +1,7 @@
 package com.tripplanning.trip;
 
+import com.tripplanning.accommodation.AccomEntity;
+import com.tripplanning.transport.TransportEntity;
 import com.tripplanning.user.UserEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -7,15 +9,21 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
 import jakarta.persistence.Lob;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -23,8 +31,10 @@ import jakarta.validation.constraints.NotNull;
 @Entity
 @Table(name = "trips")
 @Getter
+@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
+@Builder
 public class TripEntity {
   
   public TripEntity(
@@ -47,8 +57,28 @@ public class TripEntity {
   private Long id;
 
   @ManyToOne(optional = false)
-  @JoinColumn(name = "user_id", nullable = false)
+  @JoinColumn(name = "userId", nullable = false)
   private UserEntity user;
+
+  @Builder.Default
+  @ManyToMany
+  @JoinTable(name = "tripTransport", 
+    joinColumns = @JoinColumn(name = "tripId"),
+    inverseJoinColumns = @JoinColumn(name = "transportId")
+  )
+  private List<TransportEntity> transports = new ArrayList<>();
+
+  @Builder.Default
+  @ManyToMany
+  @JoinTable(name = "tripAccommodation",
+    joinColumns = @JoinColumn(name = "tripId"),
+    inverseJoinColumns = @JoinColumn(name = "accomId")
+  )
+  private List<AccomEntity> accommodations = new ArrayList<>();
+
+  @Builder.Default
+  @ManyToMany(mappedBy = "likedTrips")
+  private List<UserEntity> likedByUsers = new ArrayList<>();
 
   @Column(nullable = false, length = 255)
   private String title;
@@ -68,27 +98,4 @@ public class TripEntity {
   @Column(nullable = false)
   private String longDescription;
 
-  public void setUser(UserEntity user) {
-    this.user = user;
-  }
-
-  public void setTitle(String title) {
-    this.title = title;
-  }
-
-  public void setDestination(String destination) {
-    this.destination = destination;
-  }
-
-  public void setStartDate(LocalDate startDate) {
-    this.startDate = startDate;
-  }
-
-  public void setShortDescription(String shortDescription) {
-    this.shortDescription = shortDescription;
-  }
-
-  public void setLongDescription(String longDescription) {
-    this.longDescription = longDescription;
-  }
 }
