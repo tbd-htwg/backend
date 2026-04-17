@@ -44,6 +44,8 @@ jobs:
 
       - name: Setup gcloud CLI
         uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ env.PROJECT_ID }}
 
       - name: Configure Docker auth for Artifact Registry
         run: gcloud auth configure-docker "${REGION}-docker.pkg.dev" --quiet
@@ -63,6 +65,7 @@ jobs:
           gcloud run deploy "${SERVICE_NAME}" \
             --image="${IMAGE_URI}" \
             --region="${REGION}" \
+            --project="${PROJECT_ID}" \
             --platform=managed \
             --allow-unauthenticated \
             --port=8080 \
