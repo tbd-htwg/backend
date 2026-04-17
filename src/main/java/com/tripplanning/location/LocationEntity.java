@@ -12,6 +12,11 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
 
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.KeywordField;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
+
+
+
 @Entity
 @Table(name = "location")
 @Getter
@@ -29,6 +34,8 @@ public class LocationEntity {
     private long id;
 
     @Column(nullable = false, unique = true) // LocationEnitity als Liste aus eindeutigen Orten
+    @FullTextField(analyzer = "english")
+    @KeywordField(name = "destination_keyword")
     private String name;
 
     }

@@ -22,6 +22,12 @@ spring:
         jdbc:
           lob:
             non_contextual_creation: true
+        search:
+          backend:
+            protocol: http
+            hosts: ${ELASTICSEARCH_HOSTS:localhost:9200}
+          schema_management:
+            strategy: create-or-validate
 
   jackson:
     serialization:
