@@ -22,7 +22,7 @@ spring:
     database-platform: org.hibernate.dialect.H2Dialect
     show-sql: true
     hibernate:
-      # Default profile uses validate (PostgreSQL migrations); local H2 file DB needs schema created/updated.
+      # Recreate H2 schema each run; easy clean slate for local dev.
       ddl-auto: create-drop
     properties:
       hibernate:
