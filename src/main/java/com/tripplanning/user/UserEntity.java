@@ -13,6 +13,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -67,6 +68,11 @@ public class UserEntity {
   inverseJoinColumns = @JoinColumn(name = "tripId")
 )
 private List<TripEntity> likedTrips = new ArrayList<>();
+
+  /** Inverse of {@link TripEntity#user}; required for Hibernate Search reindexing. */
+  @Builder.Default
+  @OneToMany(mappedBy = "user")
+  private List<TripEntity> trips = new ArrayList<>();
 
   }
 

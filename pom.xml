@@ -86,6 +86,12 @@
       <artifactId>hibernate-search-backend-elasticsearch</artifactId>
       <version>7.0.1.Final</version>
     </dependency>
+
+    <dependency>
+      <groupId>org.hibernate.search</groupId>
+      <artifactId>hibernate-search-backend-lucene</artifactId>
+      <version>7.0.1.Final</version>
+    </dependency>
   </dependencies>
 
     

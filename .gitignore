@@ -30,6 +30,12 @@ target/
 db/
 !db/
 !db/.gitkeep
+
+# Local temp data (H2 + Lucene); keep only .gitkeep tracked
+temp/db/*
+!temp/db/.gitkeep
+temp/search/*
+!temp/search/.gitkeep
 *.mv.db
 *.h2.db
 *.lock.db

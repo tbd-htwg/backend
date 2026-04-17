@@ -1,11 +1,17 @@
 package com.tripplanning.location;
 
 
+import java.util.ArrayList;
+import java.util.List;
+
+import com.tripplanning.tripLocation.TripLocationEntity;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -37,6 +43,10 @@ public class LocationEntity {
     @FullTextField(analyzer = "english")
     @KeywordField(name = "destination_keyword")
     private String name;
+
+    /** Inverse of {@link TripLocationEntity#location}; required for Hibernate Search reindexing. */
+    @OneToMany(mappedBy = "location")
+    private List<TripLocationEntity> tripLocations = new ArrayList<>();
 
     }
 
