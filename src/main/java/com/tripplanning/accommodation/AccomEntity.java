@@ -19,6 +19,9 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
 
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
+
+
 @Entity
 @Table(name = "accommodation")
 @Getter
@@ -43,6 +46,7 @@ public class AccomEntity {
     private String type;
 
     @Column(nullable = false)
+    @FullTextField(analyzer = "english")
     private String name;
     private String address;
 

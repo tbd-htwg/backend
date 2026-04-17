@@ -17,6 +17,9 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
 
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
+
+
 @Entity
 @Table(name = "transport")
 @Getter
@@ -33,6 +36,7 @@ public class TransportEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
+    @FullTextField(analyzer = "english")
     @Column(nullable = false, length = 50)
     private String type;
 

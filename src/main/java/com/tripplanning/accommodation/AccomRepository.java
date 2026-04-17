@@ -9,6 +9,6 @@ import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 @RepositoryRestResource(path = "accommodations", collectionResourceRel = "accommodations")
 public interface AccomRepository extends JpaRepository<AccomEntity, Long> {
     Optional<AccomEntity> findByName(String name); // Exakte Suche
-    
-    List<AccomEntity> findByNameContaining(String name); // Mehrere Ergebnisse
+
+    List<AccomEntity> findByNameContainingIgnoreCase(String name);
 }

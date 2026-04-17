@@ -13,6 +13,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -20,6 +21,9 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
+
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
+
 
 @Entity
 @Table(name = "users")
@@ -47,6 +51,7 @@ public class UserEntity {
   private String email;
 
   @Column(nullable = false, unique = true, length = 255)
+  @FullTextField(analyzer = "english")
   private String name;
 
   @Column(nullable = true, length = 500)
@@ -63,6 +68,11 @@ public class UserEntity {
   inverseJoinColumns = @JoinColumn(name = "tripId")
 )
 private List<TripEntity> likedTrips = new ArrayList<>();
+
+  /** Inverse of {@link TripEntity#user}; required for Hibernate Search reindexing. */
+  @Builder.Default
+  @OneToMany(mappedBy = "user")
+  private List<TripEntity> trips = new ArrayList<>();
 
   }
 

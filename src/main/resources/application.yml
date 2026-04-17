@@ -13,6 +13,11 @@ spring:
     password: ${SPRING_DATASOURCE_PASSWORD}
     driverClassName: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME}
 
+  elasticsearch:
+    restclient:
+      sniffer:
+        enabled: false
+
   jpa:
     hibernate:
       ddl-auto: create-drop
@@ -22,6 +27,16 @@ spring:
         jdbc:
           lob:
             non_contextual_creation: true
+        search:
+          backend:
+            # Both Lucene and Elasticsearch backends are on the classpath; pick one explicitly.
+            type: elasticsearch
+            protocol: http
+            hosts: ${ELASTICSEARCH_HOSTS:localhost:9200}
+            discovery:
+              enabled: false
+          schema_management:
+            strategy: create-or-validate
 
   jackson:
     serialization:

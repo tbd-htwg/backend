@@ -1,5 +1,7 @@
 package com.tripplanning.tripLocation;
 
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded;
+
 import com.tripplanning.location.LocationEntity;
 import com.tripplanning.trip.TripEntity;
 
@@ -36,6 +38,7 @@ public class TripLocationEntity {
     @JoinColumn(name = "tripId")
     private TripEntity trip;
 
+    @IndexedEmbedded
     @ManyToOne(optional = false)
     @JoinColumn(name = "locationId")
     private LocationEntity location;
