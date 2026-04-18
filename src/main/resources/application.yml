@@ -40,8 +40,11 @@ spring:
           backend:
             # Both Lucene and Elasticsearch backends are on the classpath; pick one explicitly.
             type: elasticsearch
-            protocol: http
+            protocol: ${ELASTICSEARCH_PROTOCOL:http}
             hosts: ${ELASTICSEARCH_HOSTS:localhost:9200}
+            username: ${ELASTICSEARCH_USERNAME:}
+            password: ${ELASTICSEARCH_PASSWORD:}
+            path_prefix: ${ELASTICSEARCH_PATH_PREFIX:}
             discovery:
               enabled: false
           schema_management:
