@@ -18,9 +18,18 @@ spring:
       sniffer:
         enabled: false
 
+  # Flyway owns the SQL schema: migrations in db/migration are applied once,
+  # tracked in the flyway_schema_history table, and coordinated via a DB lock
+  # so multiple Cloud Run instances cold-starting in parallel are safe. Hibernate
+  # is then only allowed to validate that its entity mapping matches the schema.
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     properties:
       hibernate:
         format_sql: true

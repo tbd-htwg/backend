@@ -6,6 +6,13 @@ spring:
     activate:
       on-profile: local
 
+  # Local H2 is recreated on every run by Hibernate (ddl-auto: create-drop below),
+  # so Flyway is redundant and its Postgres-flavored V1 migration would not run
+  # cleanly against H2. Keep the migrations source of truth in db/migration for
+  # production and let Hibernate regenerate the schema from entities here.
+  flyway:
+    enabled: false
+
   datasource:
     # MODE=PostgreSQL improves compatibility with PostgreSQL in other environments
     url: jdbc:h2:file:./temp/db/tripplanning-dev;DB_CLOSE_DELAY=-1;MODE=PostgreSQL
