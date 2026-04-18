@@ -40,6 +40,8 @@ jobs:
       GCP_ELASTICSEARCH_USERNAME: ${{ vars.GCP_ELASTICSEARCH_USERNAME }}
       GCP_ELASTICSEARCH_PATH_PREFIX: ${{ vars.GCP_ELASTICSEARCH_PATH_PREFIX }}
       GCP_ELASTICSEARCH_PASSWORD_SECRET: ${{ vars.GCP_ELASTICSEARCH_PASSWORD_SECRET }}
+      # Optional: distinct Hibernate Search index per environment when sharing one ES cluster (e.g. tripentity-develop).
+      GCP_TRIP_SEARCH_INDEX_NAME: ${{ vars.GCP_TRIP_SEARCH_INDEX_NAME }}
 
     # ------------------------------------------------------------
     # Build backend image, publish to Artifact Registry, deploy to
@@ -85,6 +87,9 @@ jobs:
           fi
           if [ -n "${GCP_ELASTICSEARCH_PATH_PREFIX}" ]; then
             EV="${EV}@ELASTICSEARCH_PATH_PREFIX=${GCP_ELASTICSEARCH_PATH_PREFIX}"
+          fi
+          if [ -n "${GCP_TRIP_SEARCH_INDEX_NAME:-}" ]; then
+            EV="${EV}@TRIPPLANNING_SEARCH_ELASTICSEARCH_INDEX_NAME=${GCP_TRIP_SEARCH_INDEX_NAME}"
           fi
           SECRETS="SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD_SECRET}:latest"
           if [ -n "${GCP_ELASTICSEARCH_PASSWORD_SECRET}" ]; then
