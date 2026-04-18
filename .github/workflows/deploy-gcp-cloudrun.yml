@@ -2,8 +2,14 @@ name: Deploy Backend to GCP Cloud Run
 
 "on":
   workflow_dispatch:
+    inputs:
+      environment:
+        type: environment
+        description: Select the environment to deploy to
+        required: true
+        default: 'develop'
   push:
-    branches: ["main"]
+    branches: ["main", "staging", "develop"]
 
 ############################################################################
 # WORKFLOW PERMISSIONS AND GLOBAL VARIABLES
@@ -13,21 +19,21 @@ permissions:
   contents: read
   id-token: write
 
-env:
-  REGION: ${{ vars.GCP_REGION }}
-  PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
-  ARTIFACT_REPO: ${{ vars.GCP_ARTIFACT_REPO }}
-  SERVICE_NAME: ${{ vars.GCP_BACKEND_SERVICE }}
-  RUN_SA_EMAIL: ${{ vars.GCP_RUN_SA_EMAIL }}
-  CLOUDSQL_CONNECTION_NAME: ${{ vars.GCP_CLOUDSQL_CONNECTION_NAME }}
-  DB_NAME: ${{ vars.GCP_DB_NAME }}
-  DB_USER: ${{ vars.GCP_DB_USER }}
-  DB_PASSWORD_SECRET: ${{ vars.GCP_DB_PASSWORD_SECRET }}
-  CORS_ALLOWED_ORIGINS: ${{ vars.GCP_CORS_ALLOWED_ORIGINS }}
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment || (github.ref == 'refs/heads/main' && 'production' || (github.ref == 'refs/heads/staging' && 'staging' || 'develop')) }}
+    env:
+      REGION: ${{ vars.GCP_REGION }}
+      PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+      ARTIFACT_REPO: ${{ vars.GCP_ARTIFACT_REPO }}
+      SERVICE_NAME: ${{ vars.GCP_BACKEND_SERVICE }}
+      RUN_SA_EMAIL: ${{ vars.GCP_RUN_SA_EMAIL }}
+      CLOUDSQL_CONNECTION_NAME: ${{ vars.GCP_CLOUDSQL_CONNECTION_NAME }}
+      DB_NAME: ${{ vars.GCP_DB_NAME }}
+      DB_USER: ${{ vars.GCP_DB_USER }}
+      DB_PASSWORD_SECRET: ${{ vars.GCP_DB_PASSWORD_SECRET }}
+      CORS_ALLOWED_ORIGINS: ${{ vars.GCP_CORS_ALLOWED_ORIGINS }}
 
     # ------------------------------------------------------------
     # Build backend image, publish to Artifact Registry, deploy to
