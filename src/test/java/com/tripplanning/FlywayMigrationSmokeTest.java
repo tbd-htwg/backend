@@ -33,12 +33,12 @@ class FlywayMigrationSmokeTest {
 
         var result = flyway.migrate();
 
-        assertEquals(1, result.migrationsExecuted, "V1 should have been applied exactly once");
+        assertEquals(2, result.migrationsExecuted, "V1 and V2 should apply on a fresh database");
         assertTrue(result.success, "Flyway migration should succeed");
         assertTrue(Files.exists(Path.of(dbFile.toAbsolutePath() + ".mv.db")), "DB file should exist");
 
         var info = flyway.info().current();
-        assertEquals("1", info.getVersion().getVersion());
+        assertEquals("2", info.getVersion().getVersion());
 
         var second = flyway.migrate();
         assertEquals(0, second.migrationsExecuted, "Re-running Flyway should be a no-op");
