@@ -42,6 +42,10 @@ jobs:
       GCP_ELASTICSEARCH_PASSWORD_SECRET: ${{ vars.GCP_ELASTICSEARCH_PASSWORD_SECRET }}
       # Optional: distinct Hibernate Search index per environment when sharing one ES cluster (e.g. tripentity-develop).
       GCP_TRIP_SEARCH_INDEX_NAME: ${{ vars.GCP_TRIP_SEARCH_INDEX_NAME }}
+      # Cloud Run capacity (override via repo/environment vars CLOUD_RUN_CPU, CLOUD_RUN_MEMORY, CLOUD_RUN_CONCURRENCY).
+      CLOUD_RUN_CPU: ${{ vars.CLOUD_RUN_CPU || '2' }}
+      CLOUD_RUN_MEMORY: ${{ vars.CLOUD_RUN_MEMORY || '2Gi' }}
+      CLOUD_RUN_CONCURRENCY: ${{ vars.CLOUD_RUN_CONCURRENCY || '80' }}
 
     # ------------------------------------------------------------
     # Build backend image, publish to Artifact Registry, deploy to
@@ -95,6 +99,8 @@ jobs:
           if [ -n "${GCP_ELASTICSEARCH_PASSWORD_SECRET}" ]; then
             SECRETS="${SECRETS},ELASTICSEARCH_PASSWORD=${GCP_ELASTICSEARCH_PASSWORD_SECRET}:latest"
           fi
+          # --cpu-boost: extra CPU during startup (helps JVM / Spring Boot bind PORT).
+          # --startup-probe: TCP on 8080; generous delay/threshold so slow cold starts pass (default probe is tight).
           gcloud run deploy "${SERVICE_NAME}" \
             --image="${IMAGE_URI}" \
             --region="${REGION}" \
@@ -102,6 +108,11 @@ jobs:
             --platform=managed \
             --allow-unauthenticated \
             --port=8080 \
+            --cpu="${CLOUD_RUN_CPU}" \
+            --memory="${CLOUD_RUN_MEMORY}" \
+            --concurrency="${CLOUD_RUN_CONCURRENCY}" \
+            --cpu-boost \
+            --startup-probe=initialDelaySeconds=30,timeoutSeconds=5,periodSeconds=5,failureThreshold=60,tcpSocket.port=8080 \
             --service-account="${RUN_SA_EMAIL}" \
             --set-cloudsql-instances="${CLOUDSQL_CONNECTION_NAME}" \
             --set-env-vars="${EV}" \
