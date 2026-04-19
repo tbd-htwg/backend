@@ -8,6 +8,7 @@ import java.util.List;
 @Builder
 public class TripSearchDto {
     private Long id;
+    private Long userId;
     private String title;
     private String author;
     private String shortDescription;

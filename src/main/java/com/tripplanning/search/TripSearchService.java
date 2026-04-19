@@ -57,6 +57,7 @@ public class TripSearchService {
     private TripSearchDto toDto(TripEntity trip) {
         return TripSearchDto.builder()
             .id(trip.getId())
+            .userId(trip.getUser() != null ? trip.getUser().getId() : null)
             .title(trip.getTitle())
             .author(trip.getUser() != null ? trip.getUser().getName() : "Unbekannt")
             .shortDescription(trip.getShortDescription())
