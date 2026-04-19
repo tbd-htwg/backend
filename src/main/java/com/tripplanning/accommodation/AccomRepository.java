@@ -1,8 +1,9 @@
 package com.tripplanning.accommodation;
 
-import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
@@ -10,5 +11,5 @@ import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 public interface AccomRepository extends JpaRepository<AccomEntity, Long> {
     Optional<AccomEntity> findByName(String name); // Exakte Suche
 
-    List<AccomEntity> findByNameContainingIgnoreCase(String name);
+    Page<AccomEntity> findByNameContainingIgnoreCase(String name, Pageable pageable);
 }
