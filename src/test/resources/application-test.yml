@@ -1,0 +1,47 @@
+# Isolated settings for @ActiveProfiles("test") — no Flyway, H2 + Hibernate Search Lucene, auth secrets for CI.
+spring:
+  datasource:
+    url: jdbc:h2:mem:tripplanning_test;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1
+    username: sa
+    password: ""
+    driver-class-name: org.h2.Driver
+
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc:
+          lob:
+            non_contextual_creation: true
+        search:
+          mapping:
+            configurer: bean:tripSearchMappingConfigurer
+          backend:
+            type: lucene
+            directory:
+              type: local-heap
+            analysis:
+              configurer: "class:com.tripplanning.search.LuceneEnglishAnalysisConfigurer"
+          schema_management:
+            strategy: create-or-validate
+
+  flyway:
+    enabled: false
+
+  elasticsearch:
+    restclient:
+      sniffer:
+        enabled: false
+
+tripplanning:
+  cors:
+    allowed-origins: http://localhost:5173
+  auth:
+    jwt-secret: test-test-test-test-test-test-test-test-test-32b
+    google-client-id: dummy.apps.googleusercontent.com
+    jwt-expiration-seconds: 3600
+  search:
+    elasticsearch-index-name: tripentity-test

@@ -42,6 +42,9 @@ jobs:
       GCP_ELASTICSEARCH_PASSWORD_SECRET: ${{ vars.GCP_ELASTICSEARCH_PASSWORD_SECRET }}
       # Optional: distinct Hibernate Search index per environment when sharing one ES cluster (e.g. tripentity-develop).
       GCP_TRIP_SEARCH_INDEX_NAME: ${{ vars.GCP_TRIP_SEARCH_INDEX_NAME }}
+      # Repository / Environment secrets (Settings → Secrets and variables → Actions).
+      TRIPPLANNING_AUTH_GOOGLE_CLIENT_ID: ${{ secrets.TRIPPLANNING_AUTH_GOOGLE_CLIENT_ID }}
+      TRIPPLANNING_AUTH_JWT_SECRET: ${{ secrets.TRIPPLANNING_AUTH_JWT_SECRET }}
       # Cloud Run capacity (override via repo/environment vars CLOUD_RUN_CPU, CLOUD_RUN_MEMORY, CLOUD_RUN_CONCURRENCY).
       CLOUD_RUN_CPU: ${{ vars.CLOUD_RUN_CPU || '2' }}
       CLOUD_RUN_MEMORY: ${{ vars.CLOUD_RUN_MEMORY || '2Gi' }}
@@ -94,6 +97,12 @@ jobs:
           fi
           if [ -n "${GCP_TRIP_SEARCH_INDEX_NAME:-}" ]; then
             EV="${EV}@TRIPPLANNING_SEARCH_ELASTICSEARCH_INDEX_NAME=${GCP_TRIP_SEARCH_INDEX_NAME}"
+          fi
+          if [ -n "${TRIPPLANNING_AUTH_GOOGLE_CLIENT_ID:-}" ]; then
+            EV="${EV}@TRIPPLANNING_AUTH_GOOGLE_CLIENT_ID=${TRIPPLANNING_AUTH_GOOGLE_CLIENT_ID}"
+          fi
+          if [ -n "${TRIPPLANNING_AUTH_JWT_SECRET:-}" ]; then
+            EV="${EV}@TRIPPLANNING_AUTH_JWT_SECRET=${TRIPPLANNING_AUTH_JWT_SECRET}"
           fi
           SECRETS="SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD_SECRET}:latest"
           if [ -n "${GCP_ELASTICSEARCH_PASSWORD_SECRET}" ]; then
