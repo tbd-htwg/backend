@@ -7,18 +7,52 @@ Spring Boot backend for a simple trip planning application.
 - Java 21
 - Maven 3.9+
 
+## Run locally with Google Sign-In (identity provider)
+
+Use the **`local`** profile so you get H2, Lucene search, and a default dev JWT secret from `application-local.yml`. You only need to pass the **OAuth 2.0 Web client ID** (same string as `VITE_GOOGLE_CLIENT_ID` on the frontend). In Google Cloud Console, add **Authorized JavaScript origins** `http://localhost:5173` and `http://127.0.0.1:5173` for that client.
+
+**One shell command** (from the `backend` directory):
+
+```bash
+SPRING_PROFILES_ACTIVE=local \
+TRIPPLANNING_AUTH_GOOGLE_CLIENT_ID='YOUR_CLIENT_ID.apps.googleusercontent.com' \
+mvn spring-boot:run
+```
+
+To override the dev JWT signing key as well (optional; otherwise `application-local.yml` provides a default):
+
+```bash
+SPRING_PROFILES_ACTIVE=local \
+TRIPPLANNING_AUTH_GOOGLE_CLIENT_ID='YOUR_CLIENT_ID.apps.googleusercontent.com' \
+TRIPPLANNING_AUTH_JWT_SECRET='your-own-secret-at-least-32-bytes-long' \
+mvn spring-boot:run
+```
+
+Then start the frontend with the same Web client ID (see the frontend README) and open the app at `http://localhost:5173`.
+
 ## Run Locally
 
-1. Start the application:
+1. Set auth environment variables (required unless you use the `local` profile defaults below):
+
+   - `TRIPPLANNING_AUTH_JWT_SECRET` — at least **32 UTF-8 bytes** (used to sign application JWTs after Google sign-in or registration).
+   - `TRIPPLANNING_AUTH_GOOGLE_CLIENT_ID` — OAuth 2.0 **Web client ID** from Google Cloud Console (same value as the frontend `VITE_GOOGLE_CLIENT_ID`). Needed for `POST /api/v2/auth/google`.
+
+   For quick local runs with H2 + Lucene, use the `local` profile (see `application-local.yml`): it supplies a **dev-only default JWT secret** and enables `POST /api/v2/auth/dev-login` so you can obtain a token without Google.
+
+   ```bash
+   SPRING_PROFILES_ACTIVE=local mvn spring-boot:run
+   ```
+
+2. Start the application (default / Postgres profile requires DB and secrets from your environment):
 
 ```bash
 mvn spring-boot:run
 ```
 
-2. The API is available at:
+3. The API is available at:
    - `http://localhost:8080/api/v2`
 
-3. H2 database setup:
+4. H2 database setup (legacy / non-Flyway default docs):
    - Database is stored in `./db/tripplanning` (file-based H2).
    - H2 console is enabled at `http://localhost:8080/h2-console`.
    - JDBC URL: `jdbc:h2:file:./db/tripplanning;DB_CLOSE_DELAY=-1;AUTO_SERVER=TRUE`
@@ -41,6 +75,8 @@ ROOT_URL=http://localhost:8080 BASE_PATH=/api/v2 python3 scripts/seed_example_da
 
 If your deployment exposes the API under a prefix, set `BASE_PATH` accordingly (for example `/api/v2`).
 
+Mutating API calls require a JWT (`Authorization: Bearer …`). Point the script at a token from registration, Google login, or `POST /api/v2/auth/dev-login` when using the `local` profile.
+
 ## API Reference (OpenAPI / Swagger)
 
 - OpenAPI JSON: `http://localhost:8080/v3/api-docs`
@@ -48,10 +84,23 @@ If your deployment exposes the API under a prefix, set `BASE_PATH` accordingly (
 
 These endpoints provide a frontend-friendly reference for request/response schemas and available routes.
 
+## Authentication (Google Identity + application JWT)
+
+Hand-written REST controllers under `/api/v2/auth`:
+
+- `POST /api/v2/auth/google` — body `{ "credential": "<GIS JWT>" }`; verifies the Google ID token, creates or links the user (`google_sub`, email), returns `{ "tokenType", "accessToken", "user" }`.
+- `POST /api/v2/auth/register` — passwordless registration; same response shape as Google login.
+- `GET /api/v2/auth/me` — returns the current user; requires `Authorization: Bearer <accessToken>`.
+- `POST /api/v2/auth/dev-login` — **only when `spring.profiles.active` includes `local`**; body `{ "email", "name?" }`; returns the same JSON as Google login for local testing without Google.
+
+Other `/api/v2/**` routes: **GET** is mostly public (except user collection and user search, which require a valid JWT). **POST/PUT/PATCH/DELETE** require `Authorization: Bearer <accessToken>`.
+
+**Google Cloud Console:** for local Vite (`http://localhost:5173`), add that origin under **Authorized JavaScript origins** for your Web client ID.
+
 ## Current API Endpoints
 
-This project currently uses Spring Data REST repositories, not handwritten controllers.
-Endpoints are inferred from repository resources and are available under the base path `/api/v2`.
+This project uses Spring Data REST repositories for domain resources, plus the auth controllers above.
+Repository endpoints are inferred and are available under the base path `/api/v2`.
 
 Main collection resources currently exposed:
 

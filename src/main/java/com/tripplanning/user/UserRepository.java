@@ -14,5 +14,7 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
    * have to load every user and filter client-side.
    */
   Optional<UserEntity> findByName(String name);
+
+  Optional<UserEntity> findByGoogleSub(String googleSub);
 }
 

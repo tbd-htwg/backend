@@ -60,6 +60,10 @@ public class UserEntity {
   @Column(nullable = true, columnDefinition = "TEXT")
   private String description;
 
+  /** Google OIDC subject; nullable for legacy users created before Google login. */
+  @Column(name = "google_sub", nullable = true, unique = true, length = 255)
+  private String googleSub;
+
   @Builder.Default
   @ManyToMany
   @JoinTable(
