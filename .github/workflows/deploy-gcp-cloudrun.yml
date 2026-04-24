@@ -26,6 +26,8 @@ jobs:
     env:
       REGION: ${{ vars.GCP_REGION }}
       PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+      WIF_PROVIDER: ${{ vars.GCP_WIF_PROVIDER }}
+      DEPLOYER_SA_EMAIL: ${{ vars.GCP_BACKEND_DEPLOYER_SA_EMAIL }}
       ARTIFACT_REPO: ${{ vars.GCP_ARTIFACT_REPO }}
       SERVICE_NAME: ${{ vars.GCP_BACKEND_SERVICE }}
       RUN_SA_EMAIL: ${{ vars.GCP_RUN_SA_EMAIL }}
@@ -61,7 +63,8 @@ jobs:
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: ${{ env.DEPLOYER_SA_EMAIL }}
 
       - name: Setup gcloud CLI
         uses: google-github-actions/setup-gcloud@v2
