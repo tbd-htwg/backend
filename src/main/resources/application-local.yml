@@ -50,3 +50,7 @@ spring:
 tripplanning:
   cors:
     allowed-origins: http://localhost:5173,http://127.0.0.1:5173
+  auth:
+    # Dev-only default; override with TRIPPLANNING_AUTH_JWT_SECRET in shared environments.
+    jwt-secret: ${TRIPPLANNING_AUTH_JWT_SECRET:local-dev-only-change-me-32bytes-min!!}
+    google-client-id: ${TRIPPLANNING_AUTH_GOOGLE_CLIENT_ID:}
