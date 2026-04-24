@@ -10,9 +10,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
@@ -63,15 +60,6 @@ public class UserEntity {
   /** Google OIDC subject; nullable for legacy users created before Google login. */
   @Column(name = "google_sub", nullable = true, unique = true, length = 255)
   private String googleSub;
-
-  @Builder.Default
-  @ManyToMany
-  @JoinTable(
-  name = "userLikesTrips", 
-  joinColumns = @JoinColumn(name = "userId"),
-  inverseJoinColumns = @JoinColumn(name = "tripId")
-)
-private List<TripEntity> likedTrips = new ArrayList<>();
 
   /** Inverse of {@link TripEntity#user}; required for Hibernate Search reindexing. */
   @Builder.Default

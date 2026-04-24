@@ -15,6 +15,13 @@ tripplanning:
     elasticsearch-index-name: ${TRIPPLANNING_SEARCH_ELASTICSEARCH_INDEX_NAME:tripentity}
 
 spring:
+  cloud:
+    gcp:
+      project-id: ${GCP_PROJECT_ID}
+      firestore:
+        enabled: true
+        database-id: ${FIRESTORE_DATABASE_ID:(default)}
+
   datasource:
     url: ${SPRING_DATASOURCE_URL}
     username: ${SPRING_DATASOURCE_USERNAME}

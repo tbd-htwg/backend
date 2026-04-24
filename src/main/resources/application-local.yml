@@ -6,6 +6,13 @@ spring:
     activate:
       on-profile: local
 
+  cloud:
+    gcp:
+      sql:
+        enabled: false
+      firestore:
+        enabled: false
+
   # Local H2 is recreated on every run by Hibernate (ddl-auto: create-drop below),
   # so Flyway is redundant and its Postgres-flavored V1 migration would not run
   # cleanly against H2. Keep the migrations source of truth in db/migration for
@@ -46,6 +53,10 @@ spring:
               configurer: "class:com.tripplanning.search.LuceneEnglishAnalysisConfigurer"
           schema_management:
             strategy: create-or-validate
+
+  data:
+    mongodb:
+      uri: mongodb://root:rootpassword@localhost:27017/tripplanning?authSource=admin
 
 tripplanning:
   cors:
