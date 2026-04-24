@@ -86,6 +86,14 @@ jobs:
       - name: Deploy to Cloud Run
         run: |
           set -euo pipefail
+          test -n "${TRIPPLANNING_AUTH_GOOGLE_CLIENT_ID:-}" || {
+            echo "Missing required secret: TRIPPLANNING_AUTH_GOOGLE_CLIENT_ID"
+            exit 1
+          }
+          test -n "${TRIPPLANNING_AUTH_JWT_SECRET:-}" || {
+            echo "Missing required secret: TRIPPLANNING_AUTH_JWT_SECRET"
+            exit 1
+          }
           PROTO="${GCP_ELASTICSEARCH_PROTOCOL:-https}"
           HOSTS="${GCP_ELASTICSEARCH_HOSTS:?Set GCP_ELASTICSEARCH_HOSTS in the GitHub Environment variables (e.g. es.example.com:443)}"
           EV="^@^SPRING_DATASOURCE_URL=jdbc:postgresql:///${DB_NAME}?socketFactory=com.google.cloud.sql.postgres.SocketFactory&cloudSqlInstance=${CLOUDSQL_CONNECTION_NAME}@SPRING_DATASOURCE_USERNAME=${DB_USER}@SPRING_DATASOURCE_DRIVER_CLASS_NAME=org.postgresql.Driver@CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS}@ELASTICSEARCH_PROTOCOL=${PROTO}@ELASTICSEARCH_HOSTS=${HOSTS}"
