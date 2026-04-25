@@ -119,6 +119,12 @@
       <artifactId>hibernate-search-backend-lucene</artifactId>
       <version>7.0.1.Final</version>
     </dependency>
+
+    <dependency>
+    <groupId>com.google.cloud</groupId>
+    <artifactId>spring-cloud-gcp-starter-storage</artifactId>
+    <version>5.0.0</version> 
+    </dependency>
   </dependencies>
 
     

@@ -60,6 +60,11 @@ spring:
           schema_management:
             strategy: create-or-validate
 
+  cloud:
+    gcp:
+      storage:
+        bucket-name: "project-9118634e-c9f1-4f29-804-images-bucket"
+
   jackson:
     serialization:
       write-dates-as-timestamps: false
