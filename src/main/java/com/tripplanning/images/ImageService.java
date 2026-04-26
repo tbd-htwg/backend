@@ -12,17 +12,22 @@ import java.util.concurrent.TimeUnit;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import jakarta.annotation.PostConstruct;
+
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.auth.oauth2.ImpersonatedCredentials;
 import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.BlobInfo;
 import com.google.cloud.storage.HttpMethod;
 import com.google.cloud.storage.Storage;
+import com.google.cloud.storage.StorageException;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ImageService {
 
     private static final Duration SIGNED_UPLOAD_URL_TTL = Duration.ofMinutes(15);
@@ -34,6 +39,13 @@ public class ImageService {
 
     @Value("${spring.cloud.gcp.impersonate-service-account:}")
     private String impersonateServiceAccount;
+
+    @PostConstruct
+    void trimBucketName() {
+        if (bucketName != null) {
+            bucketName = bucketName.trim();
+        }
+    }
 
     public SignedUploadInfo createSignedUpload(String folder, String fileName, String contentType) {
         if (contentType == null || !contentType.startsWith("image/")) {
@@ -67,23 +79,50 @@ public class ImageService {
         if (objectUrl == null || objectUrl.isBlank()) {
             return;
         }
-        String objectName = parseObjectNameFromPublicUrl(objectUrl);
+        String objectName = parseObjectNameFromPublicUrl(objectUrl.trim());
         if (objectName == null || !objectName.startsWith(requiredNamePrefix)) {
+            log.debug(
+                    "Skip GCS delete: URL does not match configured bucket or prefix {} (url host/path mismatch)",
+                    requiredNamePrefix);
             return;
         }
-        storage.delete(BlobId.of(bucketName, objectName));
+        try {
+            boolean removed = Boolean.TRUE.equals(storage.delete(BlobId.of(bucketName, objectName)));
+            if (removed) {
+                log.debug("Deleted gs://{}/{}", bucketName, objectName);
+            } else {
+                log.debug("GCS object already absent gs://{}/{}", bucketName, objectName);
+            }
+        } catch (StorageException e) {
+            log.warn(
+                    "Could not delete gs://{}/{} — clearing DB image URL anyway. Fix IAM (storage.objects.delete) if objects should be removed. {} [{}]",
+                    bucketName,
+                    objectName,
+                    e.getMessage(),
+                    e.getCode(),
+                    e);
+        }
     }
 
     /**
      * @return object name within this bucket, or {@code null} if the URL does not target this bucket
      */
     private String parseObjectNameFromPublicUrl(String objectUrl) {
-        String prefix = "https://storage.googleapis.com/" + bucketName + "/";
-        if (!objectUrl.startsWith(prefix)) {
+        if (bucketName == null || bucketName.isEmpty()) {
             return null;
         }
-        String encodedTail = objectUrl.substring(prefix.length());
-        return URLDecoder.decode(encodedTail, StandardCharsets.UTF_8);
+        // Path-style URL produced by this service
+        String pathStylePrefix = "https://storage.googleapis.com/" + bucketName + "/";
+        if (objectUrl.startsWith(pathStylePrefix)) {
+            return URLDecoder.decode(
+                    objectUrl.substring(pathStylePrefix.length()), StandardCharsets.UTF_8);
+        }
+        // Virtual-hosted style (also valid for public GCS URLs)
+        String vhostPrefix = "https://" + bucketName + ".storage.googleapis.com/";
+        if (objectUrl.startsWith(vhostPrefix)) {
+            return URLDecoder.decode(objectUrl.substring(vhostPrefix.length()), StandardCharsets.UTF_8);
+        }
+        return null;
     }
 
     private URL createSignedUrl(BlobInfo blobInfo) {

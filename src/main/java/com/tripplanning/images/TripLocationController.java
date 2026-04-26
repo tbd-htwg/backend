@@ -60,7 +60,7 @@ public class TripLocationController {
         long callerId = Long.parseLong(jwt.getSubject());
         TripLocationEntity tripLocation =
                 tripLocationRepository
-                        .findById(tripLocationId)
+                        .findByIdWithTripAndUser(tripLocationId)
                         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Trip-Location nicht gefunden"));
         long ownerId = tripLocation.getTrip().getUser().getId();
         if (ownerId != callerId) {
