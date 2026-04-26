@@ -4,7 +4,6 @@ package com.tripplanning.images;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import com.tripplanning.tripLocation.TripLocationEntity;
 import com.tripplanning.tripLocation.TripLocationRepository;
@@ -13,28 +12,36 @@ import com.tripplanning.tripLocation.TripLocationRepository;
 @RequestMapping("/api/v2/trip-locations")
 @RequiredArgsConstructor
 public class TripLocationController {
-
     private final ImageService imageService;
     private final TripLocationRepository tripLocationRepository; 
 
     @PostMapping("/{tripLocationId}/images")
-    public ResponseEntity<?> uploadImage(
+    public ResponseEntity<?> createUploadUrl(
             @PathVariable Long tripLocationId, 
-            @RequestParam("file") MultipartFile file) {
+            @RequestBody ImageUploadDtos.CreateUploadRequest request) {
         try {
-            String url = imageService.uploadImage(file, "trip-locations/" + tripLocationId);
+            ImageService.SignedUploadInfo signedUpload =
+                    imageService.createSignedUpload(
+                            "trip-locations/" + tripLocationId,
+                            request.fileName(),
+                            request.contentType());
 
             TripLocationEntity tripLocation = tripLocationRepository.findById(tripLocationId)
                     .orElseThrow(() -> new RuntimeException("Trip-Location nicht gefunden"));
 
-            tripLocation.setImageUrl(url);
+            tripLocation.setImageUrl(signedUpload.objectUrl());
             tripLocationRepository.save(tripLocation);
 
-            return ResponseEntity.ok(url);
+            return ResponseEntity.ok(
+                    new ImageUploadDtos.CreateUploadResponse(
+                            signedUpload.uploadUrl(),
+                            signedUpload.objectUrl(),
+                            signedUpload.objectName(),
+                            signedUpload.contentType()));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("Fehler beim Upload: " + e.getMessage());
+            return ResponseEntity.internalServerError().body("Fehler beim Erstellen der Upload-URL: " + e.getMessage());
         }
     }
 }

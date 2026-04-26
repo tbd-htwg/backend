@@ -49,7 +49,7 @@ spring:
 
   cloud:
     gcp:
-      impersonate-service-account: "tripplanning-dev-img-store@project-9118634e-c9f1-4f29-804.iam.gserviceaccount.com"
+      impersonate-service-account: "tripplanning-dev-image-url-sig@project-9118634e-c9f1-4f29-804.iam.gserviceaccount.com"
       storage:
         bucket-name: "project-9118634e-c9f1-4f29-804-images-bucket"
       sql:
