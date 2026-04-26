@@ -1,6 +1,7 @@
 package com.tripplanning.images;
 
 import java.net.URL;
+import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -55,6 +56,34 @@ public class ImageService {
                 java.net.URLEncoder.encode(objectName, StandardCharsets.UTF_8).replace("+", "%20"));
 
         return new SignedUploadInfo(signedUrl.toString(), objectUrl, objectName, contentType);
+    }
+
+    /**
+     * If {@code objectUrl} is a public URL for this bucket and the decoded object name starts with
+     * {@code requiredNamePrefix}, deletes that object. Otherwise does nothing (e.g. foreign URL or
+     * blank).
+     */
+    public void deleteStoredObjectByUrlIfApplicable(String objectUrl, String requiredNamePrefix) {
+        if (objectUrl == null || objectUrl.isBlank()) {
+            return;
+        }
+        String objectName = parseObjectNameFromPublicUrl(objectUrl);
+        if (objectName == null || !objectName.startsWith(requiredNamePrefix)) {
+            return;
+        }
+        storage.delete(BlobId.of(bucketName, objectName));
+    }
+
+    /**
+     * @return object name within this bucket, or {@code null} if the URL does not target this bucket
+     */
+    private String parseObjectNameFromPublicUrl(String objectUrl) {
+        String prefix = "https://storage.googleapis.com/" + bucketName + "/";
+        if (!objectUrl.startsWith(prefix)) {
+            return null;
+        }
+        String encodedTail = objectUrl.substring(prefix.length());
+        return URLDecoder.decode(encodedTail, StandardCharsets.UTF_8);
     }
 
     private URL createSignedUrl(BlobInfo blobInfo) {

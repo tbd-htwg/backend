@@ -1,15 +1,19 @@
 package com.tripplanning.images;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
-import com.tripplanning.user.UserRepository;
 import com.tripplanning.user.UserEntity;
-
+import com.tripplanning.user.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -48,5 +52,23 @@ public class UserProfileController {
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body("Error while creating upload URL: " + e.getMessage());
         }
+    }
+
+    @DeleteMapping("/{userId}/images")
+    public ResponseEntity<Void> deleteProfileImage(
+            @PathVariable Long userId, @AuthenticationPrincipal Jwt jwt) {
+        long callerId = Long.parseLong(jwt.getSubject());
+        if (callerId != userId) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not allowed");
+        }
+        UserEntity user =
+                userRepository
+                        .findById(userId)
+                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        String prefix = "user-profiles/" + userId + "/";
+        imageService.deleteStoredObjectByUrlIfApplicable(user.getImageUrl(), prefix);
+        user.setImageUrl(null);
+        userRepository.save(user);
+        return ResponseEntity.noContent().build();
     }
 }
