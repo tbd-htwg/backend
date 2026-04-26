@@ -36,6 +36,7 @@ jobs:
       DB_USER: ${{ vars.GCP_DB_USER }}
       DB_PASSWORD_SECRET: ${{ vars.GCP_DB_PASSWORD_SECRET }}
       CORS_ALLOWED_ORIGINS: ${{ vars.GCP_CORS_ALLOWED_ORIGINS }}
+      GCP_IMPERSONATE_SERVICE_ACCOUNT: ${{ vars.GCP_IMPERSONATE_SERVICE_ACCOUNT }}
       # Remote Elasticsearch (Secret Manager secret *id*, not the password string — see deploy step).
       GCP_ELASTICSEARCH_PROTOCOL: ${{ vars.GCP_ELASTICSEARCH_PROTOCOL }}
       GCP_ELASTICSEARCH_HOSTS: ${{ vars.GCP_ELASTICSEARCH_HOSTS }}
@@ -99,21 +100,22 @@ jobs:
           }
           PROTO="${GCP_ELASTICSEARCH_PROTOCOL:-https}"
           HOSTS="${GCP_ELASTICSEARCH_HOSTS:?Set GCP_ELASTICSEARCH_HOSTS in the GitHub Environment variables (e.g. es.example.com:443)}"
-          EV="^@^SPRING_DATASOURCE_URL=jdbc:postgresql:///${DB_NAME}?socketFactory=com.google.cloud.sql.postgres.SocketFactory&cloudSqlInstance=${CLOUDSQL_CONNECTION_NAME}@SPRING_DATASOURCE_USERNAME=${DB_USER}@SPRING_DATASOURCE_DRIVER_CLASS_NAME=org.postgresql.Driver@CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS}@ELASTICSEARCH_PROTOCOL=${PROTO}@ELASTICSEARCH_HOSTS=${HOSTS}"
-          if [ -n "${GCP_ELASTICSEARCH_USERNAME}" ]; then
-            EV="${EV}@ELASTICSEARCH_USERNAME=${GCP_ELASTICSEARCH_USERNAME}"
+          # gcloud --set-env-vars default pair delimiter is ','; value-safe multi-pair form is ^D^...D...D
+          # (^@^ breaks when any value contains '@', e.g. service account emails). Use '|' — ensure no value contains '|'.
+          EV="^|^SPRING_DATASOURCE_URL=jdbc:postgresql:///${DB_NAME}?socketFactory=com.google.cloud.sql.postgres.SocketFactory&cloudSqlInstance=${CLOUDSQL_CONNECTION_NAME}|SPRING_DATASOURCE_USERNAME=${DB_USER}|SPRING_DATASOURCE_DRIVER_CLASS_NAME=org.postgresql.Driver|CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS}|ELASTICSEARCH_PROTOCOL=${PROTO}|ELASTICSEARCH_HOSTS=${HOSTS}"
+          if [ -n "${GCP_ELASTICSEARCH_USERNAME:-}" ]; then
+            EV="${EV}|ELASTICSEARCH_USERNAME=${GCP_ELASTICSEARCH_USERNAME}"
           fi
-          if [ -n "${GCP_ELASTICSEARCH_PATH_PREFIX}" ]; then
-            EV="${EV}@ELASTICSEARCH_PATH_PREFIX=${GCP_ELASTICSEARCH_PATH_PREFIX}"
+          if [ -n "${GCP_ELASTICSEARCH_PATH_PREFIX:-}" ]; then
+            EV="${EV}|ELASTICSEARCH_PATH_PREFIX=${GCP_ELASTICSEARCH_PATH_PREFIX}"
           fi
           if [ -n "${GCP_TRIP_SEARCH_INDEX_NAME:-}" ]; then
-            EV="${EV}@TRIPPLANNING_SEARCH_ELASTICSEARCH_INDEX_NAME=${GCP_TRIP_SEARCH_INDEX_NAME}"
+            EV="${EV}|TRIPPLANNING_SEARCH_ELASTICSEARCH_INDEX_NAME=${GCP_TRIP_SEARCH_INDEX_NAME}"
           fi
-          if [ -n "${TRIPPLANNING_AUTH_GOOGLE_CLIENT_ID:-}" ]; then
-            EV="${EV}@TRIPPLANNING_AUTH_GOOGLE_CLIENT_ID=${TRIPPLANNING_AUTH_GOOGLE_CLIENT_ID}"
-          fi
-          if [ -n "${TRIPPLANNING_AUTH_JWT_SECRET:-}" ]; then
-            EV="${EV}@TRIPPLANNING_AUTH_JWT_SECRET=${TRIPPLANNING_AUTH_JWT_SECRET}"
+          EV="${EV}|TRIPPLANNING_AUTH_GOOGLE_CLIENT_ID=${TRIPPLANNING_AUTH_GOOGLE_CLIENT_ID}"
+          EV="${EV}|TRIPPLANNING_AUTH_JWT_SECRET=${TRIPPLANNING_AUTH_JWT_SECRET}"
+          if [ -n "${GCP_IMPERSONATE_SERVICE_ACCOUNT:-}" ]; then
+            EV="${EV}|SPRING_CLOUD_GCP_IMPERSONATE_SERVICE_ACCOUNT=${GCP_IMPERSONATE_SERVICE_ACCOUNT}"
           fi
           SECRETS="SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD_SECRET}:latest"
           if [ -n "${GCP_ELASTICSEARCH_PASSWORD_SECRET}" ]; then

@@ -1,5 +1,7 @@
 package com.tripplanning.tripLocation;
 
+import java.time.LocalDateTime;
+
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded;
 
 import com.tripplanning.location.LocationEntity;
@@ -49,11 +51,19 @@ public class TripLocationEntity {
     @Column(nullable = true, columnDefinition = "TEXT")
     private String description; // Persönliche User Beschreibung optional
 
-    public TripLocationEntity(TripEntity trip, LocationEntity location, String imageUrl, String description) {
+    @Column(nullable = false)
+    private LocalDateTime startDate; 
+    
+    @Column(nullable = false)
+    private LocalDateTime endDate;
+
+    public TripLocationEntity(TripEntity trip, LocationEntity location, String imageUrl, String description, LocalDateTime startDate, LocalDateTime endDate) {
         this.trip = trip;
         this.location = location;
         this.imageUrl = imageUrl;
         this.description = description;
+        this.startDate = startDate;
+        this.endDate = endDate;
     }
 }
 
