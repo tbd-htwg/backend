@@ -15,7 +15,7 @@ import com.tripplanning.user.UserEntity;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/api/v2/users")
 @RequiredArgsConstructor
 public class UserProfileController {
     private final ImageService imageService;

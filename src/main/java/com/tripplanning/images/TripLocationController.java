@@ -10,7 +10,7 @@ import com.tripplanning.tripLocation.TripLocationEntity;
 import com.tripplanning.tripLocation.TripLocationRepository;
 
 @RestController
-@RequestMapping("/api/trip-locations")
+@RequestMapping("/api/v2/trip-locations")
 @RequiredArgsConstructor
 public class TripLocationController {
 
