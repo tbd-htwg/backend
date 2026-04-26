@@ -12,7 +12,7 @@ public interface TripRepository extends JpaRepository<TripEntity, Long> {
   Page<TripEntity> findByUserId(Long userId, Pageable pageable);
   void deleteByUserId(Long userId);
   Page<TripEntity> findByLikedByUsersId(Long userId, Pageable pageable);
-  @Query("SELECT size(t.likedByUsers) FROM TripEntity t WHERE t.id = :tripId")
-    int countLikes(@Param("tripId") Long tripId); // zählt likes direkt in DB
+  @Query("SELECT COUNT(u) FROM TripEntity t LEFT JOIN t.likedByUsers u WHERE t.id = :tripId")
+  int countLikes(@Param("tripId") Long tripId); // counts likes; returns 0 when trip has no likes or no row
 }
 
