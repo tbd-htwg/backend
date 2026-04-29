@@ -15,6 +15,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.tripplanning.user.UserEntity;
 import com.tripplanning.user.UserRepository;
+import com.tripplanning.user.UserService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -24,21 +25,22 @@ import lombok.RequiredArgsConstructor;
 public class UserProfileController {
     private final ImageService imageService;
     private final UserRepository userRepository;
+    private final UserService userService;
 
     @PostMapping("/{userId}/images")
     public ResponseEntity<?> createUploadUrl(
             @PathVariable Long userId, 
             @RequestBody ImageUploadDtos.CreateUploadRequest request,
             @AuthenticationPrincipal Jwt jwt) {
-        try {
-            long callerId = Long.parseLong(jwt.getSubject());
-            if (callerId != userId) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not allowed");
-            }
-
+        
             UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
+            if (!userService.isCurrentUser(user)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not allowed");
+            }
+
+            try{
             ImageService.SignedUploadInfo signedUpload =
                     imageService.createSignedUpload(
                             "user-profiles/" + userId,
@@ -46,7 +48,7 @@ public class UserProfileController {
                             request.contentType());
 
             String prefix = "user-profiles/" + userId + "/";
-            imageService.deleteStoredObjectByUrlIfApplicable(user.getImagePath(), prefix);
+            imageService.deleteStoredObjectByPath(user.getImagePath(), prefix);
 
             user.setImagePath(signedUpload.objectName());
             userRepository.save(user);
@@ -59,10 +61,10 @@ public class UserProfileController {
                             signedReadUrl,
                             signedUpload.objectName(),
                             signedUpload.contentType()));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("Error while creating upload URL: " + e.getMessage());
+            } catch (IllegalArgumentException e) {
+                return ResponseEntity.badRequest().body(e.getMessage());
+            } catch (Exception e) {
+                return ResponseEntity.internalServerError().body("Error while creating upload URL: " + e.getMessage());
         }
     }
 
@@ -84,18 +86,54 @@ public class UserProfileController {
     @DeleteMapping("/{userId}/images")
     public ResponseEntity<Void> deleteProfileImage(
             @PathVariable Long userId, @AuthenticationPrincipal Jwt jwt) {
-        long callerId = Long.parseLong(jwt.getSubject());
-        if (callerId != userId) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not allowed");
-        }
+        
         UserEntity user =
                 userRepository
                         .findById(userId)
                         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        if (!userService.isCurrentUser(user)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not allowed");
+        }
+
         String prefix = "user-profiles/" + userId + "/";
-        imageService.deleteStoredObjectByUrlIfApplicable(user.getImagePath(), prefix);
+        imageService.deleteStoredObjectByPath(user.getImagePath(), prefix);
         user.setImagePath(null);
         userRepository.save(user);
         return ResponseEntity.noContent().build();
     }
+
+    //Email is only displayed when the profile belongs to the current user
+    @GetMapping("/{userId}/profile")
+    public ResponseEntity<UserProfileResponse> getUserProfile(
+            @PathVariable Long userId,
+            @AuthenticationPrincipal Jwt jwt) {
+        
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        
+        String email = null;
+        if (jwt != null && userService.isCurrentUser(user)) {
+            email = user.getEmail();
+        }
+        
+        String profileImageUrl = null;
+        if (user.getImagePath() != null) {
+            profileImageUrl = imageService.createSignedReadUrl(user.getImagePath());
+        }
+        
+        return ResponseEntity.ok(new UserProfileResponse(
+            user.getId(),
+            user.getName(),
+            user.getDescription(),
+            profileImageUrl,
+            email));
+    }
+
+    public record UserProfileResponse(
+            Long id,
+            String name,
+            String description,
+            String profileImageUrl,
+            String email) {}
 }

@@ -19,6 +19,7 @@ import com.tripplanning.tripLocation.TripLocationEntity;
 import com.tripplanning.tripLocation.TripLocationImageEntity;
 import com.tripplanning.tripLocation.TripLocationImageRepository;
 import com.tripplanning.tripLocation.TripLocationRepository;
+import com.tripplanning.user.UserService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -29,6 +30,7 @@ public class TripLocationImageController {
     private final ImageService imageService;
     private final TripLocationRepository tripLocationRepository;
     private final TripLocationImageRepository tripLocationImageRepository;
+    private final UserService userService;
 
     @PostMapping("/{tripLocationId}/images")
     public ResponseEntity<?> createUploadUrl(
@@ -36,13 +38,11 @@ public class TripLocationImageController {
             @RequestBody ImageUploadDtos.CreateUploadRequest request,
             @AuthenticationPrincipal Jwt jwt) {
         try {
-            long callerId = Long.parseLong(jwt.getSubject());
             TripLocationEntity tripLocation = tripLocationRepository
                 .findByIdWithTripAndUser(tripLocationId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Trip not found."));
-            long ownerId = tripLocation.getTrip().getUser().getId();
-            if (ownerId != callerId) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "User not authorized.");
+            if (!userService.isCurrentUser(tripLocation.getTrip().getUser())) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "User not authorized.");
             }
 
             ImageService.SignedUploadInfo signedUpload =
@@ -88,19 +88,17 @@ public class TripLocationImageController {
     @DeleteMapping("/{tripLocationId}/images")
     public ResponseEntity<Void> deleteImage(
             @PathVariable Long tripLocationId, @AuthenticationPrincipal Jwt jwt) {
-        long callerId = Long.parseLong(jwt.getSubject());
         TripLocationEntity tripLocation =
                 tripLocationRepository
                         .findByIdWithTripAndUser(tripLocationId)
                         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Trip not found."));
-        long ownerId = tripLocation.getTrip().getUser().getId();
-        if (ownerId != callerId) {
+        if (!userService.isCurrentUser(tripLocation.getTrip().getUser())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "User not authorized.");
         }
         List<TripLocationImageEntity> images = tripLocationImageRepository.findByTripLocationId(tripLocationId);
         String prefix = "trip-locations/" + tripLocationId + "/";
         for (TripLocationImageEntity image : images) {
-            imageService.deleteStoredObjectByUrlIfApplicable(image.getImagePath(), prefix);
+            imageService.deleteStoredObjectByPath(image.getImagePath(), prefix);
         }
         tripLocationImageRepository.deleteAll(images);
         return ResponseEntity.noContent().build();
@@ -128,7 +126,7 @@ public class TripLocationImageController {
         }
 
         String prefix = "trip-locations/" + tripLocationId + "/";
-        imageService.deleteStoredObjectByUrlIfApplicable(image.getImagePath(), prefix);
+        imageService.deleteStoredObjectByPath(image.getImagePath(), prefix);
         tripLocationImageRepository.delete(image);
         return ResponseEntity.noContent().build();
     }

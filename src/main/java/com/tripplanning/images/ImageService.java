@@ -19,6 +19,7 @@ import com.google.cloud.storage.BlobInfo;
 import com.google.cloud.storage.HttpMethod;
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageException;
+import com.tripplanning.tripLocation.TripLocationImageEntity;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -74,7 +75,7 @@ public class ImageService {
     }
 
 
-    public void deleteStoredObjectByUrlIfApplicable(String objectName, String requiredNamePrefix) {
+    public void deleteStoredObjectByPath(String objectName, String requiredNamePrefix) {
         if (objectName == null || objectName.isBlank()) {
             return;
         }
@@ -165,5 +166,15 @@ public class ImageService {
             String uploadUrl,
             String objectName,
             String contentType) {
+    }
+
+
+    //needed for projection
+    public List<String> getSignedUrlsForImages(List<TripLocationImageEntity> images) {
+    if (images == null) return List.of();
+    return images.stream()
+            .map(img -> createSignedReadUrl(img.getImagePath()))
+            .filter(url -> url != null)
+            .toList();
     }
 }

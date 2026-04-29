@@ -116,4 +116,10 @@ public class TripEntity {
   @Column(nullable = false, columnDefinition = "TEXT")
   private String longDescription;
 
+  public List<String> getLocationNames() {
+    return tripLocations.stream()
+        .map(tl -> tl.getLocation().getName())
+        .toList();
+}
+
 }
