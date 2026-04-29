@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -47,14 +48,15 @@ public class UserProfileController {
             String prefix = "user-profiles/" + userId + "/";
             imageService.deleteStoredObjectByUrlIfApplicable(user.getImagePath(), prefix);
 
-            user.setImagePath(signedUpload.objectUrl());
+            user.setImagePath(signedUpload.objectName());
             userRepository.save(user);
 
+            String signedReadUrl = imageService.createSignedReadUrl(signedUpload.objectName());
             return ResponseEntity.ok(
                     new ImageUploadDtos.CreateUploadResponse(
                         null,
                             signedUpload.uploadUrl(),
-                            signedUpload.objectUrl(),
+                            signedReadUrl,
                             signedUpload.objectName(),
                             signedUpload.contentType()));
         } catch (IllegalArgumentException e) {
@@ -63,6 +65,21 @@ public class UserProfileController {
             return ResponseEntity.internalServerError().body("Error while creating upload URL: " + e.getMessage());
         }
     }
+
+
+    @GetMapping("/{userId}/image")
+    public ResponseEntity<String> getProfileImage(@PathVariable Long userId) {
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        
+        if (user.getImagePath() == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        String signedUrl = imageService.createSignedReadUrl(user.getImagePath());
+        return ResponseEntity.ok(signedUrl);
+    }
+    
 
     @DeleteMapping("/{userId}/images")
     public ResponseEntity<Void> deleteProfileImage(

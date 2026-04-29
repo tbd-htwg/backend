@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -52,16 +53,16 @@ public class TripLocationImageController {
 
                 TripLocationImageEntity image = TripLocationImageEntity.builder()
                     .tripLocation(tripLocation)
-                    .imagePath(signedUpload.objectUrl())
+                    .imagePath(signedUpload.objectName())
                     .build();
 
                 tripLocationImageRepository.save(image);
-
+            String signedReadUrl = imageService.createSignedReadUrl(signedUpload.objectName());
             return ResponseEntity.ok(
                     new ImageUploadDtos.CreateUploadResponse(
                 image.getId(),
                             signedUpload.uploadUrl(),
-                            signedUpload.objectUrl(),
+                            signedReadUrl,
                             signedUpload.objectName(),
                             signedUpload.contentType()));
         } catch (IllegalArgumentException e) {
@@ -70,6 +71,19 @@ public class TripLocationImageController {
             return ResponseEntity.internalServerError().body("Fehler beim Erstellen der Upload-URL: " + e.getMessage());
         }
     }
+
+
+    @GetMapping("/{tripLocationId}/images")
+    public ResponseEntity<List<String>> getImages(@PathVariable Long tripLocationId) {
+        List<TripLocationImageEntity> images = tripLocationImageRepository.findByTripLocationId(tripLocationId);
+        
+        List<String> signedReadUrls = images.stream()
+                .map(img -> imageService.createSignedReadUrl(img.getImagePath()))
+                .toList();
+
+        return ResponseEntity.ok(signedReadUrls);
+    }
+
 
     @DeleteMapping("/{tripLocationId}/images")
     public ResponseEntity<Void> deleteImage(
