@@ -11,7 +11,7 @@ final class UserResponseMapper {
         e.getId(),
         e.getEmail() != null ? e.getEmail() : "",
         e.getName() != null ? e.getName() : "",
-        e.getImageUrl() != null ? e.getImageUrl() : "",
+        e.getImagePath() != null ? e.getImagePath() : "",
         e.getDescription() != null ? e.getDescription() : "");
   }
 }

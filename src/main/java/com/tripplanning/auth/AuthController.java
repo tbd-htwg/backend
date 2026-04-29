@@ -60,7 +60,7 @@ public class AuthController {
             UserEntity.builder()
                 .email(email)
                 .name(name)
-                .imageUrl(body.imageUrl() != null ? body.imageUrl().trim() : "")
+                .imagePath(body.imageUrl() != null ? body.imageUrl().trim() : "")
                 .description(body.description() != null ? body.description().trim() : "")
                 .build());
     String token = appJwtService.createToken(user.getId(), user.getEmail());

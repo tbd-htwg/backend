@@ -49,7 +49,7 @@ public class DevAuthController {
                       UserEntity.builder()
                           .email(email)
                           .name(uniqueName(name))
-                          .imageUrl("")
+                          .imagePath("")
                           .description("")
                           .build());
                 });

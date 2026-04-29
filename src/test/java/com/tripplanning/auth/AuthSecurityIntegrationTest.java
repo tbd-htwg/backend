@@ -39,7 +39,7 @@ class AuthSecurityIntegrationTest {
             UserEntity.builder()
                 .email("alice@example.com")
                 .name("Alice")
-                .imageUrl("")
+                .imagePath("")
                 .description("")
                 .build());
   }

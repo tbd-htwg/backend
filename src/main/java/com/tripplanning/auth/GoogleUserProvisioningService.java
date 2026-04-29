@@ -50,7 +50,7 @@ public class GoogleUserProvisioningService {
         UserEntity.builder()
             .email(email.trim())
             .name(uniqueName)
-            .imageUrl(imageUrl != null ? truncate(imageUrl, 500) : "")
+            .imagePath(imageUrl != null ? truncate(imageUrl, 500) : "")
             .description("")
             .googleSub(sub)
             .build();
@@ -59,8 +59,8 @@ public class GoogleUserProvisioningService {
 
   private void applyProfileFromPayload(UserEntity user, GoogleIdToken.Payload payload) {
     String picture = stringClaim(payload, "picture");
-    if (picture != null && !picture.isBlank() && (user.getImageUrl() == null || user.getImageUrl().isBlank())) {
-      user.setImageUrl(truncate(picture, 500));
+    if (picture != null && !picture.isBlank() && (user.getImagePath() == null || user.getImagePath().isBlank())) {
+      user.setImagePath(truncate(picture, 500));
     }
   }
 

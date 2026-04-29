@@ -27,22 +27,32 @@ public class UserProfileController {
     @PostMapping("/{userId}/images")
     public ResponseEntity<?> createUploadUrl(
             @PathVariable Long userId, 
-            @RequestBody ImageUploadDtos.CreateUploadRequest request) {
+            @RequestBody ImageUploadDtos.CreateUploadRequest request,
+            @AuthenticationPrincipal Jwt jwt) {
         try {
+            long callerId = Long.parseLong(jwt.getSubject());
+            if (callerId != userId) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not allowed");
+            }
+
+            UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
             ImageService.SignedUploadInfo signedUpload =
                     imageService.createSignedUpload(
                             "user-profiles/" + userId,
                             request.fileName(),
                             request.contentType());
 
-            UserEntity user = userRepository.findById(userId)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-            
-            user.setImageUrl(signedUpload.objectUrl());
+            String prefix = "user-profiles/" + userId + "/";
+            imageService.deleteStoredObjectByUrlIfApplicable(user.getImagePath(), prefix);
+
+            user.setImagePath(signedUpload.objectUrl());
             userRepository.save(user);
 
             return ResponseEntity.ok(
                     new ImageUploadDtos.CreateUploadResponse(
+                        null,
                             signedUpload.uploadUrl(),
                             signedUpload.objectUrl(),
                             signedUpload.objectName(),
@@ -66,8 +76,8 @@ public class UserProfileController {
                         .findById(userId)
                         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
         String prefix = "user-profiles/" + userId + "/";
-        imageService.deleteStoredObjectByUrlIfApplicable(user.getImageUrl(), prefix);
-        user.setImageUrl(null);
+        imageService.deleteStoredObjectByUrlIfApplicable(user.getImagePath(), prefix);
+        user.setImagePath(null);
         userRepository.save(user);
         return ResponseEntity.noContent().build();
     }

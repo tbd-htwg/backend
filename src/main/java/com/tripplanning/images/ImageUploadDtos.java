@@ -6,6 +6,7 @@ public final class ImageUploadDtos {
     public record CreateUploadRequest(String fileName, String contentType) {}
 
     public record CreateUploadResponse(
+            Long imageId,
             String uploadUrl,
             String objectUrl,
             String objectName,

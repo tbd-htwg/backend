@@ -35,10 +35,10 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextFi
 
 public class UserEntity {
 
-  public UserEntity(String email, String name, String imageUrl, String description) {
+  public UserEntity(String email, String name, String imagePath, String description) {
     this.email = email;
     this.name = name;
-    this.imageUrl = imageUrl;
+    this.imagePath = imagePath;
     this.description = description;
   }
 
@@ -55,7 +55,7 @@ public class UserEntity {
   private String name;
 
   @Column(nullable = true, length = 500)
-  private String imageUrl;
+  private String imagePath;
 
   @Column(nullable = true, columnDefinition = "TEXT")
   private String description;
