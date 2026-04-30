@@ -26,16 +26,19 @@ public class AuthController {
   private final GoogleUserProvisioningService provisioningService;
   private final AppJwtService appJwtService;
   private final UserRepository userRepository;
+  private final UserResponseMapper userResponseMapper;
 
   public AuthController(
       GoogleCredentialVerifier googleCredentialVerifier,
       GoogleUserProvisioningService provisioningService,
       AppJwtService appJwtService,
-      UserRepository userRepository) {
+      UserRepository userRepository,
+      UserResponseMapper userResponseMapper) {
     this.googleCredentialVerifier = googleCredentialVerifier;
     this.provisioningService = provisioningService;
     this.appJwtService = appJwtService;
     this.userRepository = userRepository;
+    this.userResponseMapper = userResponseMapper;
   }
 
   @PostMapping("/register")
@@ -64,7 +67,7 @@ public class AuthController {
                 .description(body.description() != null ? body.description().trim() : "")
                 .build());
     String token = appJwtService.createToken(user.getId(), user.getEmail());
-    return new AuthDtos.LoginResponse("Bearer", token, UserResponseMapper.fromEntity(user));
+    return new AuthDtos.LoginResponse("Bearer", token, userResponseMapper.fromEntity(user));
   }
 
   @PostMapping("/google")
@@ -76,7 +79,7 @@ public class AuthController {
       GoogleIdToken.Payload payload = googleCredentialVerifier.verify(body.credential());
       UserEntity user = provisioningService.findOrCreateFromGoogle(payload);
       String token = appJwtService.createToken(user.getId(), user.getEmail());
-      return new AuthDtos.LoginResponse("Bearer", token, UserResponseMapper.fromEntity(user));
+      return new AuthDtos.LoginResponse("Bearer", token, userResponseMapper.fromEntity(user));
     } catch (IllegalStateException e) {
       throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, e.getMessage(), e);
     } catch (IllegalArgumentException e) {
@@ -93,7 +96,7 @@ public class AuthController {
     long id = Long.parseLong(jwt.getSubject());
     return userRepository
         .findById(id)
-        .map(UserResponseMapper::fromEntity)
+        .map(userResponseMapper::fromEntity)
         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
   }
 }

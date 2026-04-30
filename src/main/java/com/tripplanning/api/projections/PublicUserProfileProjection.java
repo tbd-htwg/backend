@@ -11,6 +11,6 @@ public interface PublicUserProfileProjection {
     String getName();
     String getDescription();
     
-    @Value("#{@imageService.createSignedReadUrl(target.imagePath)}")
+    @Value("#{@imageService.createSignedReadUrlIfAuthenticated(target.imagePath)}")
     String getProfileImageUrl();
 }

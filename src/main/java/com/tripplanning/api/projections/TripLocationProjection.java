@@ -22,9 +22,6 @@ public interface TripLocationProjection {
     @Value("#{target.location.name}")
     String getLocationName();
     
-    @Value("#{target.location.address}")
-    String getAddress();
-
     String getDescription();
     
     @Value("#{target.startDate}")
@@ -33,6 +30,5 @@ public interface TripLocationProjection {
     @Value("#{target.endDate}")
     LocalDateTime getEndDate();
 
-    @Value("#{@imageService.getSignedUrlsForImages(target.images)}")
-    List<String> getSignedImageUrls();
+    List<TripLocationImageProjection> getImages();
 }

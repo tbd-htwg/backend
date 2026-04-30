@@ -23,7 +23,7 @@ public interface TripListProjection {
     @Value("#{target.user.name}")
     String getAuthorName();
     
-    @Value("#{@imageService.createSignedReadUrl(target.user.imagePath)}")
+    @Value("#{@imageService.createSignedReadUrlIfAuthenticated(target.user.imagePath)}")
     String getAuthorProfileImageUrl();
 
     @Value("#{target.locationNames}")

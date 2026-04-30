@@ -70,7 +70,12 @@ public class UserProfileController {
 
 
     @GetMapping("/{userId}/image")
-    public ResponseEntity<String> getProfileImage(@PathVariable Long userId) {
+    public ResponseEntity<String> getProfileImage(
+            @PathVariable Long userId,
+            @AuthenticationPrincipal Jwt jwt) {
+        if (jwt == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authentication required");
+        }
         UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
         
@@ -78,7 +83,10 @@ public class UserProfileController {
             return ResponseEntity.notFound().build();
         }
 
-        String signedUrl = imageService.createSignedReadUrl(user.getImagePath());
+        String signedUrl = imageService.createSignedReadUrlIfAuthenticated(user.getImagePath());
+        if (signedUrl == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authentication required");
+        }
         return ResponseEntity.ok(signedUrl);
     }
     
@@ -119,7 +127,7 @@ public class UserProfileController {
         
         String profileImageUrl = null;
         if (user.getImagePath() != null) {
-            profileImageUrl = imageService.createSignedReadUrl(user.getImagePath());
+            profileImageUrl = imageService.createSignedReadUrlIfAuthenticated(user.getImagePath());
         }
         
         return ResponseEntity.ok(new UserProfileResponse(

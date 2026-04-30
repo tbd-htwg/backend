@@ -6,8 +6,6 @@ import java.util.List;
 import org.springframework.data.rest.core.config.Projection;
 import org.springframework.beans.factory.annotation.Value;
 
-import com.tripplanning.accommodation.AccomEntity;
-import com.tripplanning.transport.TransportEntity;
 import com.tripplanning.trip.TripEntity;
 
 
@@ -26,12 +24,13 @@ public interface TripFullDetailProjection {
     @Value("#{target.user.name}")
     String getAuthorName();
 
-    @Value("#{@imageService.createSignedReadUrl(target.user.imagePath)}")
+    @Value("#{@imageService.createSignedReadUrlIfAuthenticated(target.user.imagePath)}")
     String getAuthorProfileImageUrl();
 
     List<TripLocationProjection> getTripLocations();
 
-    List<TransportEntity> getTransports();
-    List<AccomEntity> getAccommodations();
+    List<TransportProjection> getTransports();
+
+    List<AccommodationProjection> getAccommodations();
 }
 

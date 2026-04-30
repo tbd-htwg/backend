@@ -24,8 +24,4 @@ public interface TripLocationLiteProjection {
     @Value("#{target.location.name}")
     String getLocationName();
     
-    @Value("#{target.location.address}")
-    String getAddress();
-
-   
 }

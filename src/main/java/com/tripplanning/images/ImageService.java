@@ -8,6 +8,9 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 
 import jakarta.annotation.PostConstruct;
@@ -72,6 +75,14 @@ public class ImageService {
         BlobId blobId = BlobId.of(bucketName, objectName);
         BlobInfo blobInfo = BlobInfo.newBuilder(blobId).build();
         return createSignedUrl(blobInfo, HttpMethod.GET).toString();
+    }
+
+    /** Signed read URL only for authenticated requests. */
+    public String createSignedReadUrlIfAuthenticated(String objectName) {
+        if (!isAuthenticatedJwtRequest()) {
+            return null;
+        }
+        return createSignedReadUrl(objectName);
     }
 
 
@@ -176,5 +187,13 @@ public class ImageService {
             .map(img -> createSignedReadUrl(img.getImagePath()))
             .filter(url -> url != null)
             .toList();
+    }
+
+    private boolean isAuthenticatedJwtRequest() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return false;
+        }
+        return authentication.getPrincipal() instanceof Jwt;
     }
 }
