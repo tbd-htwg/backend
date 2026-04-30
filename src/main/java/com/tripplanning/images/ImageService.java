@@ -1,8 +1,6 @@
 package com.tripplanning.images;
 
 import java.net.URL;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -10,6 +8,9 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 
 import jakarta.annotation.PostConstruct;
@@ -21,6 +22,7 @@ import com.google.cloud.storage.BlobInfo;
 import com.google.cloud.storage.HttpMethod;
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageException;
+import com.tripplanning.tripLocation.TripLocationImageEntity;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -60,76 +62,65 @@ public class ImageService {
                 .setContentType(contentType)
                 .build();
 
-        URL signedUrl = createSignedUrl(blobInfo);
+        URL signedUrl = createSignedUrl(blobInfo, HttpMethod.PUT);
 
-        String objectUrl = String.format(
-                "https://storage.googleapis.com/%s/%s",
-                bucketName,
-                java.net.URLEncoder.encode(objectName, StandardCharsets.UTF_8).replace("+", "%20"));
-
-        return new SignedUploadInfo(signedUrl.toString(), objectUrl, objectName, contentType);
+        return new SignedUploadInfo(signedUrl.toString(), objectName, contentType);
     }
 
-    /**
-     * If {@code objectUrl} is a public URL for this bucket and the decoded object name starts with
-     * {@code requiredNamePrefix}, deletes that object. Otherwise does nothing (e.g. foreign URL or
-     * blank).
-     */
-    public void deleteStoredObjectByUrlIfApplicable(String objectUrl, String requiredNamePrefix) {
-        if (objectUrl == null || objectUrl.isBlank()) {
+    /** Create a signed read URL (GET) for the given object name in the configured bucket. */
+    public String createSignedReadUrl(String objectName) {
+        if (objectName == null || objectName.isBlank()) {
+            return null;
+        }
+        BlobId blobId = BlobId.of(bucketName, objectName);
+        BlobInfo blobInfo = BlobInfo.newBuilder(blobId).build();
+        return createSignedUrl(blobInfo, HttpMethod.GET).toString();
+    }
+
+    /** Signed read URL only for authenticated requests. */
+    public String createSignedReadUrlIfAuthenticated(String objectName) {
+        if (!isAuthenticatedJwtRequest()) {
+            return null;
+        }
+        return createSignedReadUrl(objectName);
+    }
+
+
+    public void deleteStoredObjectByPath(String objectName, String requiredNamePrefix) {
+        if (objectName == null || objectName.isBlank()) {
             return;
         }
-        String objectName = parseObjectNameFromPublicUrl(objectUrl.trim());
-        if (objectName == null || !objectName.startsWith(requiredNamePrefix)) {
-            log.debug(
-                    "Skip GCS delete: URL does not match configured bucket or prefix {} (url host/path mismatch)",
-                    requiredNamePrefix);
+        String trimmed = objectName.trim();
+        if (trimmed == null || !trimmed.startsWith(requiredNamePrefix)) {
+            log.debug("Skip GCS delete: object does not match required prefix {} (object={})", requiredNamePrefix, trimmed);
             return;
         }
         try {
-            boolean removed = Boolean.TRUE.equals(storage.delete(BlobId.of(bucketName, objectName)));
+            boolean removed = Boolean.TRUE.equals(storage.delete(BlobId.of(bucketName, trimmed)));
             if (removed) {
-                log.debug("Deleted gs://{}/{}", bucketName, objectName);
+                log.debug("Deleted gs://{}/{}", bucketName, trimmed);
             } else {
-                log.debug("GCS object already absent gs://{}/{}", bucketName, objectName);
+                log.debug("GCS object already absent gs://{}/{}", bucketName, trimmed);
             }
         } catch (StorageException e) {
             log.warn(
-                    "Could not delete gs://{}/{} — clearing DB image URL anyway. Fix IAM (storage.objects.delete) if objects should be removed. {} [{}]",
+                    "Could not delete gs://{}/{} — clearing DB image name anyway. Fix IAM (storage.objects.delete) if objects should be removed. {} [{}]",
                     bucketName,
-                    objectName,
+                    trimmed,
                     e.getMessage(),
                     e.getCode(),
                     e);
         }
     }
 
-    /**
-     * @return object name within this bucket, or {@code null} if the URL does not target this bucket
-     */
-    private String parseObjectNameFromPublicUrl(String objectUrl) {
-        if (bucketName == null || bucketName.isEmpty()) {
-            return null;
-        }
-        // Path-style URL produced by this service
-        String pathStylePrefix = "https://storage.googleapis.com/" + bucketName + "/";
-        if (objectUrl.startsWith(pathStylePrefix)) {
-            return URLDecoder.decode(
-                    objectUrl.substring(pathStylePrefix.length()), StandardCharsets.UTF_8);
-        }
-        // Virtual-hosted style (also valid for public GCS URLs)
-        String vhostPrefix = "https://" + bucketName + ".storage.googleapis.com/";
-        if (objectUrl.startsWith(vhostPrefix)) {
-            return URLDecoder.decode(objectUrl.substring(vhostPrefix.length()), StandardCharsets.UTF_8);
-        }
-        return null;
-    }
-
-    private URL createSignedUrl(BlobInfo blobInfo) {
+    private URL createSignedUrl(BlobInfo blobInfo, HttpMethod method) {
         List<Storage.SignUrlOption> options = new ArrayList<>();
-        options.add(Storage.SignUrlOption.httpMethod(HttpMethod.PUT));
+        options.add(Storage.SignUrlOption.httpMethod(method));
         options.add(Storage.SignUrlOption.withV4Signature());
-        options.add(Storage.SignUrlOption.withContentType());
+
+        if (method == HttpMethod.PUT) {
+            options.add(Storage.SignUrlOption.withContentType());
+        }
 
         String targetServiceAccount = impersonateServiceAccount == null ? "" : impersonateServiceAccount.trim();
         if (!targetServiceAccount.isEmpty()) {
@@ -184,8 +175,25 @@ public class ImageService {
 
     public record SignedUploadInfo(
             String uploadUrl,
-            String objectUrl,
             String objectName,
             String contentType) {
+    }
+
+
+    //needed for projection
+    public List<String> getSignedUrlsForImages(List<TripLocationImageEntity> images) {
+    if (images == null) return List.of();
+    return images.stream()
+            .map(img -> createSignedReadUrl(img.getImagePath()))
+            .filter(url -> url != null)
+            .toList();
+    }
+
+    private boolean isAuthenticatedJwtRequest() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return false;
+        }
+        return authentication.getPrincipal() instanceof Jwt;
     }
 }

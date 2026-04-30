@@ -5,20 +5,20 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "tripplanning.auth")
 public class AuthProperties {
 
-  /** OAuth 2.0 Web client ID used by Google Identity Services (GIS). */
-  private String googleClientId = "";
+  /** Firebase project id used to verify Google Identity Platform ID tokens. */
+  private String firebaseProjectId = "";
 
   /** HMAC secret for application JWTs (at least 256 bits / 32 bytes recommended). */
   private String jwtSecret = "";
 
   private long jwtExpirationSeconds = 43_200;
 
-  public String getGoogleClientId() {
-    return googleClientId;
+  public String getFirebaseProjectId() {
+    return firebaseProjectId;
   }
 
-  public void setGoogleClientId(String googleClientId) {
-    this.googleClientId = googleClientId;
+  public void setFirebaseProjectId(String firebaseProjectId) {
+    this.firebaseProjectId = firebaseProjectId;
   }
 
   public String getJwtSecret() {

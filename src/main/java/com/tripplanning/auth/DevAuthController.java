@@ -23,10 +23,15 @@ public class DevAuthController {
 
   private final UserRepository userRepository;
   private final AppJwtService appJwtService;
+  private final UserResponseMapper userResponseMapper;
 
-  public DevAuthController(UserRepository userRepository, AppJwtService appJwtService) {
+  public DevAuthController(
+      UserRepository userRepository,
+      AppJwtService appJwtService,
+      UserResponseMapper userResponseMapper) {
     this.userRepository = userRepository;
     this.appJwtService = appJwtService;
+    this.userResponseMapper = userResponseMapper;
   }
 
   @PostMapping("/dev-login")
@@ -49,13 +54,13 @@ public class DevAuthController {
                       UserEntity.builder()
                           .email(email)
                           .name(uniqueName(name))
-                          .imageUrl("")
+                          .imagePath("")
                           .description("")
                           .build());
                 });
 
     String token = appJwtService.createToken(user.getId(), user.getEmail());
-    return new AuthDtos.LoginResponse("Bearer", token, UserResponseMapper.fromEntity(user));
+    return new AuthDtos.LoginResponse("Bearer", token, userResponseMapper.fromEntity(user));
   }
 
   private String uniqueName(String base) {

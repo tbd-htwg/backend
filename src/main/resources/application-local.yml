@@ -66,4 +66,4 @@ tripplanning:
   auth:
     # Dev-only default; override with TRIPPLANNING_AUTH_JWT_SECRET in shared environments.
     jwt-secret: ${TRIPPLANNING_AUTH_JWT_SECRET:local-dev-only-change-me-32bytes-min!!}
-    google-client-id: ${TRIPPLANNING_AUTH_GOOGLE_CLIENT_ID:}
+    firebase-project-id: ${TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID:project-9118634e-c9f1-4f29-804}

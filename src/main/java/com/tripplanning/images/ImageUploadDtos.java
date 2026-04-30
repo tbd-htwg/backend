@@ -6,8 +6,9 @@ public final class ImageUploadDtos {
     public record CreateUploadRequest(String fileName, String contentType) {}
 
     public record CreateUploadResponse(
-            String uploadUrl,
-            String objectUrl,
-            String objectName,
+            Long imageId,
+            String uploadUrl, //signed upload URL (time limited)
+            String signedReadUrl, //signed read URL (time limited)
+            String objectName, //image path in database
             String contentType) {}
 }

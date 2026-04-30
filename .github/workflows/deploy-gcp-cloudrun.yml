@@ -45,8 +45,7 @@ jobs:
       GCP_ELASTICSEARCH_PASSWORD_SECRET: ${{ vars.GCP_ELASTICSEARCH_PASSWORD_SECRET }}
       # Optional: distinct Hibernate Search index per environment when sharing one ES cluster (e.g. tripentity-develop).
       GCP_TRIP_SEARCH_INDEX_NAME: ${{ vars.GCP_TRIP_SEARCH_INDEX_NAME }}
-      # Repository / Environment secrets (Settings → Secrets and variables → Actions).
-      TRIPPLANNING_AUTH_GOOGLE_CLIENT_ID: ${{ secrets.TRIPPLANNING_AUTH_GOOGLE_CLIENT_ID }}
+      # JWT signing secret (Secrets); Firebase ID token verification uses PROJECT_ID (= vars.GCP_PROJECT_ID).
       TRIPPLANNING_AUTH_JWT_SECRET: ${{ secrets.TRIPPLANNING_AUTH_JWT_SECRET }}
       # Cloud Run capacity (override via repo/environment vars CLOUD_RUN_CPU, CLOUD_RUN_MEMORY, CLOUD_RUN_CONCURRENCY).
       CLOUD_RUN_CPU: ${{ vars.CLOUD_RUN_CPU || '2' }}
@@ -90,8 +89,8 @@ jobs:
       - name: Deploy to Cloud Run
         run: |
           set -euo pipefail
-          test -n "${TRIPPLANNING_AUTH_GOOGLE_CLIENT_ID:-}" || {
-            echo "Missing required secret: TRIPPLANNING_AUTH_GOOGLE_CLIENT_ID"
+          test -n "${PROJECT_ID:-}" || {
+            echo "Missing required variable: GCP_PROJECT_ID"
             exit 1
           }
           test -n "${TRIPPLANNING_AUTH_JWT_SECRET:-}" || {
@@ -112,7 +111,7 @@ jobs:
           if [ -n "${GCP_TRIP_SEARCH_INDEX_NAME:-}" ]; then
             EV="${EV}|TRIPPLANNING_SEARCH_ELASTICSEARCH_INDEX_NAME=${GCP_TRIP_SEARCH_INDEX_NAME}"
           fi
-          EV="${EV}|TRIPPLANNING_AUTH_GOOGLE_CLIENT_ID=${TRIPPLANNING_AUTH_GOOGLE_CLIENT_ID}"
+          EV="${EV}|TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID=${PROJECT_ID}"
           EV="${EV}|TRIPPLANNING_AUTH_JWT_SECRET=${TRIPPLANNING_AUTH_JWT_SECRET}"
           if [ -n "${GCP_IMPERSONATE_SERVICE_ACCOUNT:-}" ]; then
             EV="${EV}|SPRING_CLOUD_GCP_IMPERSONATE_SERVICE_ACCOUNT=${GCP_IMPERSONATE_SERVICE_ACCOUNT}"
