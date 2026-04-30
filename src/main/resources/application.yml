@@ -6,7 +6,7 @@ tripplanning:
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173,https://tbd-htwg.de,https://www.tbd-htwg.de,https://iaas.tbd-htwg.de,https://paas.tbd-htwg.de}
   auth:
-    google-client-id: ${TRIPPLANNING_AUTH_GOOGLE_CLIENT_ID:}
+    firebase-project-id: ${TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID:project-9118634e-c9f1-4f29-804}
     jwt-secret: ${TRIPPLANNING_AUTH_JWT_SECRET:}
     jwt-expiration-seconds: ${TRIPPLANNING_AUTH_JWT_EXPIRATION_SECONDS:43200}
   # Hibernate Search logical index name for TripEntity. Use distinct values per environment when

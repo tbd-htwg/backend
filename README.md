@@ -9,13 +9,13 @@ Spring Boot backend for a simple trip planning application.
 
 ## Run locally with Google Sign-In (identity provider)
 
-Use the **`local`** profile so you get H2, Lucene search, and a default dev JWT secret from `application-local.yml`. You only need to pass the **OAuth 2.0 Web client ID** (same string as `VITE_GOOGLE_CLIENT_ID` on the frontend). In Google Cloud Console, add **Authorized JavaScript origins** `http://localhost:5173` and `http://127.0.0.1:5173` for that client.
+Use the **`local`** profile so you get H2, Lucene search, and a default dev JWT secret from `application-local.yml`. If needed, override the Firebase project id used for ID token verification.
 
 **One shell command** (from the `backend` directory):
 
 ```bash
 SPRING_PROFILES_ACTIVE=local \
-TRIPPLANNING_AUTH_GOOGLE_CLIENT_ID='YOUR_CLIENT_ID.apps.googleusercontent.com' \
+TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID='project-9118634e-c9f1-4f29-804' \
 mvn spring-boot:run
 ```
 
@@ -23,19 +23,19 @@ To override the dev JWT signing key as well (optional; otherwise `application-lo
 
 ```bash
 SPRING_PROFILES_ACTIVE=local \
-TRIPPLANNING_AUTH_GOOGLE_CLIENT_ID='YOUR_CLIENT_ID.apps.googleusercontent.com' \
+TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID='project-9118634e-c9f1-4f29-804' \
 TRIPPLANNING_AUTH_JWT_SECRET='your-own-secret-at-least-32-bytes-long' \
 mvn spring-boot:run
 ```
 
-Then start the frontend with the same Web client ID (see the frontend README) and open the app at `http://localhost:5173`.
+Then start the frontend and open the app at `http://localhost:5173`.
 
 ## Run Locally
 
 1. Set auth environment variables (required unless you use the `local` profile defaults below):
 
-   - `TRIPPLANNING_AUTH_JWT_SECRET` — at least **32 UTF-8 bytes** (used to sign application JWTs after Google sign-in or registration).
-   - `TRIPPLANNING_AUTH_GOOGLE_CLIENT_ID` — OAuth 2.0 **Web client ID** from Google Cloud Console (same value as the frontend `VITE_GOOGLE_CLIENT_ID`). Needed for `POST /api/v2/auth/google`.
+   - `TRIPPLANNING_AUTH_JWT_SECRET` — at least **32 UTF-8 bytes** (used to sign application JWTs after Google sign-in).
+   - `TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID` — Firebase project id used to validate incoming ID tokens for `POST /api/v2/auth/google`.
 
    For quick local runs with H2 + Lucene, use the `local` profile (see `application-local.yml`): it supplies a **dev-only default JWT secret** and enables `POST /api/v2/auth/dev-login` so you can obtain a token without Google.
 
@@ -75,7 +75,7 @@ ROOT_URL=http://localhost:8080 BASE_PATH=/api/v2 python3 scripts/seed_example_da
 
 If your deployment exposes the API under a prefix, set `BASE_PATH` accordingly (for example `/api/v2`).
 
-Mutating API calls require a JWT (`Authorization: Bearer …`). Point the script at a token from registration, Google login, or `POST /api/v2/auth/dev-login` when using the `local` profile.
+Mutating API calls require a JWT (`Authorization: Bearer …`). Point the script at a token from Google login or `POST /api/v2/auth/dev-login` when using the `local` profile.
 
 ## API Reference (OpenAPI / Swagger)
 
@@ -84,18 +84,17 @@ Mutating API calls require a JWT (`Authorization: Bearer …`). Point the script
 
 These endpoints provide a frontend-friendly reference for request/response schemas and available routes.
 
-## Authentication (Google Identity + application JWT)
+## Authentication (Google Identity Platform + application JWT)
 
 Hand-written REST controllers under `/api/v2/auth`:
 
-- `POST /api/v2/auth/google` — body `{ "credential": "<GIS JWT>" }`; verifies the Google ID token, creates or links the user (`google_sub`, email), returns `{ "tokenType", "accessToken", "user" }`.
-- `POST /api/v2/auth/register` — passwordless registration; same response shape as Google login.
+- `POST /api/v2/auth/google` — body `{ "credential": "<Firebase ID token>" }`; verifies the token, creates or links the user (`google_sub`, email), returns `{ "tokenType", "accessToken", "user" }`.
 - `GET /api/v2/auth/me` — returns the current user; requires `Authorization: Bearer <accessToken>`.
 - `POST /api/v2/auth/dev-login` — **only when `spring.profiles.active` includes `local`**; body `{ "email", "name?" }`; returns the same JSON as Google login for local testing without Google.
 
 Other `/api/v2/**` routes: **GET** is mostly public (except user collection and user search, which require a valid JWT). **POST/PUT/PATCH/DELETE** require `Authorization: Bearer <accessToken>`.
 
-**Google Cloud Console:** for local Vite (`http://localhost:5173`), add that origin under **Authorized JavaScript origins** for your Web client ID.
+**Google Identity Platform/Firebase:** ensure your frontend origin is authorized in your Firebase Authentication settings.
 
 ## Current API Endpoints
 

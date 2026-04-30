@@ -41,7 +41,7 @@ tripplanning:
     allowed-origins: http://localhost:5173
   auth:
     jwt-secret: test-test-test-test-test-test-test-test-test-32b
-    google-client-id: dummy.apps.googleusercontent.com
+    firebase-project-id: project-9118634e-c9f1-4f29-804
     jwt-expiration-seconds: 3600
   search:
     elasticsearch-index-name: tripentity-test

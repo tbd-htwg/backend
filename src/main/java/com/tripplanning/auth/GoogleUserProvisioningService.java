@@ -4,9 +4,9 @@ import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 
 import org.springframework.stereotype.Service;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.tripplanning.user.UserEntity;
 import com.tripplanning.user.UserRepository;
 
@@ -23,11 +23,11 @@ public class GoogleUserProvisioningService {
   }
 
   @Transactional
-  public UserEntity findOrCreateFromGoogle(GoogleIdToken.Payload payload) {
+  public UserEntity findOrCreateFromGoogle(Jwt payload) {
     String sub = payload.getSubject();
-    String email = payload.getEmail();
+    String email = payload.getClaimAsString("email");
     if (email == null || email.isBlank()) {
-      throw new IllegalArgumentException("Google token did not include an email");
+      throw new IllegalArgumentException("Identity token did not include an email");
     }
 
     Optional<UserEntity> bySub = userRepository.findByGoogleSub(sub);
@@ -57,14 +57,14 @@ public class GoogleUserProvisioningService {
     return userRepository.save(created);
   }
 
-  private void applyProfileFromPayload(UserEntity user, GoogleIdToken.Payload payload) {
+  private void applyProfileFromPayload(UserEntity user, Jwt payload) {
     String picture = stringClaim(payload, "picture");
     if (picture != null && !picture.isBlank() && (user.getImagePath() == null || user.getImagePath().isBlank())) {
       user.setImagePath(truncate(picture, 500));
     }
   }
 
-  private static String deriveDisplayName(GoogleIdToken.Payload payload, String email) {
+  private static String deriveDisplayName(Jwt payload, String email) {
     String name = stringClaim(payload, "name");
     if (name != null && !name.isBlank()) {
       return name.trim();
@@ -73,9 +73,8 @@ public class GoogleUserProvisioningService {
     return (at > 0 ? email.substring(0, at) : email).trim();
   }
 
-  private static String stringClaim(GoogleIdToken.Payload payload, String key) {
-    Object v = payload.get(key);
-    return v != null ? v.toString() : null;
+  private static String stringClaim(Jwt payload, String key) {
+    return payload.getClaimAsString(key);
   }
 
   private String allocateUniqueName(String base) {
