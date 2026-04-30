@@ -37,6 +37,8 @@ Then start the frontend and open the app at `http://localhost:5173`.
    - `TRIPPLANNING_AUTH_JWT_SECRET` — at least **32 UTF-8 bytes** (used to sign application JWTs after Google sign-in).
    - `TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID` — Firebase project id used to validate incoming ID tokens for `POST /api/v2/auth/google`.
 
+   On **Cloud Run** (GitHub Actions deploy workflow), `TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID` is set from **`GCP_PROJECT_ID`** — no separate Actions variable is needed.
+
    For quick local runs with H2 + Lucene, use the `local` profile (see `application-local.yml`): it supplies a **dev-only default JWT secret** and enables `POST /api/v2/auth/dev-login` so you can obtain a token without Google.
 
    ```bash
