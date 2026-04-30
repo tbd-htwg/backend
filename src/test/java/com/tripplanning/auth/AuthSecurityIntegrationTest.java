@@ -2,7 +2,6 @@ package com.tripplanning.auth;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -11,7 +10,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,7 +37,7 @@ class AuthSecurityIntegrationTest {
             UserEntity.builder()
                 .email("alice@example.com")
                 .name("Alice")
-                .imageUrl("")
+                .imagePath("")
                 .description("")
                 .build());
   }
@@ -81,16 +79,4 @@ class AuthSecurityIntegrationTest {
         .andExpect(status().isUnauthorized());
   }
 
-  @Test
-  void postAuthRegister_withoutToken_returns200() throws Exception {
-    mockMvc
-        .perform(
-            post("/api/v2/auth/register")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(
-                    "{\"email\":\"register@example.com\",\"name\":\"Reg User\",\"imageUrl\":\"\",\"description\":\"\"}"))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.accessToken").isString())
-        .andExpect(jsonPath("$.user.email").value("register@example.com"));
-  }
 }

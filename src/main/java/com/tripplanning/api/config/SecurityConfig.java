@@ -51,8 +51,6 @@ public class SecurityConfig {
                     .permitAll()
                     .requestMatchers(HttpMethod.POST, "/api/v2/auth/google")
                     .permitAll()
-                    .requestMatchers(HttpMethod.POST, "/api/v2/auth/register")
-                    .permitAll()
                     .requestMatchers(HttpMethod.POST, "/api/v2/auth/dev-login")
                     .permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/v2/auth/me")
@@ -72,9 +70,6 @@ public class SecurityConfig {
                     .requestMatchers(HttpMethod.GET, "/api/v2/**")
                     .permitAll()
                     .requestMatchers(HttpMethod.HEAD, "/api/v2/**")
-                    .permitAll()
-                    // Passwordless self-registration (legacy); Google-first users are created on /auth/google.
-                    .requestMatchers(HttpMethod.POST, "/api/v2/users")
                     .permitAll()
                     .anyRequest()
                     .authenticated())
