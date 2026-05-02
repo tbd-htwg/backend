@@ -100,6 +100,10 @@ Otherwise set `-o` to the path of `doc/swagger_v2.json` in your frontend checkou
 
 Other **`/api/v2/**`**: most **GET** requests are public; **GET** on **`/api/v2/users`**, **`/api/v2/users/search`** (and search subpaths), **`GET /api/v2/trips/*/liked-by-current-user`**, and **mutating** methods require a valid JWT. See [`SecurityConfig.java`](src/main/java/com/tripplanning/api/config/SecurityConfig.java) for the exact rules.
 
+### Test bearer impersonation (non-prod only)
+
+Set **`TRIPPLANNING_AUTH_TEST_BEARER_TOKEN`** to a shared secret on `develop` (and optionally `staging`) deployments to enable [`TestBearerImpersonationFilter`](src/main/java/com/tripplanning/auth/TestBearerImpersonationFilter.java). When activated, any request that presents `Authorization: Bearer <that token>` together with `X-Act-As-User: <userId>` is authenticated as that user (no JWT verification, no expiry). Used by the seeder and Locust to write as many users from one shared secret. **Never set this on production**; if the env var is empty (default), the filter bean is not registered and behaviour is identical to before.
+
 ## Main HTTP surface
 
 - **Spring Data REST** collections and item resources under **`/api/v2`** (users, trips, trip locations, etc.), plus repository **search** endpoints where defined.
@@ -121,7 +125,7 @@ python3 seed_example_data.py --help
 
 (`../performance` is correct when `performance/` sits next to this backend folder in the monorepo; adjust if your tree differs.)
 
-With a local API and `local` profile, options such as **`--fetch-dev-login`** can obtain a token automatically. See [../performance/seeding_example/README.md](../performance/seeding_example/README.md) when that path exists in your checkout.
+With a local API and `local` profile, options such as **`--fetch-dev-login`** can obtain a token automatically. For deployed dev environments use the unified test bearer (see _Test bearer impersonation_ above and the [seeder README](../performance/seeding_example/README.md)) so likes and comments are attributed to many users from a single shared secret.
 
 ## Project layout (`com.tripplanning`)
 

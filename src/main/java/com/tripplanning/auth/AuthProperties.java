@@ -13,6 +13,13 @@ public class AuthProperties {
 
   private long jwtExpirationSeconds = 43_200;
 
+  /**
+   * Optional shared "test bearer" used by seeders and load-test clients to act as any user via the
+   * {@code X-Act-As-User} header. Empty disables the feature; only set in non-production
+   * environments via {@code TRIPPLANNING_AUTH_TEST_BEARER_TOKEN}.
+   */
+  private String testBearerToken = "";
+
   public String getFirebaseProjectId() {
     return firebaseProjectId;
   }
@@ -35,5 +42,13 @@ public class AuthProperties {
 
   public void setJwtExpirationSeconds(long jwtExpirationSeconds) {
     this.jwtExpirationSeconds = jwtExpirationSeconds;
+  }
+
+  public String getTestBearerToken() {
+    return testBearerToken;
+  }
+
+  public void setTestBearerToken(String testBearerToken) {
+    this.testBearerToken = testBearerToken == null ? "" : testBearerToken;
   }
 }
