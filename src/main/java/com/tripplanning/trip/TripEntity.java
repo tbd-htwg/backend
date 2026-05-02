@@ -116,6 +116,14 @@ public class TripEntity {
     return tripLocations.stream()
         .map(tl -> tl.getLocation().getName())
         .toList();
-}
+  }
+
+  public List<String> getAccommodationNames() {
+    return accommodations.stream().map(AccomEntity::getName).toList();
+  }
+
+  public List<String> getTransportTypes() {
+    return transports.stream().map(TransportEntity::getType).toList();
+  }
 
 }

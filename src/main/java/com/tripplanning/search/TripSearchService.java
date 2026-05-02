@@ -61,9 +61,13 @@ public class TripSearchService {
             .title(trip.getTitle())
             .author(trip.getUser() != null ? trip.getUser().getName() : "Unbekannt")
             .shortDescription(trip.getShortDescription())
+            .destination(trip.getDestination())
+            .startDate(trip.getStartDate())
             .locations(trip.getTripLocations().stream()
                 .map(tl -> tl.getLocation().getName())
                 .collect(Collectors.toList()))
+            .accommodationNames(trip.getAccommodationNames())
+            .transportTypes(trip.getTransportTypes())
             .build();
     }
 }
