@@ -62,11 +62,15 @@ spring:
 
   cloud:
     gcp:
-      impersonate-service-account: ${SPRING_CLOUD_GCP_IMPERSONATE_SERVICE_ACCOUNT:}
+      impersonate-service-account: ${GCP_IMPERSONATE_SERVICE_ACCOUNT:}
       sql:
         enabled: false
       storage:
         bucket-name: "project-9118634e-c9f1-4f29-804-images-bucket"
+      # Named DB in GCP; set GCP_FIRESTORE_DATABASE_ID (e.g. on Cloud Run / GitHub vars).
+      # Local profile overrides default to (default) for the emulator — see application-local.yml.
+      firestore:
+        database-id: ${GCP_FIRESTORE_DATABASE_ID:tbd-firestore}
 
   jackson:
     serialization:

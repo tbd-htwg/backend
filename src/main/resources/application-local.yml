@@ -57,6 +57,8 @@ spring:
         enabled: false
       firestore:
         enabled: true
+        # Emulator uses the default database id unless you set GCP_FIRESTORE_DATABASE_ID.
+        database-id: ${GCP_FIRESTORE_DATABASE_ID:(default)}
         # Emulator listen address (must match firebase.json / gcloud --host-port). NOT under emulator.* —
         # FirestoreEmulatorProperties only has `enabled`; host goes on spring.cloud.gcp.firestore.host-port.
         host-port: localhost:9090
