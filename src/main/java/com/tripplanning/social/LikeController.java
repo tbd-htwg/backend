@@ -21,6 +21,7 @@ public class LikeController {
 
     private final TripLikeRepository likeRepository;
     private final TripRepository tripRepository;
+    private final FirestoreSocialService firestoreSocialService;
 
     public record CurrentUserLikeStatus(boolean liked) {}
 
@@ -46,7 +47,7 @@ public class LikeController {
     // GET /api/v2/trips/search/countLikes?tripId=1
     @GetMapping("/api/v2/trips/search/countLikes")
     public long countLikes(@RequestParam Long tripId) {
-        return likeRepository.findByTripId(tripId).count().blockOptional().orElse(0L);
+        return firestoreSocialService.countLikesForTrip(tripId);
     }
 
     // GET /api/v2/trips/search/findByLikedByUsersId?userId=1

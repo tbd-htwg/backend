@@ -2,12 +2,13 @@ package com.tripplanning.social;
 
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.tripplanning.social.dto.CommunityDtos.CommunityCommentItem;
 import com.tripplanning.trip.TripRepository;
+import com.tripplanning.user.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -32,61 +33,67 @@ public class CommentController {
 
     private final CommentRepository commentRepository;
     private final TripRepository tripRepository;
+    private final UserRepository userRepository;
+    private final FirestoreSocialService firestoreSocialService;
+    private final SocialCommentEnricher socialCommentEnricher;
 
-    // GET /api/v2/comments/search/findByTripIdOrderByCreatedAtDesc?tripId=1
+    /**
+     * Paginated HAL list (newest first). Optional {@code size} (default 10, max 50) and {@code
+     * cursor} for continuation — same storage and ordering as {@code GET /trips/{id}/comments}.
+     */
     @GetMapping("/search/findByTripIdOrderByCreatedAtDesc")
-    public Map<String, Object> getByTrip(@RequestParam Long tripId) {
-        List<CommentDocument> list =
-                commentRepository.findByTripId(tripId).collectList().block();
-        if (list == null) {
-            list = List.of();
-        } else {
-            list = new ArrayList<>(list);
-            list.sort(
-                    Comparator.comparing(
-                            CommentDocument::getCreatedAt,
-                            Comparator.nullsLast(Long::compareTo)).reversed());
-        }
+    public Map<String, Object> getByTrip(
+            @RequestParam Long tripId,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String cursor) {
+        FirestoreSocialService.CommentPage page =
+                firestoreSocialService.fetchCommentPage(tripId, size, cursor);
+        long totalElements = firestoreSocialService.countCommentsForTrip(tripId);
+        List<CommunityCommentItem> enriched = socialCommentEnricher.enrich(page.items());
 
         String base = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
         List<Map<String, Object>> embedded = new ArrayList<>();
-        for (CommentDocument d : list) {
-            embedded.add(toHalComment(d, base));
+        for (CommunityCommentItem c : enriched) {
+            embedded.add(toHalComment(c, base));
         }
 
-        String selfHref =
+        var selfBuilder =
                 ServletUriComponentsBuilder.fromCurrentContextPath()
                         .path("/api/v2/comments/search/findByTripIdOrderByCreatedAtDesc")
                         .queryParam("tripId", tripId)
-                        .build()
-                        .toUriString();
+                        .queryParam("size", size);
+        if (cursor != null && !cursor.isBlank()) {
+            selfBuilder = selfBuilder.queryParam("cursor", cursor);
+        }
+        String selfHref = selfBuilder.build().toUriString();
 
-        Map<String, Object> page = new LinkedHashMap<>();
-        page.put("size", embedded.size());
-        page.put("totalElements", embedded.size());
-        page.put("totalPages", 1);
-        page.put("number", 0);
+        Map<String, Object> pageMeta = new LinkedHashMap<>();
+        pageMeta.put("size", embedded.size());
+        pageMeta.put("totalElements", totalElements);
+        pageMeta.put("totalPages", page.hasMore() ? 2 : 1);
+        pageMeta.put("number", 0);
 
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("_embedded", Map.of("comments", embedded));
         body.put("_links", Map.of("self", Map.of("href", selfHref)));
-        body.put("page", page);
+        body.put("page", pageMeta);
+        if (page.nextCursor() != null) {
+            body.put("nextCursor", page.nextCursor());
+        }
+        body.put("hasMore", page.hasMore());
         return body;
     }
 
-    private static Map<String, Object> toHalComment(CommentDocument d, String baseUrl) {
+    private static Map<String, Object> toHalComment(CommunityCommentItem c, String baseUrl) {
         Map<String, Object> links = new LinkedHashMap<>();
-        links.put("self", Map.of("href", baseUrl + "/api/v2/comments/" + d.getId()));
-        links.put("trip", Map.of("href", baseUrl + "/api/v2/trips/" + d.getTripId()));
-        links.put("user", Map.of("href", baseUrl + "/api/v2/users/" + d.getUserId()));
+        links.put("self", Map.of("href", baseUrl + "/api/v2/comments/" + c.id()));
+        links.put("trip", Map.of("href", baseUrl + "/api/v2/trips/" + c.tripId()));
+        links.put("user", Map.of("href", baseUrl + "/api/v2/users/" + c.userId()));
 
         Map<String, Object> entity = new LinkedHashMap<>();
-        entity.put("content", d.getContent());
-        entity.put(
-                "createdAt",
-                d.getCreatedAt() != null
-                        ? Instant.ofEpochMilli(d.getCreatedAt()).toString()
-                        : "");
+        entity.put("content", c.content());
+        entity.put("createdAt", c.createdAt());
+        entity.put("userName", c.userName());
         entity.put("_links", links);
         return entity;
     }
@@ -106,7 +113,22 @@ public class CommentController {
         CommentDocument saved =
                 commentRepository.save(new CommentDocument(tripId, userId, content)).block();
         String base = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
-        return ResponseEntity.ok(toHalComment(saved, base));
+        String userName =
+                userRepository
+                        .findById(userId)
+                        .map(u -> u.getName())
+                        .orElse("traveller");
+        CommunityCommentItem item =
+                new CommunityCommentItem(
+                        saved.getId(),
+                        saved.getTripId(),
+                        saved.getUserId(),
+                        userName,
+                        saved.getContent(),
+                        saved.getCreatedAt() != null
+                                ? Instant.ofEpochMilli(saved.getCreatedAt()).toString()
+                                : "");
+        return ResponseEntity.ok(toHalComment(item, base));
     }
 
     // DELETE /api/v2/comments/{id}

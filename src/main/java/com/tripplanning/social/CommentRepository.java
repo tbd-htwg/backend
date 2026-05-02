@@ -6,8 +6,8 @@ import reactor.core.publisher.Mono;
 
 public interface CommentRepository extends FirestoreReactiveRepository<CommentDocument> {
     /**
-     * Equality-only query (uses Firestore single-field index). Sort newest-first in the service layer
-     * so we do not require a composite index on {@code tripId + createdAt}.
+     * Equality on {@code tripId} (e.g. deletes). Paginated reads use {@link FirestoreSocialService}
+     * with a composite index on {@code tripId + createdAt + __name__}.
      */
     Flux<CommentDocument> findByTripId(Long tripId);
 

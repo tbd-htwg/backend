@@ -6,8 +6,8 @@ import reactor.core.publisher.Mono;
 
 public interface TripLikeRepository extends FirestoreReactiveRepository<TripLikeDocument> {
     /**
-     * Simple equality query on {@code tripId} (no composite index). Used for like counts instead of
-     * derived {@code countByTripId}, which relies on Firestore aggregation and can fail on some emulator/SDK combos.
+     * Equality on {@code tripId}. Public like counts use {@link FirestoreSocialService} aggregation
+     * queries; this stream remains for any code paths that need actual like documents.
      */
     Flux<TripLikeDocument> findByTripId(Long tripId);
 
