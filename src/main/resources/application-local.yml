@@ -45,7 +45,7 @@ spring:
             analysis:
               configurer: "class:com.tripplanning.search.LuceneEnglishAnalysisConfigurer"
           schema_management:
-            strategy: create-or-validate
+            strategy: drop-and-create #create-or-validate
 
   cloud:
     gcp:
@@ -57,9 +57,11 @@ spring:
         enabled: false
       firestore:
         enabled: true
+        # Emulator listen address (must match firebase.json / gcloud --host-port). NOT under emulator.* —
+        # FirestoreEmulatorProperties only has `enabled`; host goes on spring.cloud.gcp.firestore.host-port.
+        host-port: localhost:9090
         emulator:
           enabled: true
-          host-port: localhost:9090
 
   servlet:
     multipart:

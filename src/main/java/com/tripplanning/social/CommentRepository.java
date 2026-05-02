@@ -5,6 +5,11 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 public interface CommentRepository extends FirestoreReactiveRepository<CommentDocument> {
-    Flux<CommentDocument> findByTripIdOrderByCreatedAtDesc(Long tripId);
+    /**
+     * Equality-only query (uses Firestore single-field index). Sort newest-first in the service layer
+     * so we do not require a composite index on {@code tripId + createdAt}.
+     */
+    Flux<CommentDocument> findByTripId(Long tripId);
+
     Mono<Void> deleteByUserId(Long userId);
 }

@@ -29,7 +29,7 @@ public class SecurityConfig {
             .filter(s -> !s.isEmpty())
             .toList();
     config.setAllowedOrigins(origins);
-    config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+    config.setAllowedMethods(List.of("GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
     config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "Origin"));
     config.setExposedHeaders(List.of("WWW-Authenticate"));
     config.setAllowCredentials(true);
@@ -59,6 +59,9 @@ public class SecurityConfig {
                     .permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/search/**")
                     .permitAll()
+                    .requestMatchers(
+                        HttpMethod.GET, "/api/v2/trips/*/liked-by-current-user")
+                    .authenticated()
                     .requestMatchers(HttpMethod.GET, "/api/v2/users/{id:\\d+}")
                     .permitAll()
                     .requestMatchers(

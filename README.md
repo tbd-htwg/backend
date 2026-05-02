@@ -136,6 +136,12 @@ Depending on repository methods, Spring Data REST may additionally expose search
 - `com.tripplanning.api.config`
   - Security and OpenAPI configuration.
 
+## Firestore `likes` document IDs
+
+New like rows use a deterministic document id `{userId}_{tripId}` so a single read/delete can resolve membership without a field query.
+
+**Existing deployments:** documents created before this change keep random Firestore ids; APIs that query by `userId` and `tripId` still find them. Optional cleanup: delete duplicate legacy docs if the same user/trip was ever written twice, or migrate old docs to ids `{userId}_{tripId}` and remove the random-id copies.
+
 ## Run Tests
 
 ```bash
