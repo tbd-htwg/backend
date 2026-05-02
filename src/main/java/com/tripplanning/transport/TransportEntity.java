@@ -18,6 +18,8 @@ import lombok.Setter;
 import lombok.NoArgsConstructor;
 
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.KeywordField;
 
 
 @Entity
@@ -25,6 +27,7 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextFi
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Indexed
 
 public class TransportEntity {
 
@@ -37,6 +40,7 @@ public class TransportEntity {
     private long id;
 
     @FullTextField(analyzer = "english")
+    @KeywordField(name = "type_keyword", normalizer = "lowercase")
     @Column(nullable = false, length = 50)
     private String type;
 

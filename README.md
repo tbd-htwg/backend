@@ -63,21 +63,33 @@ mvn spring-boot:run
 
 ## Seed Example Data
 
-Seed realistic demo data (users, trips, locations, accommodations, transports, likes, comments):
+Seed realistic demo data (users, trips, locations, accommodations, transports, likes, comments) via the Python script in the repo root:
+
+- Path: [`performance/seeding_example/seed_example_data.py`](../performance/seeding_example/seed_example_data.py)
+- Docs: [`performance/seeding_example/README.md`](../performance/seeding_example/README.md)
+
+From the repository root (or `cd performance/seeding_example`):
+
+**Local `mvn` + `local` profile** — obtain a JWT automatically via dev-login:
 
 ```bash
-python3 scripts/seed_example_data.py
+python3 performance/seeding_example/seed_example_data.py --fetch-dev-login
 ```
 
-With custom API target:
+**Manual token** — set the application `accessToken` from `POST /api/v2/auth/dev-login` (local profile) or `POST /api/v2/auth/google` (Firebase ID token in `credential`):
 
 ```bash
-ROOT_URL=http://localhost:8080 BASE_PATH=/api/v2 python3 scripts/seed_example_data.py
+export TRIPPLANNING_SEED_BEARER_TOKEN='…'
+python3 performance/seeding_example/seed_example_data.py
 ```
 
-If your deployment exposes the API under a prefix, set `BASE_PATH` accordingly (for example `/api/v2`).
+**Another host or path** — use `--api-base` (full URL including `/api/v2`, no trailing slash), for example:
 
-Mutating API calls require a JWT (`Authorization: Bearer …`). Point the script at a token from Google login or `POST /api/v2/auth/dev-login` when using the `local` profile.
+```bash
+python3 performance/seeding_example/seed_example_data.py --api-base https://api.example.com/api/v2 --token '…'
+```
+
+**Docker Compose** ([`infrastructure/docker-compose.local.yml`](../infrastructure/docker-compose.local.yml)): the backend runs the default profile (Postgres + Elasticsearch), not `local`, so **`dev-login` is not registered**. The compose file sets `TRIPPLANNING_AUTH_JWT_SECRET` so the JVM starts; sign in through the app (or call `auth/google` with a Firebase ID token), copy `accessToken`, then run the seeder with `--token` or `TRIPPLANNING_SEED_BEARER_TOKEN` against `http://localhost:8080/api/v2` (Caddy on port 8080).
 
 ## API Reference (OpenAPI / Swagger)
 

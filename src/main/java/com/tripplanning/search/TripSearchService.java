@@ -22,7 +22,18 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class TripSearchService {
 
+    private static final String[] FREE_TEXT_FIELDS = {
+        "title",
+        "shortDescription",
+        "destination",
+        "user.name",
+        "tripLocations.location.name",
+        "accommodations.name",
+        "transports.type",
+    };
+
     private final EntityManager entityManager;
+    private final SearchQueryParser searchQueryParser;
 
     @Transactional(readOnly = true)
     public Page<TripSearchDto> search(String terms, int page, int size) {
@@ -31,24 +42,35 @@ public class TripSearchService {
             return Page.empty(pageable);
         }
 
-        String trimmed = terms.trim();
-        SearchSession searchSession = Search.session(entityManager);
+        ParsedSearchQuery parsed = searchQueryParser.parse(terms);
+        if (parsed.facets().isEmpty() && parsed.hasOnlyBlankFreeText()) {
+            return Page.empty(pageable);
+        }
 
+        SearchSession searchSession = Search.session(entityManager);
         int offset = Math.toIntExact(pageable.getOffset());
+
         SearchResult<TripEntity> result = searchSession.search(TripEntity.class)
-            .where(f -> f.match()
-                .fields("title", "shortDescription", "destination",
-                        "user.name",
-                        "tripLocations.location.name",
-                        "accommodations.name",
-                        "transports.type")
-                .matching(trimmed)
-                .fuzzy(1))
-            .fetch(offset, size);
+                .where(f -> {
+                    var bool = f.bool();
+                    for (SearchFacet facet : parsed.facets()) {
+                        bool = bool.must(f.match()
+                                .field(facet.key().tripIndexFieldPath())
+                                .matching(facet.normalizedValue()));
+                    }
+                    if (!parsed.hasOnlyBlankFreeText()) {
+                        bool = bool.must(f.match()
+                                .fields(FREE_TEXT_FIELDS)
+                                .matching(parsed.freeText().trim())
+                                .fuzzy(1));
+                    }
+                    return bool;
+                })
+                .fetch(offset, size);
 
         List<TripSearchDto> content = result.hits().stream()
-            .map(this::toDto)
-            .collect(Collectors.toList());
+                .map(this::toDto)
+                .collect(Collectors.toList());
 
         long totalHits = result.total().hitCount();
         return new PageImpl<>(content, pageable, totalHits);
@@ -56,14 +78,14 @@ public class TripSearchService {
 
     private TripSearchDto toDto(TripEntity trip) {
         return TripSearchDto.builder()
-            .id(trip.getId())
-            .userId(trip.getUser() != null ? trip.getUser().getId() : null)
-            .title(trip.getTitle())
-            .author(trip.getUser() != null ? trip.getUser().getName() : "Unbekannt")
-            .shortDescription(trip.getShortDescription())
-            .locations(trip.getTripLocations().stream()
-                .map(tl -> tl.getLocation().getName())
-                .collect(Collectors.toList()))
-            .build();
+                .id(trip.getId())
+                .userId(trip.getUser() != null ? trip.getUser().getId() : null)
+                .title(trip.getTitle())
+                .author(trip.getUser() != null ? trip.getUser().getName() : "Unbekannt")
+                .shortDescription(trip.getShortDescription())
+                .locations(trip.getTripLocations().stream()
+                        .map(tl -> tl.getLocation().getName())
+                        .collect(Collectors.toList()))
+                .build();
     }
 }

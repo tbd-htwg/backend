@@ -5,6 +5,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -34,6 +35,14 @@ public class ImageService {
 
     private static final Duration SIGNED_UPLOAD_URL_TTL = Duration.ofMinutes(15);
 
+    /** Avoid repeating GCS signing for the same object during list projections. */
+    private static final long SIGNED_READ_CACHE_MARGIN_MS = 60_000;
+
+    private final ConcurrentHashMap<String, CachedSignedReadUrl> signedReadUrlCache = new ConcurrentHashMap<>();
+
+    private record CachedSignedReadUrl(String url, long expiresAtEpochMs) {
+    }
+
     private final Storage storage;
 
     @Value("${spring.cloud.gcp.storage.bucket-name}")
@@ -42,10 +51,36 @@ public class ImageService {
     @Value("${spring.cloud.gcp.impersonate-service-account:}")
     private String impersonateServiceAccount;
 
+    /**
+     * Reused for every signed URL when impersonation is configured. Building
+     * {@link ImpersonatedCredentials} per trip row (list projection) caused large latency for
+     * authenticated requests.
+     */
+    private ImpersonatedCredentials gcsSignUrlCredentials;
+
     @PostConstruct
-    void trimBucketName() {
+    void initialize() {
         if (bucketName != null) {
             bucketName = bucketName.trim();
+        }
+        String targetServiceAccount = impersonateServiceAccount == null ? "" : impersonateServiceAccount.trim();
+        if (targetServiceAccount.isEmpty()) {
+            return;
+        }
+        try {
+            GoogleCredentials sourceCredentials = GoogleCredentials.getApplicationDefault()
+                    .createScoped("https://www.googleapis.com/auth/cloud-platform");
+            gcsSignUrlCredentials = ImpersonatedCredentials.create(
+                    sourceCredentials,
+                    targetServiceAccount,
+                    null,
+                    List.of("https://www.googleapis.com/auth/cloud-platform"),
+                    300);
+        } catch (Exception e) {
+            throw new IllegalStateException(
+                    "Could not initialize signing credentials for service account impersonation: "
+                            + targetServiceAccount + ". Root cause: " + rootCauseMessage(e),
+                    e);
         }
     }
 
@@ -72,9 +107,18 @@ public class ImageService {
         if (objectName == null || objectName.isBlank()) {
             return null;
         }
-        BlobId blobId = BlobId.of(bucketName, objectName);
+        String key = objectName.trim();
+        long now = System.currentTimeMillis();
+        CachedSignedReadUrl cached = signedReadUrlCache.get(key);
+        if (cached != null && cached.expiresAtEpochMs > now + SIGNED_READ_CACHE_MARGIN_MS) {
+            return cached.url();
+        }
+        BlobId blobId = BlobId.of(bucketName, key);
         BlobInfo blobInfo = BlobInfo.newBuilder(blobId).build();
-        return createSignedUrl(blobInfo, HttpMethod.GET).toString();
+        String url = createSignedUrl(blobInfo, HttpMethod.GET).toString();
+        long ttlMs = TimeUnit.MINUTES.toMillis(SIGNED_UPLOAD_URL_TTL.toMinutes()) - SIGNED_READ_CACHE_MARGIN_MS;
+        signedReadUrlCache.put(key, new CachedSignedReadUrl(url, now + ttlMs));
+        return url;
     }
 
     /** Signed read URL only for authenticated requests. */
@@ -97,6 +141,7 @@ public class ImageService {
         }
         try {
             boolean removed = Boolean.TRUE.equals(storage.delete(BlobId.of(bucketName, trimmed)));
+            signedReadUrlCache.remove(trimmed);
             if (removed) {
                 log.debug("Deleted gs://{}/{}", bucketName, trimmed);
             } else {
@@ -122,24 +167,8 @@ public class ImageService {
             options.add(Storage.SignUrlOption.withContentType());
         }
 
-        String targetServiceAccount = impersonateServiceAccount == null ? "" : impersonateServiceAccount.trim();
-        if (!targetServiceAccount.isEmpty()) {
-            try {
-                GoogleCredentials sourceCredentials = GoogleCredentials.getApplicationDefault()
-                        .createScoped("https://www.googleapis.com/auth/cloud-platform");
-                ImpersonatedCredentials signerCredentials = ImpersonatedCredentials.create(
-                        sourceCredentials,
-                        targetServiceAccount,
-                        null,
-                        List.of("https://www.googleapis.com/auth/cloud-platform"),
-                        300);
-                options.add(Storage.SignUrlOption.signWith(signerCredentials));
-            } catch (Exception e) {
-                throw new IllegalStateException(
-                        "Could not initialize signing credentials for service account impersonation: "
-                                + targetServiceAccount + ". Root cause: " + rootCauseMessage(e),
-                        e);
-            }
+        if (gcsSignUrlCredentials != null) {
+            options.add(Storage.SignUrlOption.signWith(gcsSignUrlCredentials));
         }
 
         try {

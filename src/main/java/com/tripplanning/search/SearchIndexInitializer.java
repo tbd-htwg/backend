@@ -1,5 +1,6 @@
 package com.tripplanning.search;
 
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -10,6 +11,9 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
+import com.tripplanning.accommodation.AccomEntity;
+import com.tripplanning.location.LocationEntity;
+import com.tripplanning.transport.TransportEntity;
 import com.tripplanning.trip.TripEntity;
 
 import jakarta.annotation.PreDestroy;
@@ -19,16 +23,18 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Ensures the trip full-text index is populated without delaying application readiness.
+ * Ensures Hibernate Search indexes are populated without delaying application readiness.
  * <p>
- * When the index already contains documents (typical on PaaS when a new instance attaches to an
- * existing Elasticsearch index), we only run a cheap hit count and skip mass indexing. Otherwise
- * mass indexing is started asynchronously so HTTP traffic is not blocked on startup.
+ * Each indexed entity type is checked independently: if its index already has documents, mass
+ * indexing for that type is skipped.
  */
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class SearchIndexInitializer {
+
+    private static final List<Class<?>> INDEXED_TYPES = List.of(
+            TripEntity.class, LocationEntity.class, TransportEntity.class, AccomEntity.class);
 
     private final EntityManagerFactory entityManagerFactory;
 
@@ -44,55 +50,56 @@ public class SearchIndexInitializer {
     }
 
     private void runIndexing() {
-        log.info("Trip search index: checking whether mass indexing is needed (non-blocking)...");
+        log.info("Search indexes: checking whether mass indexing is needed (non-blocking)...");
         try (EntityManager em = entityManagerFactory.createEntityManager()) {
             SearchSession searchSession = Search.session(em);
-
-            Long existingHits = countIndexedTrips(searchSession);
-            if (existingHits != null && existingHits > 0) {
+            for (Class<?> type : INDEXED_TYPES) {
+                Long existingHits = countIndexed(searchSession, type);
+                if (existingHits != null && existingHits > 0) {
+                    log.info(
+                            "Index {} already contains {} document(s); skipping mass indexer.",
+                            type.getSimpleName(),
+                            existingHits);
+                    continue;
+                }
                 log.info(
-                        "Trip search index already contains {} document(s); skipping mass indexer.",
-                        existingHits);
-                return;
+                        "Index {} is empty or not queryable yet; mass indexing...",
+                        type.getSimpleName());
+                try {
+                    searchSession
+                            .massIndexer(type)
+                            .threadsToLoadObjects(4)
+                            .purgeAllOnStart(false)
+                            .dropAndCreateSchemaOnStart(false)
+                            .start()
+                            .toCompletableFuture()
+                            .join();
+                    log.info("Mass indexing finished for {}.", type.getSimpleName());
+                } catch (Exception e) {
+                    log.error("Mass indexing failed for {}", type.getSimpleName(), e);
+                }
             }
-
-            log.info(
-                    "Trip search index is empty or not queryable yet; starting mass indexer in background...");
-            searchSession
-                    .massIndexer(TripEntity.class)
-                    .threadsToLoadObjects(4)
-                    .purgeAllOnStart(false)
-                    .dropAndCreateSchemaOnStart(false)
-                    .start()
-                    .whenComplete(
-                            (unused, err) -> {
-                                if (err != null) {
-                                    log.error("Mass indexing of trips failed", err);
-                                } else {
-                                    log.info("Mass indexing of trips finished.");
-                                }
-                            });
         } catch (Exception e) {
             log.warn(
-                    "Trip search index could not be checked or populated; search may be incomplete. Reason: {}",
+                    "Search indexes could not be checked or populated; search may be incomplete. Reason: {}",
                     e.toString(),
                     e);
         }
     }
 
-    /**
-     * @return number of indexed trip documents, or {@code null} if the index cannot be queried yet
-     */
-    private static Long countIndexedTrips(SearchSession searchSession) {
+    private static Long countIndexed(SearchSession searchSession, Class<?> type) {
         try {
             return searchSession
-                    .search(TripEntity.class)
+                    .search(type)
                     .where(f -> f.matchAll())
                     .fetch(0, 0)
                     .total()
                     .hitCount();
         } catch (RuntimeException e) {
-            log.debug("Trip index hit count failed (index may be missing): {}", e.getMessage());
+            log.debug(
+                    "Index hit count failed for {} (index may be missing): {}",
+                    type.getSimpleName(),
+                    e.getMessage());
             return null;
         }
     }

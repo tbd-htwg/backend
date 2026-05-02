@@ -57,7 +57,8 @@ public class SecurityConfig {
                     .authenticated()
                     .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
                     .permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/search/**")
+                    // Full-text search and facet suggests (public; paths under Spring MVC /api/search).
+                    .requestMatchers("/api/search/**")
                     .permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/v2/users/{id:\\d+}")
                     .permitAll()

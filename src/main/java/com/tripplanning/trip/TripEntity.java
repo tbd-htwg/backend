@@ -31,9 +31,12 @@ import java.util.List;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.KeywordField;
 
 @Entity
 @Table(name = "trips")
@@ -89,6 +92,7 @@ public class TripEntity {
 
   @Builder.Default 
   @IndexedEmbedded
+  @Fetch(FetchMode.SUBSELECT)
   @OneToMany(mappedBy = "trip", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<TripLocationEntity> tripLocations = new ArrayList<>();
 
@@ -101,6 +105,7 @@ public class TripEntity {
   private String title;
 
   @FullTextField(analyzer = "english")
+  @KeywordField(name = "destination_keyword", normalizer = "lowercase")
   @Column(nullable = false, length = 255)
   private String destination;
 

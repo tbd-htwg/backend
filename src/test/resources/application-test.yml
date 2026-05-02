@@ -45,3 +45,6 @@ tripplanning:
     jwt-expiration-seconds: 3600
   search:
     elasticsearch-index-name: tripentity-test
+    elasticsearch-index-location: locationentity-test
+    elasticsearch-index-transport: transportentity-test
+    elasticsearch-index-accommodation: accommodationentity-test

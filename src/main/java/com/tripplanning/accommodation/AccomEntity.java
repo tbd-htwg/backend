@@ -20,6 +20,8 @@ import lombok.Setter;
 import lombok.NoArgsConstructor;
 
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.KeywordField;
 
 
 @Entity
@@ -29,6 +31,7 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextFi
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
+@Indexed
 
 public class AccomEntity {
 
@@ -43,6 +46,7 @@ public class AccomEntity {
     private long id;
 
     @Column(nullable = false, length = 50)
+    @KeywordField(name = "type_keyword", normalizer = "lowercase")
     private String type;
 
     @Column(nullable = false)

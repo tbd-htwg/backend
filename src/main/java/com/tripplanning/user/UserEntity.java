@@ -23,6 +23,7 @@ import lombok.Setter;
 import lombok.NoArgsConstructor;
 
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.KeywordField;
 
 
 @Entity
@@ -52,6 +53,7 @@ public class UserEntity {
 
   @Column(nullable = false, unique = true, length = 255)
   @FullTextField(analyzer = "english")
+  @KeywordField(name = "name_keyword", normalizer = "lowercase")
   private String name;
 
   @Column(nullable = true, length = 500)

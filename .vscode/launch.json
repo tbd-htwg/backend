@@ -7,11 +7,7 @@
       "request": "launch",
       "mainClass": "com.tripplanning.Application",
       "projectName": "tripplanning-backend",
-      "vmArgs": "-Dspring.profiles.active=local",
-      "env": {
-        "TRIPPLANNING_AUTH_GOOGLE_CLIENT_ID": "YOUR_CLIENT_ID.apps.googleusercontent.com",
-        "TRIPPLANNING_AUTH_JWT_SECRET": "YOUR_JWT_SECRET_MIN_32_BYTES"
-      }
+      "vmArgs": "-Dspring.profiles.active=local"
     }
   ]
 }

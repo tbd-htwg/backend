@@ -20,6 +20,7 @@ import lombok.NoArgsConstructor;
 
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.KeywordField;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed;
 
 
 
@@ -28,6 +29,7 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextFi
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Indexed
 
 public class LocationEntity {
 
@@ -41,7 +43,7 @@ public class LocationEntity {
 
     @Column(nullable = false, unique = true) // LocationEnitity als Liste aus eindeutigen Orten
     @FullTextField(analyzer = "english")
-    @KeywordField(name = "destination_keyword")
+    @KeywordField(name = "destination_keyword", normalizer = "lowercase")
     private String name;
 
     /** Inverse of {@link TripLocationEntity#location}; required for Hibernate Search reindexing. */

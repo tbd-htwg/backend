@@ -20,5 +20,8 @@ public class LuceneEnglishAnalysisConfigurer implements LuceneAnalysisConfigurer
         .tokenFilter("snowballPorter")
         .param("language", "English")
         .tokenFilter("asciiFolding");
+
+    context.normalizer("lowercase").custom().tokenFilter("lowercase");
   }
 }
+
