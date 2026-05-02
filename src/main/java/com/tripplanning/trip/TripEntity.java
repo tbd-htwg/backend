@@ -92,10 +92,6 @@ public class TripEntity {
   @OneToMany(mappedBy = "trip", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<TripLocationEntity> tripLocations = new ArrayList<>();
 
-  @Builder.Default
-  @ManyToMany(mappedBy = "likedTrips")
-  private List<UserEntity> likedByUsers = new ArrayList<>();
-
   @FullTextField(analyzer = "english")
   @Column(nullable = false, length = 255)
   private String title;
