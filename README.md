@@ -1,148 +1,142 @@
-# Trip Planning Backend
+# Trip planning backend
 
-Spring Boot backend for a simple trip planning application.
+Spring Boot 3 service for a **trip planning** course project (HTWG Cloud Application Development): REST API for users, trips, locations, accommodations, transports, **full-text trip search**, **profile and trip images** (Google Cloud Storage), and **comments / likes** stored in **Firestore**. Domain data lives in **PostgreSQL** with **Flyway** migrations in deployed environments; the SPA talks to **`/api/v2`** (Spring Data REST) plus dedicated controllers for auth, search, social features, and uploads. Typical deployment: **Cloud Run** with GCP-managed Postgres, Elasticsearch, Firestore, and GCS.
+
+**Sibling app:** [../frontend/README.md](../frontend/README.md) (when this repo lives in a monorepo next to `frontend/`). **Infra overview:** [../infrastructure/README.md](../infrastructure/README.md) (same). **Agent-oriented notes:** [AGENTS.md](AGENTS.md).
+
+**Paths:** Shell commands use the **backend project root** (`pom.xml` here). In a monorepo that folder is often named `backend/` under a top-level directory; if you opened **only** the backend repository, you are already at that root. Relative paths such as `../frontend/` assume the monorepo layout—adjust or ignore if your checkout differs.
 
 ## Prerequisites
 
-- Java 21
-- Maven 3.9+
+- **Java 21**
+- **Maven 3.9+**
+- For **local** profile: optional **Firestore emulator** on port **9090** — start with **Firebase CLI** (`firebase emulators:start --only firestore`, uses [`firebase.json`](firebase.json)) or **`gcloud emulators firestore start --host-port=localhost:9090`** for comments and likes.
+- For **default / production-like** runs: **PostgreSQL**, **Elasticsearch**, GCP/Firebase configuration as described below.
 
-## Run locally with Google Sign-In (identity provider)
+## Local development (`local` profile)
 
-Use the **`local`** profile so you get H2, Lucene search, and a default dev JWT secret from `application-local.yml`. If needed, override the Firebase project id used for ID token verification.
+Use this for everyday work: file-based **H2**, **Hibernate Search** with **Lucene** (no Elasticsearch required), and a dev JWT secret from [`application-local.yml`](src/main/resources/application-local.yml).
 
-**One shell command** (from the `backend` directory):
+### Firestore emulator
+
+Listen on **`localhost:9090`** so it matches `spring.cloud.gcp.firestore.host-port` in [`application-local.yml`](src/main/resources/application-local.yml).
+
+**Firebase CLI** comes from the [`firebase-tools`](https://www.npmjs.com/package/firebase-tools) npm package (e.g. `npm install -g firebase-tools`). **Or** use **Google Cloud CLI** (`gcloud`). Run **one** of the following:
 
 ```bash
-SPRING_PROFILES_ACTIVE=local \
-TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID='project-9118634e-c9f1-4f29-804' \
+# Firebase CLI — uses firebase.json; run from this project root
+firebase emulators:start --only firestore
+
+# Or: Google Cloud CLI — no firebase.json required
+gcloud emulators firestore start --host-port=localhost:9090
+```
+
+### Run the API
+
+From this project root:
+
+```bash
+SPRING_PROFILES_ACTIVE=local mvn spring-boot:run
+```
+
+Optional: set **`TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID`** if you use Google sign-in against a specific Firebase project. Override **`TRIPPLANNING_AUTH_JWT_SECRET`** (≥32 UTF-8 bytes) if you must not rely on the file default.
+
+**What `local` does**
+
+| Concern | Behavior |
+|--------|----------|
+| Database | H2 file: `./temp/db/tripplanning-dev` |
+| Schema | **Flyway disabled**; JPA **`ddl-auto: create-drop`** (fresh schema each run) |
+| Search | Lucene indexes under **`./temp/search`** |
+| Firestore | Emulator enabled; database id defaults to **`(default)`** unless **`GCP_FIRESTORE_DATABASE_ID`** is set |
+
+API base: **`http://localhost:8080/api/v2`**. Start the [frontend dev server](../frontend/README.md) (usually `http://localhost:5173`).
+
+### Google sign-in locally
+
+Use the same **`local`** profile and set **`TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID`** to your Firebase project if it differs from the default in `application.yml`. The frontend must use an OAuth origin allowed in Firebase Authentication.
+
+### Dev login (no Google)
+
+With **`local`**, **`POST /api/v2/auth/dev-login`** is registered. JSON body: `email` (required), optional `name`. Response matches Google login (`tokenType`, `accessToken`, `user`). **Do not enable `local` in production.**
+
+## Production-like / default profile
+
+Uses **`application.yml`**: **PostgreSQL** datasource (**`SPRING_DATASOURCE_*`**), **Flyway** on (`src/main/resources/db/migration`), Hibernate **`ddl-auto: validate`**, Hibernate Search backend **Elasticsearch** (**`ELASTICSEARCH_HOSTS`**, optional auth/path).
+
+Also configure:
+
+- **`TRIPPLANNING_AUTH_JWT_SECRET`** — required; signs application JWTs (≥32 bytes).
+- **`TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID`** — Firebase project for verifying Google ID tokens on **`POST /api/v2/auth/google`**. On Cloud Run, this is often aligned with **`GCP_PROJECT_ID`**.
+- **`GCP_FIRESTORE_DATABASE_ID`** — Firestore database id (e.g. `(default)` or a named database).
+- **`tripplanning.cors.allowed-origins`** / **`CORS_ALLOWED_ORIGINS`** — browser origins for the SPA.
+
+Example:
+
+```bash
 mvn spring-boot:run
 ```
 
-To override the dev JWT signing key as well (optional; otherwise `application-local.yml` provides a default):
+## API reference (OpenAPI / Swagger)
+
+- **OpenAPI JSON:** `http://localhost:8080/v3/api-docs`
+- **Swagger UI:** `http://localhost:8080/swagger-ui/index.html`
+
+To refresh the checked-in spec for the frontend (with the server running), from this project root in a **monorepo** where `frontend` is a sibling folder:
 
 ```bash
-SPRING_PROFILES_ACTIVE=local \
-TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID='project-9118634e-c9f1-4f29-804' \
-TRIPPLANNING_AUTH_JWT_SECRET='your-own-secret-at-least-32-bytes-long' \
-mvn spring-boot:run
+curl -sS http://localhost:8080/v3/api-docs -o ../frontend/doc/swagger_v2.json
 ```
 
-Then start the frontend and open the app at `http://localhost:5173`.
+Otherwise set `-o` to the path of `doc/swagger_v2.json` in your frontend checkout.
 
-## Run Locally
+## Authentication
 
-1. Set auth environment variables (required unless you use the `local` profile defaults below):
+| Method | Endpoint | Notes |
+|--------|----------|--------|
+| Google | **`POST /api/v2/auth/google`** | Body: `{ "credential": "<Firebase ID token>" }` → `{ tokenType, accessToken, user }` |
+| Current user | **`GET /api/v2/auth/me`** | Requires `Authorization: Bearer <accessToken>` |
+| Dev only | **`POST /api/v2/auth/dev-login`** | **`local` profile only**; body `{ "email", "name?" }` |
 
-   - `TRIPPLANNING_AUTH_JWT_SECRET` — at least **32 UTF-8 bytes** (used to sign application JWTs after Google sign-in).
-   - `TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID` — Firebase project id used to validate incoming ID tokens for `POST /api/v2/auth/google`.
+Other **`/api/v2/**`**: most **GET** requests are public; **GET** on **`/api/v2/users`**, **`/api/v2/users/search`** (and search subpaths), **`GET /api/v2/trips/*/liked-by-current-user`**, and **mutating** methods require a valid JWT. See [`SecurityConfig.java`](src/main/java/com/tripplanning/api/config/SecurityConfig.java) for the exact rules.
 
-   On **Cloud Run** (GitHub Actions deploy workflow), `TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID` is set from **`GCP_PROJECT_ID`** — no separate Actions variable is needed.
+## Main HTTP surface
 
-   For quick local runs with H2 + Lucene, use the `local` profile (see `application-local.yml`): it supplies a **dev-only default JWT secret** and enables `POST /api/v2/auth/dev-login` so you can obtain a token without Google.
-
-   ```bash
-   SPRING_PROFILES_ACTIVE=local mvn spring-boot:run
-   ```
-
-2. Start the application (default / Postgres profile requires DB and secrets from your environment):
-
-```bash
-mvn spring-boot:run
-```
-
-3. The API is available at:
-   - `http://localhost:8080/api/v2`
-
-4. H2 database setup (legacy / non-Flyway default docs):
-   - Database is stored in `./db/tripplanning` (file-based H2).
-   - H2 console is enabled at `http://localhost:8080/h2-console`.
-   - JDBC URL: `jdbc:h2:file:./db/tripplanning;DB_CLOSE_DELAY=-1;AUTO_SERVER=TRUE`
-   - User: `sa`
-   - Password: (empty)
-
-## Seed Example Data
-
-Seed realistic demo data (users, trips, locations, accommodations, transports, likes, comments):
-
-```bash
-python3 scripts/seed_example_data.py
-```
-
-With custom API target:
-
-```bash
-ROOT_URL=http://localhost:8080 BASE_PATH=/api/v2 python3 scripts/seed_example_data.py
-```
-
-If your deployment exposes the API under a prefix, set `BASE_PATH` accordingly (for example `/api/v2`).
-
-Mutating API calls require a JWT (`Authorization: Bearer …`). Point the script at a token from Google login or `POST /api/v2/auth/dev-login` when using the `local` profile.
-
-## API Reference (OpenAPI / Swagger)
-
-- OpenAPI JSON: `http://localhost:8080/v3/api-docs`
-- Swagger UI: `http://localhost:8080/swagger-ui/index.html`
-
-These endpoints provide a frontend-friendly reference for request/response schemas and available routes.
-
-## Authentication (Google Identity Platform + application JWT)
-
-Hand-written REST controllers under `/api/v2/auth`:
-
-- `POST /api/v2/auth/google` — body `{ "credential": "<Firebase ID token>" }`; verifies the token, creates or links the user (`google_sub`, email), returns `{ "tokenType", "accessToken", "user" }`.
-- `GET /api/v2/auth/me` — returns the current user; requires `Authorization: Bearer <accessToken>`.
-- `POST /api/v2/auth/dev-login` — **only when `spring.profiles.active` includes `local`**; body `{ "email", "name?" }`; returns the same JSON as Google login for local testing without Google.
-
-Other `/api/v2/**` routes: **GET** is mostly public (except user collection and user search, which require a valid JWT). **POST/PUT/PATCH/DELETE** require `Authorization: Bearer <accessToken>`.
-
-**Google Identity Platform/Firebase:** ensure your frontend origin is authorized in your Firebase Authentication settings.
-
-## Current API Endpoints
-
-This project uses Spring Data REST repositories for domain resources, plus the auth controllers above.
-Repository endpoints are inferred and are available under the base path `/api/v2`.
-
-Main collection resources currently exposed:
-
-- `GET/POST /api/v2/users`
-- `GET/PUT/PATCH/DELETE /api/v2/users/{id}`
-- `GET/POST /api/v2/trips`
-- `GET/PUT/PATCH/DELETE /api/v2/trips/{id}`
-
-Depending on repository methods, Spring Data REST may additionally expose search endpoints under:
-
-- `/api/v2/users/search`
-- `/api/v2/trips/search`
-
-## Project Structure (Overview)
-
-- `com.tripplanning`
-  - Spring Boot application entrypoint (`Application`).
-- `com.tripplanning.user`
-  - `UserEntity` and `UserRepository` (Spring Data REST resource `/api/v2/users`).
-- `com.tripplanning.trip`
-  - `TripEntity` and `TripRepository` (Spring Data REST resource `/api/v2/trips`).
-- `com.tripplanning.accommodation`
-  - `AccomEntity` and `AccomRepository`.
-- `com.tripplanning.transport`
-  - `TransportEntity` and `TransportRepository`.
-- `com.tripplanning.comment`
-  - `CommentEntity` and `CommentRepository`.
-- `com.tripplanning.location`
-  - `LocationEntity` and `LocationRepository`.
-- `com.tripplanning.tripLocation`
-  - `TripLocationEntity` and `TripLocationRepository`.
-- `com.tripplanning.api.config`
-  - Security and OpenAPI configuration.
+- **Spring Data REST** collections and item resources under **`/api/v2`** (users, trips, trip locations, etc.), plus repository **search** endpoints where defined.
+- **Trip search:** **`GET /api/search/...`** (see [`TripSearchController`](src/main/java/com/tripplanning/search/TripSearchController.java)).
+- **Social:** Firestore-backed **comments** and **likes** via dedicated controllers in **`com.tripplanning.social`** (HAL-style JSON compatible with the SPA).
 
 ## Firestore `likes` document IDs
 
-New like rows use a deterministic document id `{userId}_{tripId}` so a single read/delete can resolve membership without a field query.
+New like documents use a deterministic id **`{userId}_{tripId}`** so one read/delete can target the document without a field query. Older deployments may still hold legacy random ids; APIs that query by `userId` and `tripId` can still find those rows.
 
-**Existing deployments:** documents created before this change keep random Firestore ids; APIs that query by `userId` and `tripId` still find them. Optional cleanup: delete duplicate legacy docs if the same user/trip was ever written twice, or migrate old docs to ids `{userId}_{tripId}` and remove the random-id copies.
+## Seed example data
 
-## Run Tests
+Realistic demo data (users, trips, locations, accommodations, transports, likes, comments) via the REST API:
+
+```bash
+cd ../performance/seeding_example
+python3 seed_example_data.py --help
+```
+
+(`../performance` is correct when `performance/` sits next to this backend folder in the monorepo; adjust if your tree differs.)
+
+With a local API and `local` profile, options such as **`--fetch-dev-login`** can obtain a token automatically. See [../performance/seeding_example/README.md](../performance/seeding_example/README.md) when that path exists in your checkout.
+
+## Project layout (`com.tripplanning`)
+
+| Package | Role |
+|---------|------|
+| `auth` | Google and dev login, JWT issuance |
+| `user`, `trip`, `tripLocation`, `location`, `accommodation`, `transport` | JPA entities and Spring Data REST |
+| `social` | Firestore documents and REST for comments / likes |
+| `search` | Hibernate Search indexing and search API |
+| `images` | GCS-backed uploads |
+| `api.config` | Security, OpenAPI |
+| `api.projections` | Stable JSON projections for lists and detail |
+| `config` | Cross-cutting Spring configuration |
+
+## Run tests
 
 ```bash
 mvn test
@@ -150,17 +144,16 @@ mvn test
 
 ## Docker
 
-Build image:
+Build:
 
 ```bash
 docker build -t trip-backend:local .
 ```
 
-Run container:
+Run:
 
 ```bash
 docker run --rm -p 8080:8080 trip-backend:local
 ```
 
-API base URL inside local Docker run:
-- `http://localhost:8080/api/v2`
+The runtime image expects the same environment variables as a non-local Spring profile (Postgres, secrets, Elasticsearch, GCP, etc.). The Dockerfile uses a **glibc** base image for Firestore/gRPC compatibility.
