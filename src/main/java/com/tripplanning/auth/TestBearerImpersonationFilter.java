@@ -25,8 +25,10 @@ import com.tripplanning.user.UserRepository;
 /**
  * Optional impersonation filter for seeders and load-test clients. When the configured shared
  * {@link AuthProperties#getTestBearerToken() test bearer token} is presented as
- * {@code Authorization: Bearer <token>} together with {@code X-Act-As-User: <userId>}, the request
- * is authenticated as that user (no JWT verification). Any other bearer token falls through to the
+ * {@code Authorization: Bearer <token>} together with optional {@code X-Act-As-User: <userId>}, the
+ * request is authenticated as that user (no JWT verification). If the header is absent, the subject
+ * is {@code 0} (bootstrap seeding — e.g. {@code POST /users} before any user row exists). Any other
+ * bearer token falls through to the
  * standard {@code oauth2ResourceServer().jwt()} filter chain, so real application JWTs continue to
  * work unchanged.
  *
@@ -67,33 +69,31 @@ public class TestBearerImpersonationFilter extends OncePerRequestFilter {
       return;
     }
 
+    long userId;
     String actAsRaw = request.getHeader(ACT_AS_HEADER);
     if (actAsRaw == null || actAsRaw.isBlank()) {
-      sendUnauthorized(
-          response,
-          HttpServletResponse.SC_BAD_REQUEST,
-          "invalid_request",
-          "X-Act-As-User header required");
-      return;
-    }
-    long userId;
-    try {
-      userId = Long.parseLong(actAsRaw.trim());
-    } catch (NumberFormatException e) {
-      sendUnauthorized(
-          response,
-          HttpServletResponse.SC_BAD_REQUEST,
-          "invalid_request",
-          "X-Act-As-User must be a numeric user id");
-      return;
-    }
-    if (!userRepository.existsById(userId)) {
-      sendUnauthorized(
-          response,
-          HttpServletResponse.SC_UNAUTHORIZED,
-          "invalid_token",
-          "X-Act-As-User refers to an unknown user");
-      return;
+      // Bootstrap: seeders POST /users before any row exists; no real user to impersonate yet.
+      userId = 0L;
+    } else {
+      try {
+        userId = Long.parseLong(actAsRaw.trim());
+      } catch (NumberFormatException e) {
+        sendUnauthorized(
+            response,
+            HttpServletResponse.SC_BAD_REQUEST,
+            "invalid_request",
+            "X-Act-As-User must be a numeric user id");
+        return;
+      }
+      // Id 0 is reserved for bootstrap (explicit header); other ids must exist in DB.
+      if (userId != 0L && !userRepository.existsById(userId)) {
+        sendUnauthorized(
+            response,
+            HttpServletResponse.SC_UNAUTHORIZED,
+            "invalid_token",
+            "X-Act-As-User refers to an unknown user");
+        return;
+      }
     }
 
     Instant now = Instant.now();

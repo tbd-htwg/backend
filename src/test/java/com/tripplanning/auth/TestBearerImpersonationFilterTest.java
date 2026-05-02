@@ -106,7 +106,7 @@ class TestBearerImpersonationFilterTest {
   }
 
   @Test
-  void matchingBearerWithoutActAsHeader_returns400() throws Exception {
+  void matchingBearerWithoutActAsHeader_authenticatesAsBootstrapUserZero() throws Exception {
     MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/v2/auth/me");
     request.addHeader(HttpHeaders.AUTHORIZATION, "Bearer " + TEST_BEARER);
     MockHttpServletResponse response = new MockHttpServletResponse();
@@ -114,10 +114,10 @@ class TestBearerImpersonationFilterTest {
 
     filter.doFilter(request, response, chain);
 
-    verify(chain, never()).doFilter(any(), any());
-    assertThat(response.getStatus()).isEqualTo(400);
-    assertThat(response.getHeader(HttpHeaders.WWW_AUTHENTICATE)).contains("invalid_request");
-    assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
+    verify(chain, times(1)).doFilter(any(), any());
+    var auth = SecurityContextHolder.getContext().getAuthentication();
+    assertThat(auth).isNotNull();
+    assertThat(((Jwt) auth.getPrincipal()).getSubject()).isEqualTo("0");
     verify(userRepository, never()).existsById(anyLong());
   }
 

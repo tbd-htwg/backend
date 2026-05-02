@@ -102,7 +102,7 @@ Other **`/api/v2/**`**: most **GET** requests are public; **GET** on **`/api/v2/
 
 ### Test bearer impersonation (non-prod only)
 
-Set **`TRIPPLANNING_AUTH_TEST_BEARER_TOKEN`** to a shared secret on `develop` (and optionally `staging`) deployments to enable [`TestBearerImpersonationFilter`](src/main/java/com/tripplanning/auth/TestBearerImpersonationFilter.java). When activated, any request that presents `Authorization: Bearer <that token>` together with `X-Act-As-User: <userId>` is authenticated as that user (no JWT verification, no expiry). Used by the seeder and Locust to write as many users from one shared secret. **Never set this on production**; if the env var is empty (default), the filter bean is not registered and behaviour is identical to before.
+Set **`TRIPPLANNING_AUTH_TEST_BEARER_TOKEN`** to a shared secret on `develop` (and optionally `staging`) deployments to enable [`TestBearerImpersonationFilter`](src/main/java/com/tripplanning/auth/TestBearerImpersonationFilter.java). When activated, any request that presents `Authorization: Bearer <that token>` together with `X-Act-As-User: <userId>` is authenticated as that user (no JWT verification, no expiry). If **`X-Act-As-User` is omitted**, the subject is **`0`** (bootstrap for seeding **`POST /users`** before any user row exists). Used by the seeder and Locust to write as many users from one shared secret. **Never set this on production**; if the env var is empty (default), the filter bean is not registered and behaviour is identical to before.
 
 ## Main HTTP surface
 
