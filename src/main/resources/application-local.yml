@@ -34,6 +34,8 @@ spring:
     properties:
       hibernate:
         format_sql: true
+        # Mirror the production batching so local SQL counts reflect prod behaviour.
+        default_batch_fetch_size: 32
         jdbc:
           lob:
             non_contextual_creation: true

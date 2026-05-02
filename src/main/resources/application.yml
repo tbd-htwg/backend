@@ -46,6 +46,9 @@ spring:
     properties:
       hibernate:
         format_sql: true
+        # Batch lazy loads (collections, ?-many proxies) into IN (?, ?, ...) clauses so the
+        # surviving Spring Data REST projections drop from N+1 to ~ceil(N/32) round trips.
+        default_batch_fetch_size: 32
         jdbc:
           lob:
             non_contextual_creation: true

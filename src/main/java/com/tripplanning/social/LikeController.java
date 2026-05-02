@@ -2,6 +2,7 @@ package com.tripplanning.social;
 
 import com.tripplanning.trip.TripEntity;
 import com.tripplanning.trip.TripRepository;
+import com.tripplanning.trip.read.TripCacheEvictor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -22,6 +23,7 @@ public class LikeController {
     private final TripLikeRepository likeRepository;
     private final TripRepository tripRepository;
     private final FirestoreSocialService firestoreSocialService;
+    private final TripCacheEvictor tripCacheEvictor;
 
     public record CurrentUserLikeStatus(boolean liked) {}
 
@@ -87,6 +89,7 @@ public class LikeController {
                         .block());
         if (!alreadyLiked) {
             likeRepository.save(new TripLikeDocument(userId, tripId)).block();
+            tripCacheEvictor.evictLikedByFeeds();
         }
         return ResponseEntity.noContent().build();
     }
@@ -103,6 +106,7 @@ public class LikeController {
                 .deleteById(deterministicId)
                 .then(likeRepository.deleteByUserIdAndTripId(userId, tripId))
                 .block();
+        tripCacheEvictor.evictLikedByFeeds();
         return ResponseEntity.noContent().build();
     }
 

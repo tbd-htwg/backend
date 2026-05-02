@@ -15,7 +15,7 @@ import org.springframework.web.server.ResponseStatusException;
 import com.tripplanning.social.dto.CommunityDtos.CommunityCommentItem;
 import com.tripplanning.social.dto.CommunityDtos.TripCommentsPageResponse;
 import com.tripplanning.social.dto.CommunityDtos.TripCommunityResponse;
-import com.tripplanning.trip.TripRepository;
+import com.tripplanning.trip.read.TripFeedService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -26,7 +26,7 @@ public class TripCommunityController {
 
     private static final int BUNDLE_COMMENT_PAGE = 10;
 
-    private final TripRepository tripRepository;
+    private final TripFeedService tripFeedService;
     private final TripLikeRepository tripLikeRepository;
     private final FirestoreSocialService firestoreSocialService;
     private final SocialCommentEnricher socialCommentEnricher;
@@ -80,7 +80,7 @@ public class TripCommunityController {
     }
 
     private void requireTrip(Long tripId) {
-        if (!tripRepository.existsById(tripId)) {
+        if (!tripFeedService.tripExists(tripId)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Trip not found");
         }
     }
