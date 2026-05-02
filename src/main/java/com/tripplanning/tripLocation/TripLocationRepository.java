@@ -1,5 +1,6 @@
 package com.tripplanning.tripLocation;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -16,4 +17,8 @@ public interface TripLocationRepository extends JpaRepository<TripLocationEntity
     @Query(
             "select tl from TripLocationEntity tl join fetch tl.trip t join fetch t.user where tl.id = :id")
     Optional<TripLocationEntity> findByIdWithTripAndUser(@Param("id") Long id);
+
+    @Query(
+            "select distinct tl from TripLocationEntity tl left join fetch tl.images where tl.trip.id = :tripId")
+    List<TripLocationEntity> findAllByTripIdWithImages(@Param("tripId") Long tripId);
 }

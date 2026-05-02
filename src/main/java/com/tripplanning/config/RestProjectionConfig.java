@@ -9,7 +9,9 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import com.tripplanning.api.projections.AccommodationProjection;
 import com.tripplanning.api.projections.PublicUserProfileProjection;
 import com.tripplanning.api.projections.TransportProjection;
+import com.tripplanning.api.projections.TripFullDetailFastProjection;
 import com.tripplanning.api.projections.TripFullDetailProjection;
+import com.tripplanning.api.projections.TripListFastProjection;
 import com.tripplanning.api.projections.TripListProjection;
 import com.tripplanning.api.projections.TripLocationImageProjection;
 import com.tripplanning.api.projections.TripLocationLiteProjection;
@@ -24,7 +26,9 @@ public class RestProjectionConfig implements RepositoryRestConfigurer {
             CorsRegistry cors) {
         ProjectionDefinitionConfiguration projections = config.getProjectionConfiguration();
         projections.addProjection(TripListProjection.class);
+        projections.addProjection(TripListFastProjection.class);
         projections.addProjection(TripFullDetailProjection.class);
+        projections.addProjection(TripFullDetailFastProjection.class);
         projections.addProjection(TripLocationProjection.class);
         projections.addProjection(TripLocationLiteProjection.class);
         projections.addProjection(TripLocationImageProjection.class);
