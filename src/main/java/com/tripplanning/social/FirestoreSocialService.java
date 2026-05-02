@@ -4,8 +4,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.ExecutionException;
 
+import com.google.api.gax.rpc.ApiException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.cloud.firestore.FieldPath;
@@ -96,9 +98,16 @@ public class FirestoreSocialService {
                     HttpStatus.INTERNAL_SERVER_ERROR, "Firestore query interrupted");
         } catch (ExecutionException e) {
             Throwable c = e.getCause() != null ? e.getCause() : e;
+            if (isMissingOrInvalidFirestoreIndex(c)) {
+                throw new ResponseStatusException(
+                        HttpStatus.SERVICE_UNAVAILABLE,
+                        "Firestore comment query is not ready (missing composite index or rules)."
+                                + " Deploy indexes from backend/firestore.indexes.json"
+                                + " (e.g. firebase deploy --only firestore:indexes). Detail: "
+                                + c.getMessage());
+            }
             throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "Invalid comment query (cursor or index): " + c.getMessage());
+                    HttpStatus.INTERNAL_SERVER_ERROR, "Firestore comment query failed: " + c.getMessage());
         }
 
         List<QueryDocumentSnapshot> docs = snapshot.getDocuments();
@@ -172,4 +181,30 @@ public class FirestoreSocialService {
             String id, long tripId, long userId, String content, long createdAtMillis) {}
 
     private record CursorPayload(long at, String id) {}
+
+    /**
+     * Firestore returns FAILED_PRECONDITION when a required composite index is missing (or similar
+     * query setup issues). The error message usually mentions "index" and often includes a console
+     * URL — we must not treat that as HTTP 400 (bad client input).
+     */
+    private static boolean isMissingOrInvalidFirestoreIndex(Throwable err) {
+        for (Throwable t = err; t != null; t = t.getCause()) {
+            if (t instanceof ApiException api
+                    && api.getStatusCode() != null
+                    && api.getStatusCode().getCode()
+                            == com.google.api.gax.rpc.StatusCode.Code.FAILED_PRECONDITION) {
+                return true;
+            }
+            String msg = t.getMessage();
+            if (msg != null) {
+                String m = msg.toLowerCase(Locale.ROOT);
+                if (m.contains("requires an index")
+                        || m.contains("the query requires a composite index")
+                        || m.contains("failed_precondition")) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 }
