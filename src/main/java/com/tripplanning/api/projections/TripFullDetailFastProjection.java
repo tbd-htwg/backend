@@ -3,35 +3,42 @@ package com.tripplanning.api.projections;
 import java.time.LocalDate;
 import java.util.List;
 
-import org.springframework.data.rest.core.config.Projection;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.rest.core.config.Projection;
 
 import com.tripplanning.trip.TripEntity;
 
-@Projection(name = "list", types = { TripEntity.class })
-public interface TripListProjection {
-    
+/**
+ * Trip detail without embedded trip-location image signing; stops use {@link TripLocationLiteProjection}.
+ * Signed URLs per stop: {@code GET /api/v2/trips/{id}/trip-location-image-urls}.
+ */
+@Projection(name = "fullDetailFast", types = { TripEntity.class })
+public interface TripFullDetailFastProjection {
+
     Long getId();
+
     String getTitle();
+
     String getDestination();
+
     LocalDate getStartDate();
+
     String getShortDescription();
+
+    String getLongDescription();
 
     @Value("#{target.user.id}")
     Long getAuthorId();
-    
+
     @Value("#{target.user.name}")
     String getAuthorName();
-    
+
     @Value("#{@imageService.createSignedReadUrlIfAuthenticated(target.user.imagePath)}")
     String getAuthorProfileImageUrl();
 
-    @Value("#{target.locationNames}")
-    List<String> getLocations();
+    List<TripLocationLiteProjection> getTripLocations();
 
-    @Value("#{target.accommodationNames}")
-    List<String> getAccommodationNames();
+    List<TransportProjection> getTransports();
 
-    @Value("#{target.transportTypes}")
-    List<String> getTransportTypes();
+    List<AccommodationProjection> getAccommodations();
 }

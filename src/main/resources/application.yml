@@ -9,6 +9,11 @@ tripplanning:
     firebase-project-id: ${TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID:project-9118634e-c9f1-4f29-804}
     jwt-secret: ${TRIPPLANNING_AUTH_JWT_SECRET:}
     jwt-expiration-seconds: ${TRIPPLANNING_AUTH_JWT_EXPIRATION_SECONDS:43200}
+    # Optional shared bearer for seeders / load tests. When set, requests presenting it as
+    # `Authorization: Bearer <token>` together with `X-Act-As-User: <userId>` are authenticated as
+    # that user (no JWT verification). Leave empty in production; only configure this secret on the
+    # `develop` (and optionally `staging`) GitHub Environment.
+    test-bearer-token: ${TRIPPLANNING_AUTH_TEST_BEARER_TOKEN:}
   # Hibernate Search logical index name for TripEntity. Use distinct values per environment when
   # several backends share one Elasticsearch cluster (e.g. tripentity-develop, tripentity-staging).
   search:
@@ -41,6 +46,9 @@ spring:
     properties:
       hibernate:
         format_sql: true
+        # Batch lazy loads (collections, ?-many proxies) into IN (?, ?, ...) clauses so the
+        # surviving Spring Data REST projections drop from N+1 to ~ceil(N/32) round trips.
+        default_batch_fetch_size: 32
         jdbc:
           lob:
             non_contextual_creation: true
@@ -62,11 +70,15 @@ spring:
 
   cloud:
     gcp:
-      impersonate-service-account: ${SPRING_CLOUD_GCP_IMPERSONATE_SERVICE_ACCOUNT:}
+      impersonate-service-account: ${GCP_IMPERSONATE_SERVICE_ACCOUNT:}
       sql:
         enabled: false
       storage:
         bucket-name: "project-9118634e-c9f1-4f29-804-images-bucket"
+      # Named DB in GCP; set GCP_FIRESTORE_DATABASE_ID (e.g. on Cloud Run / GitHub vars).
+      # Local profile overrides default to (default) for the emulator — see application-local.yml.
+      firestore:
+        database-id: ${GCP_FIRESTORE_DATABASE_ID:tbd-firestore}
 
   jackson:
     serialization:

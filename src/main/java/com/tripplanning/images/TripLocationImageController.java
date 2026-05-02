@@ -15,6 +15,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
+import com.tripplanning.trip.read.TripCacheEvictor;
 import com.tripplanning.tripLocation.TripLocationEntity;
 import com.tripplanning.tripLocation.TripLocationImageEntity;
 import com.tripplanning.tripLocation.TripLocationImageRepository;
@@ -31,6 +32,7 @@ public class TripLocationImageController {
     private final TripLocationRepository tripLocationRepository;
     private final TripLocationImageRepository tripLocationImageRepository;
     private final UserService userService;
+    private final TripCacheEvictor tripCacheEvictor;
 
     @PostMapping("/{tripLocationId}/images")
     public ResponseEntity<?> createUploadUrl(
@@ -57,6 +59,7 @@ public class TripLocationImageController {
                     .build();
 
                 tripLocationImageRepository.save(image);
+            tripCacheEvictor.evictForTripChange(tripLocation.getTrip().getId());
             String signedReadUrl = imageService.createSignedReadUrl(signedUpload.objectName());
             return ResponseEntity.ok(
                     new ImageUploadDtos.CreateUploadResponse(
@@ -71,7 +74,6 @@ public class TripLocationImageController {
             return ResponseEntity.internalServerError().body("Fehler beim Erstellen der Upload-URL: " + e.getMessage());
         }
     }
-
 
     @GetMapping("/{tripLocationId}/images")
     public ResponseEntity<List<String>> getImages(@PathVariable Long tripLocationId) {
@@ -101,6 +103,7 @@ public class TripLocationImageController {
             imageService.deleteStoredObjectByPath(image.getImagePath(), prefix);
         }
         tripLocationImageRepository.deleteAll(images);
+        tripCacheEvictor.evictForTripChange(tripLocation.getTrip().getId());
         return ResponseEntity.noContent().build();
     }
 
@@ -128,6 +131,7 @@ public class TripLocationImageController {
         String prefix = "trip-locations/" + tripLocationId + "/";
         imageService.deleteStoredObjectByPath(image.getImagePath(), prefix);
         tripLocationImageRepository.delete(image);
+        tripCacheEvictor.evictForTripChange(tripLocation.getTrip().getId());
         return ResponseEntity.noContent().build();
     }
 }

@@ -92,10 +92,6 @@ public class TripEntity {
   @OneToMany(mappedBy = "trip", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<TripLocationEntity> tripLocations = new ArrayList<>();
 
-  @Builder.Default
-  @ManyToMany(mappedBy = "likedTrips")
-  private List<UserEntity> likedByUsers = new ArrayList<>();
-
   @FullTextField(analyzer = "english")
   @Column(nullable = false, length = 255)
   private String title;
@@ -120,6 +116,14 @@ public class TripEntity {
     return tripLocations.stream()
         .map(tl -> tl.getLocation().getName())
         .toList();
-}
+  }
+
+  public List<String> getAccommodationNames() {
+    return accommodations.stream().map(AccomEntity::getName).toList();
+  }
+
+  public List<String> getTransportTypes() {
+    return transports.stream().map(TransportEntity::getType).toList();
+  }
 
 }

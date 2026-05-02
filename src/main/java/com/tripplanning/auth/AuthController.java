@@ -4,7 +4,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtException;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -39,7 +38,6 @@ public class AuthController {
   }
 
   @PostMapping("/google")
-  @Transactional
   public AuthDtos.LoginResponse google(@RequestBody AuthDtos.GoogleLoginRequest body) {
     if (body.credential() == null || body.credential().isBlank()) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "credential is required");

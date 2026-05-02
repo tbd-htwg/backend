@@ -34,6 +34,8 @@ spring:
     properties:
       hibernate:
         format_sql: true
+        # Mirror the production batching so local SQL counts reflect prod behaviour.
+        default_batch_fetch_size: 32
         jdbc:
           lob:
             non_contextual_creation: true
@@ -45,16 +47,26 @@ spring:
             analysis:
               configurer: "class:com.tripplanning.search.LuceneEnglishAnalysisConfigurer"
           schema_management:
-            strategy: create-or-validate
+            strategy: drop-and-create #create-or-validate
 
   cloud:
     gcp:
+      project-id: tripplanning-local
       impersonate-service-account: "tripplanning-dev-image-url-sig@project-9118634e-c9f1-4f29-804.iam.gserviceaccount.com"
       storage:
         bucket-name: "project-9118634e-c9f1-4f29-804-images-bucket"
       sql:
         enabled: false
-  
+      firestore:
+        enabled: true
+        # Emulator uses the default database id unless you set GCP_FIRESTORE_DATABASE_ID.
+        database-id: ${GCP_FIRESTORE_DATABASE_ID:(default)}
+        # Emulator listen address (must match firebase.json / gcloud --host-port). NOT under emulator.* —
+        # FirestoreEmulatorProperties only has `enabled`; host goes on spring.cloud.gcp.firestore.host-port.
+        host-port: localhost:9090
+        emulator:
+          enabled: true
+
   servlet:
     multipart:
       max-file-size: 10MB

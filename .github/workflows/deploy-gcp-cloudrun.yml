@@ -37,6 +37,8 @@ jobs:
       DB_PASSWORD_SECRET: ${{ vars.GCP_DB_PASSWORD_SECRET }}
       CORS_ALLOWED_ORIGINS: ${{ vars.GCP_CORS_ALLOWED_ORIGINS }}
       GCP_IMPERSONATE_SERVICE_ACCOUNT: ${{ vars.GCP_IMPERSONATE_SERVICE_ACCOUNT }}
+      # Firestore database id (named DB in GCP). Sets GCP_FIRESTORE_DATABASE_ID on Cloud Run.
+      GCP_FIRESTORE_DATABASE_ID: ${{ vars.GCP_FIRESTORE_DATABASE_ID }}
       # Remote Elasticsearch (Secret Manager secret *id*, not the password string — see deploy step).
       GCP_ELASTICSEARCH_PROTOCOL: ${{ vars.GCP_ELASTICSEARCH_PROTOCOL }}
       GCP_ELASTICSEARCH_HOSTS: ${{ vars.GCP_ELASTICSEARCH_HOSTS }}
@@ -47,6 +49,10 @@ jobs:
       GCP_TRIP_SEARCH_INDEX_NAME: ${{ vars.GCP_TRIP_SEARCH_INDEX_NAME }}
       # JWT signing secret (Secrets); Firebase ID token verification uses PROJECT_ID (= vars.GCP_PROJECT_ID).
       TRIPPLANNING_AUTH_JWT_SECRET: ${{ secrets.TRIPPLANNING_AUTH_JWT_SECRET }}
+      # Optional shared "test bearer" used by seeders / load tests with the X-Act-As-User header.
+      # Only configure this secret on the `develop` (and optionally `staging`) GitHub Environment.
+      # NEVER set it on `production` — its presence enables impersonation of any user.
+      TRIPPLANNING_AUTH_TEST_BEARER_TOKEN: ${{ secrets.TRIPPLANNING_AUTH_TEST_BEARER_TOKEN }}
       # Cloud Run capacity (override via repo/environment vars CLOUD_RUN_CPU, CLOUD_RUN_MEMORY, CLOUD_RUN_CONCURRENCY).
       CLOUD_RUN_CPU: ${{ vars.CLOUD_RUN_CPU || '2' }}
       CLOUD_RUN_MEMORY: ${{ vars.CLOUD_RUN_MEMORY || '2Gi' }}
@@ -114,7 +120,13 @@ jobs:
           EV="${EV}|TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID=${PROJECT_ID}"
           EV="${EV}|TRIPPLANNING_AUTH_JWT_SECRET=${TRIPPLANNING_AUTH_JWT_SECRET}"
           if [ -n "${GCP_IMPERSONATE_SERVICE_ACCOUNT:-}" ]; then
-            EV="${EV}|SPRING_CLOUD_GCP_IMPERSONATE_SERVICE_ACCOUNT=${GCP_IMPERSONATE_SERVICE_ACCOUNT}"
+            EV="${EV}|GCP_IMPERSONATE_SERVICE_ACCOUNT=${GCP_IMPERSONATE_SERVICE_ACCOUNT}"
+          fi
+          if [ -n "${GCP_FIRESTORE_DATABASE_ID:-}" ]; then
+            EV="${EV}|GCP_FIRESTORE_DATABASE_ID=${GCP_FIRESTORE_DATABASE_ID}"
+          fi
+          if [ -n "${TRIPPLANNING_AUTH_TEST_BEARER_TOKEN:-}" ]; then
+            EV="${EV}|TRIPPLANNING_AUTH_TEST_BEARER_TOKEN=${TRIPPLANNING_AUTH_TEST_BEARER_TOKEN}"
           fi
           SECRETS="SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD_SECRET}:latest"
           if [ -n "${GCP_ELASTICSEARCH_PASSWORD_SECRET}" ]; then

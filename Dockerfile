@@ -7,7 +7,8 @@ RUN mvn -DskipTests dependency:go-offline
 COPY src ./src
 RUN mvn -DskipTests clean package
 
-FROM eclipse-temurin:21-jre-alpine
+# glibc-based image: Alpine (musl) + gRPC/netty-tcnative native libs → SIGSEGV in JNI_OnLoad (Firestore client).
+FROM eclipse-temurin:21-jre-jammy
 WORKDIR /app
 
 COPY --from=build /app/target/*.jar app.jar
