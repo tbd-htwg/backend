@@ -1,9 +1,11 @@
 package com.tripplanning.images;
 
 import java.net.URL;
+import java.text.Normalizer;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -17,6 +19,7 @@ import jakarta.annotation.PostConstruct;
 
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.auth.oauth2.ImpersonatedCredentials;
+import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.BlobInfo;
 import com.google.cloud.storage.HttpMethod;
@@ -67,6 +70,53 @@ public class ImageService {
         return new SignedUploadInfo(signedUrl.toString(), objectName, contentType);
     }
 
+    /**
+     * Empty if the object exists (metadata readable); otherwise a short reason suitable for an HTTP body.
+     * Distinguishes “wrong key / missing object” from IAM or API errors (often misread as generic 404s).
+     */
+    public Optional<String> objectExistenceProblem(String objectName) {
+        if (objectName == null || objectName.isBlank()) {
+            return Optional.of("imagePath is empty.");
+        }
+        String trimmed = Normalizer.normalize(objectName.trim(), Normalizer.Form.NFC);
+        BlobId blobId = BlobId.of(bucketName, trimmed);
+        try {
+            Blob blob = storage.get(blobId);
+            if (blob != null) {
+                return Optional.empty();
+            }
+            return Optional.of(
+                    "No object at gs://"
+                            + bucketName
+                            + "/"
+                            + trimmed
+                            + " (metadata GET returned null; check rsync prefix vs --sample-images-prefix and bucket "
+                            + "spring.cloud.gcp.storage.bucket-name).");
+        } catch (StorageException e) {
+            log.warn(
+                    "GCS metadata read failed for gs://{}/{}: {} [{}]",
+                    bucketName,
+                    trimmed,
+                    e.getMessage(),
+                    e.getCode());
+            return Optional.of(
+                    "Could not read gs://"
+                            + bucketName
+                            + "/"
+                            + trimmed
+                            + ": "
+                            + e.getMessage()
+                            + " (grant storage.objects.get on the bucket to the Cloud Run runtime SA; code="
+                            + e.getCode()
+                            + ").");
+        }
+    }
+
+    /** Returns whether the given object name exists in the configured bucket (for pre-uploaded seeds). */
+    public boolean objectExistsInBucket(String objectName) {
+        return objectExistenceProblem(objectName).isEmpty();
+    }
+
     /** Create a signed read URL (GET) for the given object name in the configured bucket. */
     public String createSignedReadUrl(String objectName) {
         if (objectName == null || objectName.isBlank()) {
@@ -84,7 +134,6 @@ public class ImageService {
         }
         return createSignedReadUrl(objectName);
     }
-
 
     public void deleteStoredObjectByPath(String objectName, String requiredNamePrefix) {
         if (objectName == null || objectName.isBlank()) {

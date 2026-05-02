@@ -49,6 +49,7 @@ Optional: set **`TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID`** if you use Google sign
 | Schema | **Flyway disabled**; JPA **`ddl-auto: create-drop`** (fresh schema each run) |
 | Search | Lucene indexes under **`./temp/search`** |
 | Firestore | Emulator enabled; database id defaults to **`(default)`** unless **`GCP_FIRESTORE_DATABASE_ID`** is set |
+| Cloud Storage | With a **real** bucket in `application.yml`, run **`gcloud auth application-default login`** so the JVM loads ADC; otherwise the local `Storage` client is anonymous and GCS returns **401** for **`storage.objects.get`** (e.g. **`POST /api/v2/trip-location-images/preuploaded`**). |
 
 API base: **`http://localhost:8080/api/v2`**. Start the [frontend dev server](../frontend/README.md) (usually `http://localhost:5173`).
 

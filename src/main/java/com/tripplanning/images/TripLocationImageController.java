@@ -75,7 +75,6 @@ public class TripLocationImageController {
         }
     }
 
-
     @GetMapping("/{tripLocationId}/images")
     public ResponseEntity<List<String>> getImages(@PathVariable Long tripLocationId) {
         List<TripLocationImageEntity> images = tripLocationImageRepository.findByTripLocationId(tripLocationId);

@@ -20,6 +20,7 @@ import lombok.RequiredArgsConstructor;
  * (or anything embedded in a trip's feed/detail payload) changes through the SDR collections.
  *
  * <p>Mutations made through custom controllers ({@link com.tripplanning.images.TripLocationImageController},
+ * {@link com.tripplanning.images.TripLocationPreuploadedImageController},
  * {@link com.tripplanning.social.LikeController}) call into {@link TripCacheEvictor} directly.
  */
 @Component
