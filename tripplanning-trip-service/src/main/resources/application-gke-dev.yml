@@ -1,0 +1,28 @@
+# GKE minimal dev: PostgreSQL + in-pod Lucene search (no external Elasticsearch).
+# Activate via SPRING_PROFILES_ACTIVE=gke-dev (set in trip-service ConfigMap).
+management:
+  endpoint:
+    health:
+      # Root /actuator/health aggregates every contributor; readiness/liveness groups are narrower.
+      show-details: always
+  health:
+    diskspace:
+      enabled: false
+
+spring:
+  config:
+    activate:
+      on-profile: gke-dev
+
+  jpa:
+    properties:
+      hibernate:
+        search:
+          backend:
+            type: lucene
+            directory:
+              type: local-heap
+            analysis:
+              configurer: "class:com.tripplanning.search.LuceneEnglishAnalysisConfigurer"
+          schema_management:
+            strategy: create-or-validate

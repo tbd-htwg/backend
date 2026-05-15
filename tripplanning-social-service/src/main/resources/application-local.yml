@@ -1,0 +1,21 @@
+spring:
+  config:
+    activate:
+      on-profile: local
+
+  cloud:
+    gcp:
+      project-id: tripplanning-local
+      firestore:
+        database-id: ${GCP_FIRESTORE_DATABASE_ID:(default)}
+        host-port: localhost:9090
+        emulator:
+          enabled: true
+
+tripplanning:
+  cors:
+    allowed-origins: http://localhost:5173,http://127.0.0.1:5173
+  auth:
+    jwt-secret: ${TRIPPLANNING_AUTH_JWT_SECRET:local-dev-only-change-me-32bytes-min!!}
+  services:
+    trip-base-url: http://localhost:8080

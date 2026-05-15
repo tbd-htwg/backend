@@ -1,18 +1,27 @@
+# Build trip-service or social-service image:
+#   docker build --build-arg SERVICE=trip -t tripplanning-trip-service .
+#   docker build --build-arg SERVICE=social -t tripplanning-social-service .
+ARG SERVICE=trip
+
 FROM maven:3.9.11-eclipse-temurin-21 AS build
 WORKDIR /app
+ARG SERVICE
 
 COPY pom.xml ./
-RUN mvn -DskipTests dependency:go-offline
+COPY tripplanning-common/pom.xml tripplanning-common/
+COPY tripplanning-trip-service/pom.xml tripplanning-trip-service/
+COPY tripplanning-social-service/pom.xml tripplanning-social-service/
+RUN mvn -pl tripplanning-${SERVICE}-service -am dependency:go-offline -DskipTests
 
-COPY src ./src
-RUN mvn -DskipTests clean package
+COPY tripplanning-common tripplanning-common
+COPY tripplanning-trip-service tripplanning-trip-service
+COPY tripplanning-social-service tripplanning-social-service
+RUN mvn -pl tripplanning-${SERVICE}-service -am package -DskipTests
 
-# glibc-based image: Alpine (musl) + gRPC/netty-tcnative native libs → SIGSEGV in JNI_OnLoad (Firestore client).
 FROM eclipse-temurin:21-jre-jammy
 WORKDIR /app
-
-COPY --from=build /app/target/*.jar app.jar
+ARG SERVICE
+COPY --from=build /app/tripplanning-${SERVICE}-service/target/tripplanning-${SERVICE}-service-*.jar app.jar
 RUN mkdir -p /app/db
-
 EXPOSE 8080
 CMD ["java", "-jar", "app.jar"]

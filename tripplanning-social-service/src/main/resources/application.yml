@@ -1,0 +1,34 @@
+server:
+  port: ${SERVER_PORT:8081}
+
+tripplanning:
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173,https://tbd-htwg.de,https://www.tbd-htwg.de,https://k8s.tbd-htwg.de,https://api.k8s.tbd-htwg.de}
+  auth:
+    firebase-project-id: ${TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID:milestone2-tbd-cad}
+    jwt-secret: ${TRIPPLANNING_AUTH_JWT_SECRET:}
+    jwt-expiration-seconds: ${TRIPPLANNING_AUTH_JWT_EXPIRATION_SECONDS:43200}
+  services:
+    trip-base-url: ${TRIPPLANNING_TRIP_SERVICE_URL:http://localhost:8080}
+    social-base-url: ${TRIPPLANNING_SOCIAL_SERVICE_URL:http://localhost:8081}
+    internal-secret: ${TRIPPLANNING_INTERNAL_SECRET:}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+spring:
+  cloud:
+    gcp:
+      firestore:
+        database-id: ${GCP_FIRESTORE_DATABASE_ID:tbd-firestore}
+
+springdoc:
+  api-docs:
+    enabled: false
