@@ -1,6 +1,7 @@
-# Build trip-service or social-service image:
+# Build trip-service, social-service, or external-info-service image:
 #   docker build --build-arg SERVICE=trip -t tripplanning-trip-service .
 #   docker build --build-arg SERVICE=social -t tripplanning-social-service .
+#   docker build --build-arg SERVICE=external-info -t tripplanning-external-info-service .
 ARG SERVICE=trip
 
 FROM maven:3.9.11-eclipse-temurin-21 AS build
@@ -11,11 +12,13 @@ COPY pom.xml ./
 COPY tripplanning-common/pom.xml tripplanning-common/
 COPY tripplanning-trip-service/pom.xml tripplanning-trip-service/
 COPY tripplanning-social-service/pom.xml tripplanning-social-service/
+COPY tripplanning-external-info-service/pom.xml tripplanning-external-info-service/
 RUN mvn -pl tripplanning-${SERVICE}-service -am dependency:go-offline -DskipTests
 
 COPY tripplanning-common tripplanning-common
 COPY tripplanning-trip-service tripplanning-trip-service
 COPY tripplanning-social-service tripplanning-social-service
+COPY tripplanning-external-info-service tripplanning-external-info-service
 RUN mvn -pl tripplanning-${SERVICE}-service -am package -DskipTests
 
 FROM eclipse-temurin:21-jre-jammy

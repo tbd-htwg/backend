@@ -21,7 +21,7 @@ public interface TripLocationLiteProjection {
     @Value("#{target.location.id}")
     Long getLocationId();
 
-    @Value("#{target.location.name}")
+    @Value("#{target.location.city}")
     String getLocationName();
     
 }

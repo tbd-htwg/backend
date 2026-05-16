@@ -1,0 +1,24 @@
+server:
+  port: 8082
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+
+external-api:
+  nominatim:
+    url: https://nominatim.openstreetmap.org
+  aa:
+    url: https://api.auswaertiges-amt.de/v1
+  open-meteo:
+    url: https://api.open-meteo.com/v1
+  viator:
+    api-key: ${VIATOR_API_KEY:}
+    base-url: "https://api.viator.com/partner/products/search"

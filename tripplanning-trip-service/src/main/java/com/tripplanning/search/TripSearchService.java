@@ -39,7 +39,7 @@ public class TripSearchService {
             .where(f -> f.match()
                 .fields("title", "shortDescription", "destination",
                         "user.name",
-                        "tripLocations.location.name",
+                        "tripLocations.location.city",
                         "accommodations.name",
                         "transports.type")
                 .matching(trimmed)
@@ -64,7 +64,7 @@ public class TripSearchService {
             .destination(trip.getDestination())
             .startDate(trip.getStartDate())
             .locations(trip.getTripLocations().stream()
-                .map(tl -> tl.getLocation().getName())
+                .map(tl -> tl.getLocation().getCity())
                 .collect(Collectors.toList()))
             .accommodationNames(trip.getAccommodationNames())
             .transportTypes(trip.getTransportTypes())

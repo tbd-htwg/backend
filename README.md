@@ -2,7 +2,18 @@
 
 Spring Boot 3 service for a **trip planning** course project (HTWG Cloud Application Development): REST API for users, trips, locations, accommodations, transports, **full-text trip search**, **profile and trip images** (Google Cloud Storage), and **comments / likes** stored in **Firestore**. Domain data lives in **PostgreSQL** with **Flyway** migrations in deployed environments; the SPA talks to **`/api/v2`** (Spring Data REST) plus dedicated controllers for auth, search, social features, and uploads. Typical deployment: **Cloud Run** with GCP-managed Postgres, Elasticsearch, Firestore, and GCS.
 
-**Sibling app:** [../frontend/README.md](../frontend/README.md) (when this repo lives in a monorepo next to `frontend/`). **Infra overview:** [../infrastructure/README.md](../infrastructure/README.md) (same). **Agent-oriented notes:** [AGENTS.md](AGENTS.md).
+**Sibling app:** [../frontend/README.md](../frontend/README.md) (when this repo lives in a monorepo next to `frontend/`). **Infra overview:** [../infrastructure/README.md](../infrastructure/README.md) (same). **GKE / minikube:** [README-GKE.md](README-GKE.md). **Agent-oriented notes:** [AGENTS.md](AGENTS.md).
+
+## Microservices (multi-module)
+
+| Module | Port (local) | Role |
+|--------|----------------|------|
+| `tripplanning-trip-service` | 8080 | Trips, locations, auth, GCS images, search |
+| `tripplanning-social-service` | 8081 | Firestore comments / likes |
+| `tripplanning-external-info-service` | 8082 | Weather, travel warnings, geocoding, Viator tours |
+| `tripplanning-common` | — | Shared clients and config |
+
+**Local minikube:** `./scripts/local-dev.sh setup` · **GKE deploy:** [../infrastructure/ms2/docs/gettingstarted/README.md](../infrastructure/ms2/docs/gettingstarted/README.md)
 
 **Paths:** Shell commands use the **backend project root** (`pom.xml` here). In a monorepo that folder is often named `backend/` under a top-level directory; if you opened **only** the backend repository, you are already at that root. Relative paths such as `../frontend/` assume the monorepo layout—adjust or ignore if your checkout differs.
 

@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: social-service-config
+data:
+  SPRING_PROFILES_ACTIVE: "local"
+  SERVER_PORT: "8081"
+  SPRING_CLOUD_GCP_FIRESTORE_HOST_PORT: "host.minikube.internal:9090"
+  SPRING_CLOUD_GCP_FIRESTORE_EMULATOR_ENABLED: "true"
+  GCP_FIRESTORE_DATABASE_ID: "(default)"
+  GOOGLE_CLOUD_PROJECT: "milestone2-tbd-cad"
+  TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID: "milestone2-tbd-cad"
+  TRIPPLANNING_TRIP_SERVICE_URL: "http://trip-service.tripplanning.svc.cluster.local:8080"

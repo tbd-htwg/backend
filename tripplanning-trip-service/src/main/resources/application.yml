@@ -21,6 +21,7 @@ tripplanning:
   services:
     trip-base-url: ${TRIPPLANNING_TRIP_SERVICE_URL:http://localhost:8080}
     social-base-url: ${TRIPPLANNING_SOCIAL_SERVICE_URL:http://localhost:8081}
+    external-info-base-url: ${TRIPPLANNING_EXTERNAL_INFO_SERVICE_URL:http://localhost:8082}
     internal-secret: ${TRIPPLANNING_INTERNAL_SECRET:}
 
 management:

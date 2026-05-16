@@ -23,6 +23,7 @@
     <module>tripplanning-common</module>
     <module>tripplanning-trip-service</module>
     <module>tripplanning-social-service</module>
+    <module>tripplanning-external-info-service</module>
   </modules>
 
   <properties>

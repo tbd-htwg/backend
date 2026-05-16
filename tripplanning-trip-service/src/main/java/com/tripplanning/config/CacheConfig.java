@@ -2,24 +2,20 @@ package com.tripplanning.config;
 
 import java.time.Duration;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.caffeine.CaffeineCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.cache.RedisCacheConfiguration;
+import org.springframework.data.redis.cache.RedisCacheManager;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
 
-/**
- * In-process cache for the hot read paths (trip feed, trip detail, trip-existence checks).
- *
- * <p>Caffeine is per-JVM, so on Cloud Run with several concurrent backend instances a write
- * (POST/PATCH/DELETE) routed through instance A only evicts that instance's local entries. The
- * 10-second {@code expireAfterWrite} bounds worst-case staleness on the other instances; for a
- * public feed and trip detail this is acceptable. If we ever need stronger consistency we can
- * swap this {@link CacheManager} bean for a Redis/Memorystore-backed manager without touching
- * the {@code @Cacheable} / {@code @CacheEvict} annotations on services and write handlers.
- */
 @Configuration
 @EnableCaching
 public class CacheConfig {
@@ -30,15 +26,32 @@ public class CacheConfig {
     public static final String TRIP_DETAIL = "tripDetail";
     public static final String TRIP_EXISTS = "tripExists";
 
+    private static final String[] CACHE_NAMES = {
+        TRIP_FEED_PAGE,
+        TRIP_FEED_BY_USER,
+        TRIP_FEED_LIKED_BY,
+        TRIP_DETAIL,
+        TRIP_EXISTS
+    };
+
     @Bean
-    public CacheManager cacheManager() {
-        CaffeineCacheManager manager =
-                new CaffeineCacheManager(
-                        TRIP_FEED_PAGE,
-                        TRIP_FEED_BY_USER,
-                        TRIP_FEED_LIKED_BY,
-                        TRIP_DETAIL,
-                        TRIP_EXISTS);
+    @ConditionalOnProperty(name = "spring.data.redis.host")
+    @ConditionalOnBean(RedisConnectionFactory.class)
+    CacheManager redisCacheManager(RedisConnectionFactory connectionFactory) {
+        RedisCacheConfiguration defaults =
+                RedisCacheConfiguration.defaultCacheConfig()
+                        .entryTtl(Duration.ofSeconds(10))
+                        .disableCachingNullValues();
+        return RedisCacheManager.builder(connectionFactory)
+                .cacheDefaults(defaults)
+                .initialCacheNames(java.util.Set.of(CACHE_NAMES))
+                .build();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(CacheManager.class)
+    CacheManager caffeineCacheManager() {
+        CaffeineCacheManager manager = new CaffeineCacheManager(CACHE_NAMES);
         manager.setCaffeine(
                 Caffeine.newBuilder()
                         .expireAfterWrite(Duration.ofSeconds(10))

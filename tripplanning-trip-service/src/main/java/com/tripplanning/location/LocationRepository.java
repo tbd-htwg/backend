@@ -9,8 +9,10 @@ import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
 @RepositoryRestResource(path = "locations", collectionResourceRel = "locations")
 public interface LocationRepository extends JpaRepository<LocationEntity, Long> {
-    Optional<LocationEntity> findByName(String name);
-    // sucht, ob exakte Location vorhanden; falls nicht, Neuanlage
 
-    Page<LocationEntity> findByNameContainingIgnoreCase(String name, Pageable pageable);
+    Page<LocationEntity> findByCityContainingIgnoreCase(String city, Pageable pageable);
+
+    Optional<LocationEntity> findByCityIgnoreCaseAndCountryCode(String city, String countryCode);
+
+    Optional<LocationEntity> findByCityIgnoreCase(String city);
 }

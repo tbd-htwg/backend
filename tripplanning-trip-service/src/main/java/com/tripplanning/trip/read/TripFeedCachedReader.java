@@ -147,7 +147,7 @@ public class TripFeedCachedReader {
                 entityManager
                         .createQuery(
                                 "SELECT new com.tripplanning.trip.read.TripFeedCachedReader$TripStopRow("
-                                        + "tl.id, l.id, l.name, tl.description, tl.startDate, tl.endDate)"
+                                        + "tl.id, l.id, l.city, tl.description, tl.startDate, tl.endDate)"
                                         + " FROM TripLocationEntity tl JOIN tl.location l"
                                         + " WHERE tl.trip.id = :id ORDER BY tl.id",
                                 TripStopRow.class)
@@ -291,7 +291,7 @@ public class TripFeedCachedReader {
                 entityManager
                         .createQuery(
                                 "SELECT new com.tripplanning.trip.read.TripFeedCachedReader$TripStopNameRow("
-                                        + "tl.trip.id, l.name, tl.id)"
+                                        + "tl.trip.id, l.city, tl.id)"
                                         + " FROM TripLocationEntity tl JOIN tl.location l"
                                         + " WHERE tl.trip.id IN :ids"
                                         + " ORDER BY tl.trip.id, tl.id",

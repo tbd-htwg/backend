@@ -114,7 +114,7 @@ public class TripEntity {
 
   public List<String> getLocationNames() {
     return tripLocations.stream()
-        .map(tl -> tl.getLocation().getName())
+        .map(tl -> tl.getLocation().getCity())
         .toList();
   }
 
