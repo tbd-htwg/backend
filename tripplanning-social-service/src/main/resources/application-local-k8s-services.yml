@@ -1,0 +1,9 @@
+# In-cluster URLs when social-service runs on Kubernetes with local profile.
+spring:
+  config:
+    activate:
+      on-profile: "local & k8s"
+
+tripplanning:
+  services:
+    trip-base-url: ${TRIPPLANNING_TRIP_SERVICE_URL:http://trip-service.tripplanning.svc.cluster.local:8080}

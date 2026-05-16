@@ -2,7 +2,7 @@
 
 Spring Boot 3 service for a **trip planning** course project (HTWG Cloud Application Development): REST API for users, trips, locations, accommodations, transports, **full-text trip search**, **profile and trip images** (Google Cloud Storage), and **comments / likes** stored in **Firestore**. Domain data lives in **PostgreSQL** with **Flyway** migrations in deployed environments; the SPA talks to **`/api/v2`** (Spring Data REST) plus dedicated controllers for auth, search, social features, and uploads. Typical deployment: **Cloud Run** with GCP-managed Postgres, Elasticsearch, Firestore, and GCS.
 
-**Sibling app:** [../frontend/README.md](../frontend/README.md) (when this repo lives in a monorepo next to `frontend/`). **Infra overview:** [../infrastructure/README.md](../infrastructure/README.md) (same). **GKE / minikube:** [README-GKE.md](README-GKE.md). **Agent-oriented notes:** [AGENTS.md](AGENTS.md).
+**Sibling app:** [../frontend/README.md](../frontend/README.md) (when this repo lives in a monorepo next to `frontend/`). **Infra overview:** [../infrastructure/README.md](../infrastructure/README.md) (same). **Local Minikube:** [docs/gettingstarted/README.md](docs/gettingstarted/README.md). **GKE deploy:** [README-GKE.md](README-GKE.md). **Agent-oriented notes:** [AGENTS.md](AGENTS.md).
 
 ## Microservices (multi-module)
 
@@ -13,7 +13,7 @@ Spring Boot 3 service for a **trip planning** course project (HTWG Cloud Applica
 | `tripplanning-external-info-service` | 8082 | Weather, travel warnings, geocoding, Viator tours |
 | `tripplanning-common` | — | Shared clients and config |
 
-**Local minikube:** `./scripts/local-dev.sh setup` · **GKE deploy:** [../infrastructure/ms2/docs/gettingstarted/README.md](../infrastructure/ms2/docs/gettingstarted/README.md)
+**Local minikube:** [docs/gettingstarted/README.md](docs/gettingstarted/README.md) · **GKE deploy:** [../infrastructure/ms2/docs/gettingstarted/README.md](../infrastructure/ms2/docs/gettingstarted/README.md)
 
 **Paths:** Shell commands use the **backend project root** (`pom.xml` here). In a monorepo that folder is often named `backend/` under a top-level directory; if you opened **only** the backend repository, you are already at that root. Relative paths such as `../frontend/` assume the monorepo layout—adjust or ignore if your checkout differs.
 
@@ -24,53 +24,30 @@ Spring Boot 3 service for a **trip planning** course project (HTWG Cloud Applica
 - For **local** profile: optional **Firestore emulator** on port **9090** — start with **Firebase CLI** (`firebase emulators:start --only firestore`, uses [`firebase.json`](firebase.json)) or **`gcloud emulators firestore start --host-port=localhost:9090`** for comments and likes.
 - For **default / production-like** runs: **PostgreSQL**, **Elasticsearch**, GCP/Firebase configuration as described below.
 
-## Local development (`local` profile)
+## Local development
 
-Use this for everyday work: file-based **H2**, **Hibernate Search** with **Lucene** (no Elasticsearch required), and a dev JWT secret from [`application-local.yml`](src/main/resources/application-local.yml).
+### Minikube (recommended)
 
-### Firestore emulator
+Full stack on Kubernetes (H2, in-cluster Redis/Elasticsearch/Firestore emulator, three microservices):
 
-Listen on **`localhost:9090`** so it matches `spring.cloud.gcp.firestore.host-port` in [`application-local.yml`](src/main/resources/application-local.yml).
-
-**Firebase CLI** comes from the [`firebase-tools`](https://www.npmjs.com/package/firebase-tools) npm package (e.g. `npm install -g firebase-tools`). **Or** use **Google Cloud CLI** (`gcloud`). Run **one** of the following:
+**[docs/gettingstarted/README.md](docs/gettingstarted/README.md)** · architecture: [docs/gettingstarted/STATE.md](docs/gettingstarted/STATE.md)
 
 ```bash
-# Firebase CLI — uses firebase.json; run from this project root
-firebase emulators:start --only firestore
+cp docs/gettingstarted/.env.example docs/gettingstarted/.env
+./scripts/local-dev.sh setup
+./scripts/local-dev.sh port-forward
+```
 
-# Or: Google Cloud CLI — no firebase.json required
+### JVM-only (`local` profile)
+
+Single-process dev without Kubernetes: file-based **H2**, **Lucene** search (no Elasticsearch), Firestore emulator on **`localhost:9090`**. See [README-GKE.md](README-GKE.md) Option B and [`application-local.yml`](tripplanning-trip-service/src/main/resources/application-local.yml).
+
+```bash
 gcloud emulators firestore start --host-port=localhost:9090
+SPRING_PROFILES_ACTIVE=local mvn -pl tripplanning-trip-service spring-boot:run
 ```
 
-### Run the API
-
-From this project root:
-
-```bash
-SPRING_PROFILES_ACTIVE=local mvn spring-boot:run
-```
-
-Optional: set **`TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID`** if you use Google sign-in against a specific Firebase project. Override **`TRIPPLANNING_AUTH_JWT_SECRET`** (≥32 UTF-8 bytes) if you must not rely on the file default.
-
-**What `local` does**
-
-| Concern | Behavior |
-|--------|----------|
-| Database | H2 file: `./temp/db/tripplanning-dev` |
-| Schema | **Flyway disabled**; JPA **`ddl-auto: create-drop`** (fresh schema each run) |
-| Search | Lucene indexes under **`./temp/search`** |
-| Firestore | Emulator enabled; database id defaults to **`(default)`** unless **`GCP_FIRESTORE_DATABASE_ID`** is set |
-| Cloud Storage | With a **real** bucket in `application.yml`, run **`gcloud auth application-default login`** so the JVM loads ADC; otherwise the local `Storage` client is anonymous and GCS returns **401** for **`storage.objects.get`** (e.g. **`POST /api/v2/trip-location-images/preuploaded`**). |
-
-API base: **`http://localhost:8080/api/v2`**. Start the [frontend dev server](../frontend/README.md) (usually `http://localhost:5173`).
-
-### Google sign-in locally
-
-Use the same **`local`** profile and set **`TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID`** to your Firebase project if it differs from the default in `application.yml`. The frontend must use an OAuth origin allowed in Firebase Authentication.
-
-### Dev login (no Google)
-
-With **`local`**, **`POST /api/v2/auth/dev-login`** is registered. JSON body: `email` (required), optional `name`. Response matches Google login (`tokenType`, `accessToken`, `user`). **Do not enable `local` in production.**
+**dev-login:** with **`local`**, **`POST /api/v2/auth/dev-login`** accepts `{"email","name?"}` and returns an app JWT. **Do not enable `local` in production.**
 
 ## Production-like / default profile
 

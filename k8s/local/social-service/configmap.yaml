@@ -5,7 +5,7 @@ metadata:
 data:
   SPRING_PROFILES_ACTIVE: "local"
   SERVER_PORT: "8081"
-  SPRING_CLOUD_GCP_FIRESTORE_HOST_PORT: "host.minikube.internal:9090"
+  SPRING_CLOUD_GCP_FIRESTORE_HOST_PORT: "firestore-emulator.tripplanning.svc.cluster.local:8080"
   SPRING_CLOUD_GCP_FIRESTORE_EMULATOR_ENABLED: "true"
   GCP_FIRESTORE_DATABASE_ID: "(default)"
   GOOGLE_CLOUD_PROJECT: "milestone2-tbd-cad"

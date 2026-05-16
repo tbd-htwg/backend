@@ -1,6 +1,8 @@
 # Backend microservices (GKE)
 
-**Full platform steps (Terraform, kubectl, deploy):** [infrastructure/ms2/docs/gettingstarted/README.md](../infrastructure/ms2/docs/gettingstarted/README.md) — includes **Identity / Firebase** for `POST /api/v2/auth/google`.
+**GKE / Terraform platform:** [infrastructure/ms2/docs/gettingstarted/README.md](../infrastructure/ms2/docs/gettingstarted/README.md) — includes **Identity / Firebase** for `POST /api/v2/auth/google`.
+
+**Local Minikube (canonical):** [docs/gettingstarted/README.md](docs/gettingstarted/README.md) · [STATE.md](docs/gettingstarted/STATE.md)
 
 Maven multi-module layout:
 
@@ -31,27 +33,27 @@ docker build --build-arg SERVICE=external-info -t tripplanning-external-info-ser
 
 ### Option A — minikube (recommended for k8s workflow)
 
+See **[docs/gettingstarted/README.md](docs/gettingstarted/README.md)** for the full guide (prerequisites, deploy, verify, frontend, auth, troubleshooting).
+
 ```bash
 cd backend
-cp .env.local.example .env.local   # edit JWT_SECRET (≥32 chars)
+cp docs/gettingstarted/.env.example docs/gettingstarted/.env   # JWT_SECRET ≥ 32 chars
 ./scripts/local-dev.sh setup
 ./scripts/local-dev.sh port-forward
 ```
 
-Uses H2 (trip), in-cluster **Redis + Elasticsearch** (plain K8s manifests via `install-k8s-dependencies.sh`), **gcloud Firestore emulator** (social data), and **GCP Identity Platform** (real Firebase auth project). Prerequisites:
+Uses H2 (trip), in-cluster **Redis**, **Elasticsearch**, **Firestore emulator**, and **GCP Identity Platform** + **GCS** (optional Google sign-in and image uploads). Prerequisites:
 
 ```bash
-gcloud components install cloud-firestore-emulator
 gcloud auth application-default login
 gcloud auth application-default set-quota-project milestone2-tbd-cad
-kubectl version --client   # required for Redis/ES install script
+kubectl version --client
 ```
-
-Trip and external-info use **Redis** for cache when `SPRING_DATA_REDIS_HOST` is set (k8s ConfigMaps). JVM-only runs without Redis use **Caffeine** in-process.
 
 Deploy to GKE (`dev-lifecycle.sh` sets the GKE kubectl context automatically):
 
 ```bash
+./scripts/local-dev.sh use-gke
 cd ../infrastructure/ms2/docs/gettingstarted
 ./dev-lifecycle.sh deploy
 ```

@@ -20,6 +20,9 @@ spec:
           imagePullPolicy: Never
           ports:
             - containerPort: 8080
+          env:
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: /var/secrets/google/adc.json
           envFrom:
             - secretRef:
                 name: trip-service-secrets
@@ -28,6 +31,9 @@ spec:
           volumeMounts:
             - name: trip-data
               mountPath: /app/temp
+            - name: gcp-adc
+              mountPath: /var/secrets/google
+              readOnly: true
           readinessProbe:
             httpGet:
               path: /actuator/health/readiness
@@ -42,10 +48,15 @@ spec:
             periodSeconds: 20
           resources:
             requests:
-              cpu: 100m
-              memory: 512Mi
+              cpu: 1000m
+              memory: 768Mi
             limits:
-              memory: 1Gi
+              cpu: 2000m
+              memory: 1536Mi
       volumes:
         - name: trip-data
           emptyDir: {}
+        - name: gcp-adc
+          secret:
+            secretName: gcp-adc
+            optional: true

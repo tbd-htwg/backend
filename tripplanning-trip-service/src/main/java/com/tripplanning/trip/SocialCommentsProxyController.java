@@ -10,8 +10,10 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
@@ -23,13 +25,12 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Forwards social-only trip paths through trip-service so the GKE Gateway can use PathPrefix
- * routing only (no RegularExpression). External clients keep a single {@code api.k8s} host.
+ * Forwards {@code /api/v2/comments} to social-service. On GKE the Gateway routes this path directly;
+ * Minikube and single-host dev proxy through trip-service like {@link SocialUserLikesProxyController}.
  */
 @RestController
-@RequestMapping("/api/v2/trips")
 @RequiredArgsConstructor
-public class SocialPublicApiProxyController {
+public class SocialCommentsProxyController {
 
     private static final List<String> FORWARD_HEADERS =
             List.of("Authorization", "Accept", "Content-Type", "If-None-Match", "If-Match");
@@ -37,28 +38,20 @@ public class SocialPublicApiProxyController {
     private final RestTemplate serviceRestTemplate;
     private final ServiceClientProperties serviceClientProperties;
 
-    @GetMapping("/{tripId}/community")
-    public ResponseEntity<byte[]> community(
-            @PathVariable long tripId, HttpServletRequest request) throws IOException {
-        return forward(request, "/api/v2/trips/" + tripId + "/community");
+    @PostMapping("/api/v2/comments")
+    public ResponseEntity<byte[]> createComment(HttpServletRequest request) throws IOException {
+        return forward(request, "/api/v2/comments");
     }
 
-    @GetMapping("/{tripId}/comments")
-    public ResponseEntity<byte[]> comments(
-            @PathVariable long tripId, HttpServletRequest request) throws IOException {
-        return forward(request, "/api/v2/trips/" + tripId + "/comments");
+    @GetMapping("/api/v2/comments/search/findByTripIdOrderByCreatedAtDesc")
+    public ResponseEntity<byte[]> findByTrip(HttpServletRequest request) throws IOException {
+        return forward(request, "/api/v2/comments/search/findByTripIdOrderByCreatedAtDesc");
     }
 
-    @GetMapping("/{tripId}/liked-by-current-user")
-    public ResponseEntity<byte[]> likedByCurrentUser(
-            @PathVariable long tripId, HttpServletRequest request) throws IOException {
-        return forward(request, "/api/v2/trips/" + tripId + "/liked-by-current-user");
-    }
-
-    /** GKE Gateway routes this to social-service; proxied here for Minikube single-host dev. */
-    @GetMapping("/search/countLikes")
-    public ResponseEntity<byte[]> countLikes(HttpServletRequest request) throws IOException {
-        return forward(request, "/api/v2/trips/search/countLikes");
+    @DeleteMapping("/api/v2/comments/{id}")
+    public ResponseEntity<byte[]> deleteComment(
+            @PathVariable String id, HttpServletRequest request) throws IOException {
+        return forward(request, "/api/v2/comments/" + id);
     }
 
     private ResponseEntity<byte[]> forward(HttpServletRequest request, String socialPath)

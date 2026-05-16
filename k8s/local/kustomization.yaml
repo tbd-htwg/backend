@@ -9,4 +9,6 @@ resources:
   - social-service/service.yaml
   - external-info-service/deployment.yaml
   - external-info-service/service.yaml
-  # ConfigMaps are applied by scripts/local-dev.sh (project id + gcloud emulator settings)
+  - firestore-emulator/deployment.yaml
+  - firestore-emulator/service.yaml
+  # ConfigMaps are applied by scripts/local-dev.sh (project id + emulator settings)

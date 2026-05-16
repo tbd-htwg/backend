@@ -21,4 +21,4 @@ tripplanning:
     firebase-project-id: ${TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID:milestone2-tbd-cad}
     jwt-secret: ${TRIPPLANNING_AUTH_JWT_SECRET:local-dev-only-change-me-32bytes-min!!}
   services:
-    trip-base-url: http://localhost:8080
+    trip-base-url: ${TRIPPLANNING_TRIP_SERVICE_URL:http://localhost:8080}
