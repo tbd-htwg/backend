@@ -60,7 +60,8 @@ Designed for a **single Minikube** cluster with **24 GiB RAM** default (`MINIK
 | trip + social + external-info (local images `:local`) | Cloud SQL (trip uses **H2** in-pod) |
 | In-cluster **Redis** + **Elasticsearch** | GKE Gateway, DNS, TLS, cert-manager |
 | In-cluster **Firestore emulator** | Real Firestore `tbd-firestore` |
-| H2 file DB in trip-service pod (`emptyDir`) | Artifact Registry push |
+| H2 file DB in trip-service pod (`emptyDir` at `/app/temp`) | Artifact Registry push |
+| Host `temp/` only for JVM-only dev (gitignored H2/Lucene) | Legacy monolith `src/` tree |
 | **GCP Identity Platform** (optional Google sign-in) | Frontend on GCS |
 | **GCS images bucket** (signed uploads via ADC) | Flux, kube-prometheus |
 
@@ -409,6 +410,7 @@ cd ../infrastructure/ms2/docs/gettingstarted
 | **Browser PUT blocked by CORS** | `./scripts/local-dev.sh setup-gcs` |
 | **OOM / ES evicted** | Increase `MINIKUBE_MEMORY` (e.g. `32768`). |
 | **Host vs in-cluster Firestore** | Default in-cluster `firestore-emulator:8080`. Host fallback: `USE_HOST_FIRESTORE_EMULATOR=true`. |
+| **Stale H2 / Lucene on host** | Safe to delete `temp/db/*` and `temp/search/*` (keeps `.gitkeep`); only used when running trip-service with `local` profile via Maven on the host, not Minikube. |
 
 **Recovery after partial deploy:**
 

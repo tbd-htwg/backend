@@ -291,7 +291,22 @@ frontend dev:     http://localhost:5173
 
 ---
 
-## 9. Key source files
+## 9. Repository layout (backend root)
+
+| Path | Purpose |
+|------|---------|
+| `pom.xml` | Maven parent; modules: `tripplanning-common`, `tripplanning-trip-service`, `tripplanning-social-service`, `tripplanning-external-info-service` |
+| `tripplanning-*/` | Service source and `src/main/resources/application-*.yml` |
+| `k8s/local/` | Minikube manifests (deployments, ingress, firestore-emulator) |
+| `scripts/local-dev.sh` | Build images, apply manifests, port-forward, verify |
+| `docs/gettingstarted/` | This guide, `.env.example`, [STATE.md](STATE.md) |
+| `temp/db/`, `temp/search/` | **Host JVM-only** H2 + Lucene when running trip-service with `local` profile outside k8s (runtime files gitignored; `.gitkeep` only tracked) |
+
+Minikube trip-service stores H2 and search data in-pod (`emptyDir` at `/app/temp`), not in the host `temp/` directory.
+
+---
+
+## 10. Key source files
 
 | Topic | Path |
 |-------|------|

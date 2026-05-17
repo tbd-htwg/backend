@@ -1,49 +1,61 @@
 # Agent notes — trip planning backend
 
-Concise context for AI assistants and contributors working in this directory. For full runbooks, see [README.md](README.md).
+Concise context for AI assistants and contributors working in this directory. For full runbooks, see [README.md](README.md) and [docs/gettingstarted/README.md](docs/gettingstarted/README.md).
 
 **Working directory:** Commands below assume the **root of the backend project** (where `pom.xml` lives). In a **monorepo** that is often `…/backend/` under a top-level folder; if you cloned **only** the backend repository, your shell is already that root—**do not** add an extra `backend/` prefix. The same idea applies to paths such as `../frontend/…`: they only work when the **frontend** tree exists next to **this** tree (typical monorepo layout). If your checkout does not include the frontend, skip cross-repo file operations or point to your actual path.
 
 ## What this is
 
-Spring Boot 3 API for a trip-planning app: **Spring Data REST** exposes domain resources under **`/api/v2`**. **OpenAPI 3** JSON: **`/v3/api-docs`** (public). Swagger UI: **`/swagger-ui/index.html`**.
+Maven **multi-module** Spring Boot 3 backend:
 
-## Run locally (`local` profile)
+| Module | Port | Role |
+|--------|------|------|
+| `tripplanning-trip-service` | 8080 | Trips, users, locations, auth, GCS images, search |
+| `tripplanning-social-service` | 8081 | Firestore comments / likes |
+| `tripplanning-external-info-service` | 8082 | Weather, warnings, geocoding, Viator tours |
+| `tripplanning-common` | — | Shared clients and auth config |
 
-From the backend project root:
+**Spring Data REST** on trip-service exposes domain resources under **`/api/v2`**. **OpenAPI 3** JSON: **`/v3/api-docs`** (public). Swagger UI: **`/swagger-ui/index.html`**.
+
+**Recommended local stack:** Minikube via [`scripts/local-dev.sh`](scripts/local-dev.sh) — see [docs/gettingstarted/README.md](docs/gettingstarted/README.md).
+
+## Run locally (`local` profile, JVM-only)
+
+See [README-GKE.md](README-GKE.md) Option B for all three services. Trip-service only:
 
 ```bash
-SPRING_PROFILES_ACTIVE=local mvn spring-boot:run
+gcloud emulators firestore start --host-port=localhost:9090
+SPRING_PROFILES_ACTIVE=local mvn -pl tripplanning-trip-service spring-boot:run
 ```
 
-- **H2** file DB: `./temp/db/tripplanning-dev`; **Flyway is off**; JPA **`create-drop`** each run.
-- **Hibernate Search** uses the **Lucene** backend; indexes under **`./temp/search`**.
-- **Firestore** for comments/likes: start the emulator on **`localhost:9090`** (must match `application-local.yml`). Either:
-  - **Firebase CLI** (from this directory, uses [`firebase.json`](firebase.json)): `firebase emulators:start --only firestore`
-  - **Google Cloud SDK:** `gcloud emulators firestore start --host-port=localhost:9090`
-- Auth: `application-local.yml` supplies a dev JWT secret; override with **`TRIPPLANNING_AUTH_JWT_SECRET`** (≥32 bytes) in shared environments. **`TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID`** for Google token verification.
+- **H2** file DB: `./temp/db/tripplanning-dev` (gitignored; recreated on run); **Flyway off**; JPA **`create-drop`** each run.
+- **Hibernate Search** uses the **Lucene** backend; indexes under **`./temp/search`** (gitignored).
+- **Minikube** uses in-pod H2 (`emptyDir` at `/app/temp`) and in-cluster Elasticsearch — not the host `temp/` directory.
+- **Firestore** for social: emulator on **`localhost:9090`** (JVM path) or in-cluster `firestore-emulator` (k8s path).
+- Auth: override with **`TRIPPLANNING_AUTH_JWT_SECRET`** (≥32 bytes); **`TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID`** for Google token verification.
 
-Default server: **`http://localhost:8080`**.
+Default trip-service: **`http://localhost:8080`**.
 
 ## Architecture (where things live)
 
-| Area | Package / notes |
+| Area | Module / package |
 |------|------------------|
-| Core domain (JPA + REST) | `user`, `trip`, `tripLocation`, `location`, `accommodation`, `transport` |
-| Auth (Google ID token → app JWT) | `com.tripplanning.auth` |
-| Social (Firestore documents) | `com.tripplanning.social` — comments and likes |
-| Full-text search | `com.tripplanning.search` — **`/api/search/**`** (GET public per security config) |
-| Images (GCS) | `com.tripplanning.images` |
-| Security, OpenAPI, GCP helpers | `com.tripplanning.api.config`, `com.tripplanning.config` |
-| JSON shapes for list/detail | `com.tripplanning.api.projections` |
+| Core domain (JPA + REST) | `tripplanning-trip-service` — `user`, `trip`, `tripLocation`, `location`, `accommodation`, `transport` |
+| Auth (Google ID token → app JWT) | `tripplanning-trip-service` — `com.tripplanning.auth` |
+| Social (Firestore) | `tripplanning-social-service` — `com.tripplanning.social` |
+| Full-text search | `tripplanning-trip-service` — `com.tripplanning.search` — **`/api/search/**`** |
+| Images (GCS) | `tripplanning-trip-service` — `com.tripplanning.images` |
+| External APIs | `tripplanning-external-info-service` — `com.tripplanning.externalinfo` |
+| Security, OpenAPI | `tripplanning-trip-service` — `com.tripplanning.api.config` |
+| JSON projections | `tripplanning-trip-service` — `com.tripplanning.api.projections` |
 
-Production-like runs use **PostgreSQL**, **Flyway** migrations in `src/main/resources/db/migration`, **Elasticsearch** for Hibernate Search (see `application.yml`). **Not** the same as `local`.
+Production-like runs use **PostgreSQL**, **Flyway** in `tripplanning-trip-service/src/main/resources/db/migration`, **Elasticsearch** for Hibernate Search. **Not** the same as `local`.
 
 ## Conventions
 
-- Keep new code aligned with existing packages and Spring patterns.
+- Keep new code aligned with existing packages and Spring patterns in the correct module.
 - **Do not** turn Flyway back on for `local` without an intentional workflow change (Postgres-flavored migrations do not match ad-hoc H2).
-- HTTP security: [`SecurityConfig.java`](src/main/java/com/tripplanning/api/config/SecurityConfig.java) — adjust matchers when adding routes.
+- Trip HTTP security: [`SecurityConfig.java`](tripplanning-trip-service/src/main/java/com/tripplanning/api/config/SecurityConfig.java).
 
 ## Firestore like document IDs
 

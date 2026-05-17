@@ -1,6 +1,6 @@
 # Trip planning backend
 
-Spring Boot 3 service for a **trip planning** course project (HTWG Cloud Application Development): REST API for users, trips, locations, accommodations, transports, **full-text trip search**, **profile and trip images** (Google Cloud Storage), and **comments / likes** stored in **Firestore**. Domain data lives in **PostgreSQL** with **Flyway** migrations in deployed environments; the SPA talks to **`/api/v2`** (Spring Data REST) plus dedicated controllers for auth, search, social features, and uploads. Typical deployment: **Cloud Run** with GCP-managed Postgres, Elasticsearch, Firestore, and GCS.
+Spring Boot 3 **microservices** for a **trip planning** course project (HTWG Cloud Application Development): REST APIs for users, trips, locations, accommodations, transports, **full-text trip search**, **profile and trip images** (Google Cloud Storage), **comments / likes** (Firestore), and **external travel info**. Domain data lives in **PostgreSQL** with **Flyway** migrations in deployed environments; the SPA talks to **`/api/v2`** (Spring Data REST on trip-service) plus dedicated controllers for auth, search, social features, and uploads. Typical deployment: **GKE** (ms2) with Cloud SQL, Elasticsearch, Firestore, and GCS.
 
 **Sibling app:** [../frontend/README.md](../frontend/README.md) (when this repo lives in a monorepo next to `frontend/`). **Infra overview:** [../infrastructure/README.md](../infrastructure/README.md) (same). **Local Minikube:** [docs/gettingstarted/README.md](docs/gettingstarted/README.md). **GKE deploy:** [README-GKE.md](README-GKE.md). **Agent-oriented notes:** [AGENTS.md](AGENTS.md).
 
@@ -51,7 +51,7 @@ SPRING_PROFILES_ACTIVE=local mvn -pl tripplanning-trip-service spring-boot:run
 
 ## Production-like / default profile
 
-Uses **`application.yml`**: **PostgreSQL** datasource (**`SPRING_DATASOURCE_*`**), **Flyway** on (`src/main/resources/db/migration`), Hibernate **`ddl-auto: validate`**, Hibernate Search backend **Elasticsearch** (**`ELASTICSEARCH_HOSTS`**, optional auth/path).
+Uses **`application.yml`**: **PostgreSQL** datasource (**`SPRING_DATASOURCE_*`**), **Flyway** on (`tripplanning-trip-service/src/main/resources/db/migration`), Hibernate **`ddl-auto: validate`**, Hibernate Search backend **Elasticsearch** (**`ELASTICSEARCH_HOSTS`**, optional auth/path).
 
 Also configure:
 
@@ -63,7 +63,7 @@ Also configure:
 Example:
 
 ```bash
-mvn spring-boot:run
+mvn -pl tripplanning-trip-service spring-boot:run
 ```
 
 ## API reference (OpenAPI / Swagger)
@@ -87,17 +87,18 @@ Otherwise set `-o` to the path of `doc/swagger_v2.json` in your frontend checkou
 | Current user | **`GET /api/v2/auth/me`** | Requires `Authorization: Bearer <accessToken>` |
 | Dev only | **`POST /api/v2/auth/dev-login`** | **`local` profile only**; body `{ "email", "name?" }` |
 
-Other **`/api/v2/**`**: most **GET** requests are public; **GET** on **`/api/v2/users`**, **`/api/v2/users/search`** (and search subpaths), **`GET /api/v2/trips/*/liked-by-current-user`**, and **mutating** methods require a valid JWT. See [`SecurityConfig.java`](src/main/java/com/tripplanning/api/config/SecurityConfig.java) for the exact rules.
+Other **`/api/v2/**`**: most **GET** requests are public; **GET** on **`/api/v2/users`**, **`/api/v2/users/search`** (and search subpaths), **`GET /api/v2/trips/*/liked-by-current-user`**, and **mutating** methods require a valid JWT. See [`SecurityConfig.java`](tripplanning-trip-service/src/main/java/com/tripplanning/api/config/SecurityConfig.java) for the exact rules.
 
 ### Test bearer impersonation (non-prod only)
 
-Set **`TRIPPLANNING_AUTH_TEST_BEARER_TOKEN`** to a shared secret on `develop` (and optionally `staging`) deployments to enable [`TestBearerImpersonationFilter`](src/main/java/com/tripplanning/auth/TestBearerImpersonationFilter.java). When activated, any request that presents `Authorization: Bearer <that token>` together with `X-Act-As-User: <userId>` is authenticated as that user (no JWT verification, no expiry). If **`X-Act-As-User` is omitted**, the subject is **`0`** (bootstrap for seeding **`POST /users`** before any user row exists). Used by the seeder and Locust to write as many users from one shared secret. **Never set this on production**; if the env var is empty (default), the filter bean is not registered and behaviour is identical to before.
+Set **`TRIPPLANNING_AUTH_TEST_BEARER_TOKEN`** to a shared secret on `develop` (and optionally `staging`) deployments to enable [`TestBearerImpersonationFilter`](tripplanning-trip-service/src/main/java/com/tripplanning/auth/TestBearerImpersonationFilter.java). When activated, any request that presents `Authorization: Bearer <that token>` together with `X-Act-As-User: <userId>` is authenticated as that user (no JWT verification, no expiry). If **`X-Act-As-User` is omitted**, the subject is **`0`** (bootstrap for seeding **`POST /users`** before any user row exists). Used by the seeder and Locust to write as many users from one shared secret. **Never set this on production**; if the env var is empty (default), the filter bean is not registered and behaviour is identical to before.
 
 ## Main HTTP surface
 
-- **Spring Data REST** collections and item resources under **`/api/v2`** (users, trips, trip locations, etc.), plus repository **search** endpoints where defined.
-- **Trip search:** **`GET /api/search/...`** (see [`TripSearchController`](src/main/java/com/tripplanning/search/TripSearchController.java)).
-- **Social:** Firestore-backed **comments** and **likes** via dedicated controllers in **`com.tripplanning.social`** (HAL-style JSON compatible with the SPA).
+- **Spring Data REST** collections and item resources under **`/api/v2`** on trip-service (users, trips, trip locations, etc.), plus repository **search** endpoints where defined.
+- **Trip search:** **`GET /api/search/...`** (see [`TripSearchController`](tripplanning-trip-service/src/main/java/com/tripplanning/search/TripSearchController.java)).
+- **Social:** Firestore-backed **comments** and **likes** on social-service (`com.tripplanning.social`).
+- **External info:** weather, warnings, geocoding, tours on external-info-service; trip-service proxies some paths at **`/api/v2/external/**`**.
 
 ## Firestore `likes` document IDs
 
@@ -116,18 +117,16 @@ python3 seed_example_data.py --help
 
 With a local API and `local` profile, options such as **`--fetch-dev-login`** can obtain a token automatically. For deployed dev environments use the unified test bearer (see _Test bearer impersonation_ above and the [seeder README](../performance/seeding_example/README.md)) so likes and comments are attributed to many users from a single shared secret.
 
-## Project layout (`com.tripplanning`)
+## Project layout
 
-| Package | Role |
-|---------|------|
-| `auth` | Google and dev login, JWT issuance |
-| `user`, `trip`, `tripLocation`, `location`, `accommodation`, `transport` | JPA entities and Spring Data REST |
-| `social` | Firestore documents and REST for comments / likes |
-| `search` | Hibernate Search indexing and search API |
-| `images` | GCS-backed uploads |
-| `api.config` | Security, OpenAPI |
-| `api.projections` | Stable JSON projections for lists and detail |
-| `config` | Cross-cutting Spring configuration |
+| Module | Packages (high level) |
+|--------|------------------------|
+| `tripplanning-trip-service` | `auth`, `user`, `trip`, `tripLocation`, `location`, `accommodation`, `transport`, `search`, `images`, `api.config`, `api.projections` |
+| `tripplanning-social-service` | `social` (Firestore comments / likes) |
+| `tripplanning-external-info-service` | `externalinfo` (weather, warnings, geocoding, Viator) |
+| `tripplanning-common` | shared HTTP clients, JWT decoder config |
+
+**Local JVM artifacts:** `./temp/db/` and `./temp/search/` hold H2 and Lucene data when running trip-service with `local` profile on the host (gitignored; safe to delete). Minikube uses in-pod storage instead.
 
 ## Run tests
 
@@ -137,16 +136,14 @@ mvn test
 
 ## Docker
 
-Build:
+Build per service (from backend root):
 
 ```bash
-docker build -t trip-backend:local .
+docker build --build-arg SERVICE=trip -t tripplanning-trip-service:local .
+docker build --build-arg SERVICE=social -t tripplanning-social-service:local .
+docker build --build-arg SERVICE=external-info -t tripplanning-external-info-service:local .
 ```
 
-Run:
+For Minikube, [`scripts/local-dev.sh`](scripts/local-dev.sh) builds `:local` images inside the minikube Docker daemon.
 
-```bash
-docker run --rm -p 8080:8080 trip-backend:local
-```
-
-The runtime image expects the same environment variables as a non-local Spring profile (Postgres, secrets, Elasticsearch, GCP, etc.). The Dockerfile uses a **glibc** base image for Firestore/gRPC compatibility.
+Runtime images expect the same environment variables as a non-local Spring profile (Postgres, secrets, Elasticsearch, GCP, etc.). The Dockerfile uses a **glibc** base image for Firestore/gRPC compatibility.

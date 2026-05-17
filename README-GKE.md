@@ -76,3 +76,5 @@ cd ../infrastructure/ms2/docs/gettingstarted
 Trip-service exposes a gateway: `GET /api/v2/external/details` and `GET /api/v2/trip-locations/{id}/details`.
 
 Optional header `X-Internal-Secret` when `TRIPPLANNING_INTERNAL_SECRET` is set.
+
+**Host `temp/` directory:** When running trip-service with the `local` profile via Maven (Option B), H2 and Lucene files land under `temp/db/` and `temp/search/` at the backend root. These paths are gitignored except `.gitkeep`; delete runtime files anytime to reset local DB/search state. Minikube uses in-pod `emptyDir` instead.
