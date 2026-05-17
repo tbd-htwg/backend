@@ -4,6 +4,11 @@ public final class AuthDtos {
 
   private AuthDtos() {}
 
+  /** Firebase ID token from any Identity Platform sign-in (Google, email/password, etc.). */
+  public record FirebaseLoginRequest(String credential) {}
+
+  /** @deprecated Use {@link FirebaseLoginRequest}; kept for existing clients. */
+  @Deprecated
   public record GoogleLoginRequest(String credential) {}
 
   public record DevLoginRequest(String email, String name) {}

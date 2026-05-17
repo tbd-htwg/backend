@@ -76,6 +76,8 @@ public class SecurityConfig {
             auth ->
                 auth.requestMatchers(HttpMethod.OPTIONS, "/**")
                     .permitAll()
+                    .requestMatchers(HttpMethod.POST, "/api/v2/auth/firebase")
+                    .permitAll()
                     .requestMatchers(HttpMethod.POST, "/api/v2/auth/google")
                     .permitAll()
                     .requestMatchers(HttpMethod.POST, "/api/v2/auth/dev-login")

@@ -37,13 +37,28 @@ public class AuthController {
     this.userResponseMapper = userResponseMapper;
   }
 
+  /**
+   * Exchange a Firebase ID token (Google, email/password, or other enabled Identity Platform
+   * providers) for an application JWT.
+   */
+  @PostMapping("/firebase")
+  public AuthDtos.LoginResponse firebase(@RequestBody AuthDtos.FirebaseLoginRequest body) {
+    return exchangeFirebaseCredential(body.credential());
+  }
+
+  /** @deprecated Prefer {@link #firebase(AuthDtos.FirebaseLoginRequest)}. */
+  @Deprecated
   @PostMapping("/google")
   public AuthDtos.LoginResponse google(@RequestBody AuthDtos.GoogleLoginRequest body) {
-    if (body.credential() == null || body.credential().isBlank()) {
+    return exchangeFirebaseCredential(body.credential());
+  }
+
+  private AuthDtos.LoginResponse exchangeFirebaseCredential(String credential) {
+    if (credential == null || credential.isBlank()) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "credential is required");
     }
     try {
-      Jwt payload = firebaseCredentialVerifier.verify(body.credential());
+      Jwt payload = firebaseCredentialVerifier.verify(credential);
       UserEntity user = provisioningService.findOrCreateFromGoogle(payload);
       String token = appJwtService.createToken(user.getId(), user.getEmail());
       return new AuthDtos.LoginResponse("Bearer", token, userResponseMapper.fromEntity(user));
