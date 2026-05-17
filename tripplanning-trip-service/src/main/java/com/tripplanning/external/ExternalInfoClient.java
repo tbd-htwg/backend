@@ -23,7 +23,7 @@ public class ExternalInfoClient {
 
     public Mono<GeocodingResult> searchLocation(String query) {
         return webClient.get()
-                .uri(uri -> uri.path("/api/v1/details/search").queryParam("q", query).build())
+                .uri(uri -> uri.path("/api/v1/details/search/first").queryParam("q", query).build())
                 .retrieve()
                 .bodyToMono(GeocodingResult.class);
     }

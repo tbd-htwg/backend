@@ -1,0 +1,105 @@
+# Path order: first match wins (nginx ingress with regex).
+# No host restriction so localhost:8080 works via ingress port-forward.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: tripplanning-api
+  annotations:
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "120"
+spec:
+  ingressClassName: nginx
+  rules:
+    - http:
+        paths:
+          - path: /api/v2/comments
+            pathType: Prefix
+            backend:
+              service:
+                name: social-service
+                port:
+                  number: 8081
+          - path: /api/v2/trips/search/countLikes
+            pathType: Prefix
+            backend:
+              service:
+                name: social-service
+                port:
+                  number: 8081
+          - path: /api/v2/trips/[^/]+/community
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: social-service
+                port:
+                  number: 8081
+          - path: /api/v2/trips/[^/]+/comments
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: social-service
+                port:
+                  number: 8081
+          - path: /api/v2/trips/[^/]+/liked-by-current-user
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: social-service
+                port:
+                  number: 8081
+          - path: /api/v2/trips/[^/]+/like
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: social-service
+                port:
+                  number: 8081
+          - path: /api/v2/users/[^/]+/likedTrips/[^/]+
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: social-service
+                port:
+                  number: 8081
+          - path: /api/v2/external
+            pathType: Prefix
+            backend:
+              service:
+                name: external-info-service
+                port:
+                  number: 8082
+          - path: /api/search
+            pathType: Prefix
+            backend:
+              service:
+                name: trip-service
+                port:
+                  number: 8080
+          - path: /api/v2
+            pathType: Prefix
+            backend:
+              service:
+                name: trip-service
+                port:
+                  number: 8080
+          - path: /actuator
+            pathType: Prefix
+            backend:
+              service:
+                name: trip-service
+                port:
+                  number: 8080
+          - path: /swagger-ui
+            pathType: Prefix
+            backend:
+              service:
+                name: trip-service
+                port:
+                  number: 8080
+          - path: /v3
+            pathType: Prefix
+            backend:
+              service:
+                name: trip-service
+                port:
+                  number: 8080

@@ -39,6 +39,17 @@ public class LikeController {
         return firestoreSocialService.countLikesForTrip(tripId);
     }
 
+    /**
+     * Preferred like endpoint for edge gateways that cannot route POST vs GET on
+     * {@code /api/v2/users/{userId}/likedTrips} (GET list stays on trip-service).
+     */
+    @PostMapping("/api/v2/trips/{tripId}/like")
+    public ResponseEntity<Void> likeTripForCurrentUser(
+            @PathVariable Long tripId, @AuthenticationPrincipal Jwt jwt) {
+        long userId = Long.parseLong(jwt.getSubject());
+        return likeTripInternal(userId, tripId);
+    }
+
     @PostMapping(value = "/api/v2/users/{userId}/likedTrips",
                  consumes = {"text/uri-list", "application/json"})
     public ResponseEntity<Void> likeTrip(
@@ -47,11 +58,17 @@ public class LikeController {
             @AuthenticationPrincipal Jwt jwt) {
         requireSelf(userId, jwt);
         Long tripId = parseIdFromUriOrNumber(body.trim());
-        boolean alreadyLiked = Boolean.TRUE.equals(
-                likeRepository.findByUserIdAndTripId(userId, tripId)
-                        .map(d -> true)
-                        .defaultIfEmpty(false)
-                        .block());
+        return likeTripInternal(userId, tripId);
+    }
+
+    private ResponseEntity<Void> likeTripInternal(Long userId, Long tripId) {
+        boolean alreadyLiked =
+                Boolean.TRUE.equals(
+                        likeRepository
+                                .findByUserIdAndTripId(userId, tripId)
+                                .map(d -> true)
+                                .defaultIfEmpty(false)
+                                .block());
         if (!alreadyLiked) {
             likeRepository.save(new TripLikeDocument(userId, tripId)).block();
             tripServiceClient.evictLikedByFeedCache();

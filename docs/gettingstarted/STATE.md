@@ -34,7 +34,8 @@ Installed by [`scripts/local-dev.sh`](../../scripts/local-dev.sh) → `install-k
 | Component | Role |
 |-----------|------|
 | **Vite frontend** | `http://localhost:5173` → API via port-forward |
-| **kubectl port-forward** | Maps trip `:8080`, social `:8081`, external-info `:8082` |
+| **nginx Ingress** | Path-based API gateway (`tripplanning-api` in `tripplanning`) |
+| **kubectl port-forward** | Default: ingress → `localhost:8080` (all API paths) |
 | **gcloud ADC** | Identity token verification, GCS signed URLs (not in-cluster) |
 
 ### GCP (used, not provisioned by local scripts)
@@ -61,9 +62,10 @@ flowchart TB
   end
 
   subgraph Minikube["minikube / tripplanning"]
-    PF[trip-service :8080]
-    Social[social-service :8081]
-    Ext[external-info-service :8082]
+    GW[nginx Ingress]
+    Trip[trip-service]
+    Social[social-service]
+    Ext[external-info-service]
     Redis[(Redis)]
     ES[(Elasticsearch)]
     H2[(H2 emptyDir)]
@@ -76,36 +78,39 @@ flowchart TB
   end
 
   Browser --> Vite
-  Vite -->|port-forward| PF
-  PF --> Social
-  PF --> Ext
-  PF --> Redis
-  PF --> ES
-  PF --> H2
+  Vite -->|port-forward ingress :8080| GW
+  GW --> Trip
+  GW --> Social
+  GW --> Ext
+  Trip --> Redis
+  Trip --> ES
+  Trip --> H2
   Social --> FSE
   Ext --> Redis
-  PF -->|verify ID token| IdP
-  PF -->|signed URLs| GCS
-  ADC -.-> PF
+  Social -->|internal| Trip
+  Trip -->|internal| Social
+  Trip -->|verify ID token| IdP
+  Trip -->|signed URLs| GCS
+  ADC -.-> Trip
 ```
 
 ---
 
 ## 3. Local hostnames & routing
 
-| URL (after port-forward) | Serves |
-|--------------------------|--------|
-| `http://localhost:8080` | trip-service (primary API for SPA) |
-| `http://localhost:8081` | social-service (direct access optional) |
-| `http://localhost:8082` | external-info-service (normally via trip proxy) |
+| URL (after `./scripts/local-dev.sh port-forward`) | Serves |
+|---------------------------------------------------|--------|
+| `http://localhost:8080` | **nginx Ingress** — single API entry (same paths as GKE Gateway) |
 
-There is **no** GKE Gateway. The SPA should use **one** base URL (`VITE_API_BASE_URL=http://localhost:8080`). Trip-service proxies the same paths as on GKE:
+Optional direct pod/service port-forwards (`:8081`, `:8082`) are for debugging only.
 
-| Path prefix | Handled by |
-|-------------|------------|
-| `/api/v2/comments`, likes | Proxied to social-service |
-| `/api/v2/external/*` | Proxied to external-info-service |
-| `/api/v2`, `/api/search`, `/actuator`, auth | trip-service |
+The SPA uses **one** base URL (`VITE_API_BASE_URL=http://localhost:8080` or Vite proxy to the same). **Ingress** routes by path prefix (see [`k8s/local/ingress.yaml`](../../k8s/local/ingress.yaml)):
+
+| Path prefix | Backend |
+|-------------|---------|
+| `/api/v2/comments`, `/api/v2/trips/.../community`, likes, `countLikes` | social-service |
+| `/api/v2/external` | external-info-service |
+| `/api/search`, `/api/v2` (catch-all), `/actuator`, auth | trip-service |
 
 ---
 
@@ -119,13 +124,14 @@ flowchart LR
   end
 
   subgraph Localhost
-    TripURL["localhost:8080"]
+    ApiURL["localhost:8080 ingress"]
   end
 
   subgraph Minikube
+    GW[Ingress]
     Trip[trip-service]
     Social[social-service]
-    Ext[external-info :8082]
+    Ext[external-info-service]
   end
 
   subgraph GCP
@@ -133,12 +139,13 @@ flowchart LR
     IdP[Identity Platform]
   end
 
-  SPA -->|JSON API| TripURL --> Trip
+  SPA -->|JSON API| ApiURL --> GW
+  GW --> Trip
+  GW --> Social
+  GW --> Ext
   FB -->|Google sign-in| SPA
   SPA -->|ID token| Trip
   Trip --> IdP
-  Trip -->|proxy| Social
-  Trip -->|proxy| Ext
   SPA -->|PUT signed URL| GCS
 ```
 
@@ -154,9 +161,9 @@ flowchart LR
 
 | Service | Container port | K8s Service port | Role |
 |---------|----------------|------------------|------|
-| trip-service | 8080 | 8080 | Trips, users, locations, auth, search, proxies |
+| trip-service | 8080 | 8080 | Trips, users, locations, auth, search, liked-trips feed |
 | social-service | 8081 | 8081 | Likes & comments (Firestore emulator) |
-| external-info-service | 8082 | 8082 | Weather, warnings, geocoding, tours |
+| external-info-service | 8082 | 8082 | Weather, warnings, geocoding, tours (`/api/v2/external`) |
 
 ```mermaid
 flowchart TB
@@ -191,8 +198,7 @@ flowchart TB
   Trip --> ES
   Trip --> Redis
   Trip --> GCS
-  Trip -->|HTTP| Social
-  Trip -->|HTTP| Ext
+  Trip -->|internal HTTP| Social
 
   Social --> FSE
   Social -->|validate| Trip
@@ -208,9 +214,9 @@ flowchart TB
 
 | Service | SQL | Elasticsearch | Redis | Firestore | GCS | Other HTTP |
 |---------|:---:|:-------------:|:-----:|:---------:|:---:|------------|
-| **trip-service** | H2 (JPA, no Flyway) | Hibernate Search `tripentity-local` | Cache 10s TTL | — | Signed uploads | social, external-info |
+| **trip-service** | H2 (JPA, no Flyway) | Hibernate Search `tripentity-local` | Cache 10s TTL | — | Signed uploads | social (internal) |
 | **social-service** | — | — | — | Emulator `(default)` | — | trip-service |
-| **external-info-service** | — | — | Cache 60m TTL | — | — | 4 external APIs |
+| **external-info-service** | — | — | Cache 60m TTL | — | — | 4 external APIs; JWT on public routes |
 
 **In-cluster DNS:**
 
@@ -262,7 +268,7 @@ flowchart LR
 |-------------------|--------|------|
 | `trip-service-secrets` | `docs/gettingstarted/.env` | `TRIPPLANNING_AUTH_JWT_SECRET` |
 | `social-service-secrets` | same | `TRIPPLANNING_AUTH_JWT_SECRET`, `TRIPPLANNING_INTERNAL_SECRET` |
-| `external-info-service-secrets` | same | `VIATOR_API_KEY` |
+| `external-info-service-secrets` | same | `TRIPPLANNING_AUTH_JWT_SECRET`, `VIATOR_API_KEY` |
 
 No Secret Manager or External Secrets on the local path. ConfigMaps are applied imperatively by `local-dev.sh` (Firestore host, ES/Redis, CORS, service URLs).
 
@@ -279,7 +285,7 @@ social-service:   tripplanning-social-service:local
 external-info:    tripplanning-external-info-service:local
 firestore:        firestore-emulator:8080
 GCP project:      milestone2-tbd-cad (auth + GCS)
-localhost API:    http://localhost:8080 (port-forward)
+localhost API:    http://localhost:8080 (ingress port-forward)
 frontend dev:     http://localhost:5173
 ```
 
@@ -291,7 +297,7 @@ frontend dev:     http://localhost:5173
 |-------|------|
 | Lifecycle automation | [`scripts/local-dev.sh`](../../scripts/local-dev.sh), [README.md](README.md) |
 | Verify smoke tests | [`scripts/verify-local-deployment.sh`](../../scripts/verify-local-deployment.sh) |
-| Local K8s manifests | [`k8s/local/`](../../k8s/local/) |
+| Local K8s manifests | [`k8s/local/`](../../k8s/local/) (includes [`ingress.yaml`](../../k8s/local/ingress.yaml)) |
 | Redis / Elasticsearch | [`infrastructure/ms2/k8s/dependencies/`](../../../infrastructure/ms2/k8s/dependencies/) |
 | Spring local + k8s profiles | `tripplanning-*/src/main/resources/application-local.yml`, `application-k8s.yml` |
 | GKE counterpart | [ms2 gettingstarted](../../../infrastructure/ms2/docs/gettingstarted/) |

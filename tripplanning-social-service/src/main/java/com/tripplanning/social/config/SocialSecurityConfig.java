@@ -54,6 +54,8 @@ public class SocialSecurityConfig {
                                         .permitAll()
                                         .requestMatchers("/internal/**")
                                         .permitAll()
+                                        .requestMatchers(HttpMethod.POST, "/api/v2/trips/*/like")
+                                        .authenticated()
                                         .requestMatchers(HttpMethod.GET, "/api/v2/trips/search/countLikes")
                                         .permitAll()
                                         .requestMatchers(HttpMethod.HEAD, "/api/v2/users/*/likedTrips/*")

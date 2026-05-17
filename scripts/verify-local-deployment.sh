@@ -6,6 +6,7 @@ set -euo pipefail
 NS="${NS:-tripplanning}"
 VERIFY_STRICT="${VERIFY_STRICT:-false}"
 SMOKE_DEV_LOGIN="${SMOKE_DEV_LOGIN:-true}"
+API_BASE_URL="${API_BASE_URL:-http://127.0.0.1:8080}"
 FAILED=0
 
 note_fail() {
@@ -49,56 +50,70 @@ fi
 echo "== Services =="
 kubectl get svc -n "$NS"
 
-if [[ -n "${TRIP_READY}" ]]; then
-  echo "== Trip health (port-forward) =="
-  kubectl port-forward -n "$NS" "pod/${TRIP_READY}" 18080:8080 &
-  PF=$!
+echo "== Ingress =="
+kubectl get ingress -n "$NS" 2>/dev/null || note_fail "no Ingress in ${NS}"
+
+start_api_port_forward() {
+  local ingress_ns="ingress-nginx"
+  if kubectl get svc -n "${ingress_ns}" ingress-nginx-controller >/dev/null 2>&1; then
+    kubectl port-forward -n "${ingress_ns}" svc/ingress-nginx-controller 18080:80 &
+    echo $!
+    return 0
+  fi
+  if [[ -n "${TRIP_READY}" ]]; then
+    kubectl port-forward -n "$NS" "pod/${TRIP_READY}" 18080:8080 &
+    echo $!
+    return 0
+  fi
+  return 1
+}
+
+API_PF=""
+if PF_PID="$(start_api_port_forward)"; then
+  API_PF="${PF_PID}"
   sleep 2
-  curl -sf "http://127.0.0.1:18080/actuator/health" | head -c 200 || note_fail "trip health curl failed"
-  kill "$PF" 2>/dev/null || true
-  wait "$PF" 2>/dev/null || true
+  API_BASE_URL="http://127.0.0.1:18080"
+  echo "== API smoke via ${API_BASE_URL} =="
+  curl -sf "${API_BASE_URL}/actuator/health" | head -c 200 || note_fail "trip health via API entry failed"
 else
-  echo "Skipping trip port-forward (no ready pod)"
+  echo "Skipping API entry smoke (no ingress or trip pod)"
 fi
 
-if [[ -n "${SOCIAL_READY}" ]]; then
-  echo "== Social health (port-forward) =="
-  kubectl port-forward -n "$NS" "svc/social-service" 18081:8081 &
-  PF=$!
-  sleep 2
-  curl -sf "http://127.0.0.1:18081/actuator/health" | head -c 200 || note_fail "social health curl failed"
-  kill "$PF" 2>/dev/null || true
-  wait "$PF" 2>/dev/null || true
-else
-  echo "Skipping social port-forward (no ready pod)"
-fi
-
-if [[ -n "${EXT_READY}" ]]; then
-  echo "== External-info health (port-forward) =="
-  kubectl port-forward -n "$NS" "svc/external-info-service" 18082:8082 &
-  PF=$!
-  sleep 2
-  curl -sf "http://127.0.0.1:18082/actuator/health" | head -c 200 || note_fail "external-info health curl failed"
-  kill "$PF" 2>/dev/null || true
-  wait "$PF" 2>/dev/null || true
-else
-  echo "Skipping external-info port-forward (no ready pod)"
-fi
-
-if [[ "${SMOKE_DEV_LOGIN}" == "true" && -n "${TRIP_READY}" ]]; then
-  echo "== Dev login smoke (port-forward) =="
-  kubectl port-forward -n "$NS" "pod/${TRIP_READY}" 18080:8080 &
-  PF=$!
-  sleep 2
-  if curl -sf -X POST "http://127.0.0.1:18080/api/v2/auth/dev-login" \
+if [[ "${SMOKE_DEV_LOGIN}" == "true" && -n "${API_PF}" ]]; then
+  echo "== Dev login (via API gateway) =="
+  TOKEN_JSON="$(curl -sf -X POST "${API_BASE_URL}/api/v2/auth/dev-login" \
     -H "Content-Type: application/json" \
-    -d '{"email":"verify@local.dev","name":"Verify"}' | grep -q accessToken; then
+    -d '{"email":"verify@local.dev","name":"Verify"}' || true)"
+  if echo "${TOKEN_JSON}" | grep -q accessToken; then
     echo "dev-login OK"
+    ACCESS_TOKEN="$(echo "${TOKEN_JSON}" | sed -n 's/.*"accessToken":"\([^"]*\)".*/\1/p')"
+    if [[ -n "${ACCESS_TOKEN}" ]]; then
+      echo "== External details via gateway (JWT) =="
+      code="$(curl -s -o /dev/null -w '%{http_code}' \
+        "${API_BASE_URL}/api/v2/external/details?location=Paris&countryCode=FR&lat=48.85&lon=2.35" \
+        -H "Authorization: Bearer ${ACCESS_TOKEN}")"
+      if [[ "${code}" == "200" ]]; then
+        echo "external-info via gateway OK"
+      else
+        note_fail "external-info via gateway returned HTTP ${code} (expected 200)"
+      fi
+      echo "== Social countLikes via gateway =="
+      code="$(curl -s -o /dev/null -w '%{http_code}' \
+        "${API_BASE_URL}/api/v2/trips/search/countLikes?tripId=1")"
+      if [[ "${code}" == "200" || "${code}" == "404" ]]; then
+        echo "social countLikes via gateway OK (HTTP ${code})"
+      else
+        note_fail "social countLikes via gateway returned HTTP ${code}"
+      fi
+    fi
   else
     note_fail "dev-login smoke failed"
   fi
-  kill "$PF" 2>/dev/null || true
-  wait "$PF" 2>/dev/null || true
+fi
+
+if [[ -n "${API_PF}" ]]; then
+  kill "${API_PF}" 2>/dev/null || true
+  wait "${API_PF}" 2>/dev/null || true
 fi
 
 if [[ "${FAILED}" -ne 0 ]]; then
@@ -106,6 +121,7 @@ if [[ "${FAILED}" -ne 0 ]]; then
   echo "Verify reported failures. Logs:"
   echo "  kubectl logs -n ${NS} deployment/trip-service --tail=40"
   echo "  kubectl logs -n ${NS} deployment/social-service --tail=40"
+  echo "  kubectl logs -n ${NS} deployment/external-info-service --tail=40"
   echo "  kubectl logs -n ${NS} deployment/firestore-emulator --tail=40"
   if [[ "${VERIFY_STRICT}" == "true" ]]; then
     exit 1
@@ -113,4 +129,4 @@ if [[ "${FAILED}" -ne 0 ]]; then
   echo "VERIFY_STRICT=false — continuing (warnings only)."
 fi
 
-echo "Done. Use port-forward: ./scripts/local-dev.sh port-forward"
+echo "Done. API entry: ./scripts/local-dev.sh port-forward  # ingress → localhost:8080"

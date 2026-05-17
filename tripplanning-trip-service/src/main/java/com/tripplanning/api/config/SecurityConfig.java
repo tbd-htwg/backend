@@ -90,9 +90,6 @@ public class SecurityConfig {
                     .permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/search/**")
                     .permitAll()
-                    .requestMatchers(
-                        HttpMethod.GET, "/api/v2/trips/*/liked-by-current-user")
-                    .authenticated()
                     .requestMatchers(HttpMethod.GET, "/api/v2/users/{id:\\d+}")
                     .permitAll()
                     .requestMatchers(

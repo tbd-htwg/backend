@@ -16,8 +16,28 @@
 
   <dependencies>
     <dependency>
+      <groupId>com.tripplanning</groupId>
+      <artifactId>tripplanning-common</artifactId>
+      <version>${project.version}</version>
+      <exclusions>
+        <!-- WebFlux-only service: servlet web + servlet security conflict with @EnableWebFluxSecurity -->
+        <exclusion>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter-web</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-webflux</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-security</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>

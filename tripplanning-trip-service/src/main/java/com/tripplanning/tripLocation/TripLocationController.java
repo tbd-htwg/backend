@@ -28,7 +28,7 @@ public class TripLocationController {
     private final UserService userService;
 
     @PostMapping
-    public ResponseEntity<TripLocationEntity> createTripLocation(
+    public ResponseEntity<TripLocationCreatedResponse> createTripLocation(
             @Valid @RequestBody TripLocationRequest.CreateTripLocationRequest request,
             @AuthenticationPrincipal Jwt jwt) {
         var trip = tripRepository

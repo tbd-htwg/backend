@@ -18,7 +18,7 @@
 #   verify        Pod health + actuator smoke checks (§6)
 #   setup-gcs     Apply GCS images-bucket CORS for browser uploads (§10)
 #   status        Mode, context, pods
-#   port-forward  Forward trip :8080, social :8081, external-info :8082
+#   port-forward  Forward ingress :8080 (API gateway) or per-service ports for debugging
 #   logs [svc]    Tail deployment logs (trip-service|social-service|external-info-service)
 #   help
 set -euo pipefail
@@ -155,6 +155,10 @@ cmd_use_local() {
       --driver="${MINIKUBE_DRIVER}"
   else
     minikube start 2>/dev/null || true
+  fi
+  if ! minikube addons list 2>/dev/null | grep -qE 'ingress[^|]*\|[[:space:]]*enabled'; then
+    echo "== Enabling minikube ingress addon =="
+    minikube addons enable ingress
   fi
   kubectl config use-context minikube
   MODE=local
@@ -299,6 +303,7 @@ apply_local_configmaps() {
     --namespace="${NS}" \
     --from-literal=SPRING_PROFILES_ACTIVE=local \
     --from-literal=SERVER_PORT=8081 \
+    --from-literal=CORS_ALLOWED_ORIGINS="http://localhost:5173,http://127.0.0.1:5173" \
     --from-literal=SPRING_CLOUD_GCP_FIRESTORE_HOST_PORT="${fse_host}" \
     --from-literal=SPRING_CLOUD_GCP_FIRESTORE_EMULATOR_ENABLED=true \
     --from-literal=GCP_FIRESTORE_DATABASE_ID="(default)" \
@@ -309,6 +314,7 @@ apply_local_configmaps() {
   kubectl create configmap external-info-service-config \
     --namespace="${NS}" \
     --from-literal=SERVER_PORT=8082 \
+    --from-literal=CORS_ALLOWED_ORIGINS="http://localhost:5173,http://127.0.0.1:5173" \
     --from-literal=SPRING_DATA_REDIS_HOST=redis.tripplanning.svc.cluster.local \
     --from-literal=SPRING_DATA_REDIS_PORT=6379 \
     --dry-run=client -o yaml | kubectl apply -f -
@@ -331,6 +337,7 @@ apply_local_secrets() {
     --dry-run=client -o yaml | kubectl apply -f -
   kubectl create secret generic external-info-service-secrets \
     --namespace="${NS}" \
+    --from-literal=TRIPPLANNING_AUTH_JWT_SECRET="${JWT_SECRET}" \
     --from-literal=VIATOR_API_KEY="${VIATOR_API_KEY}" \
     --dry-run=client -o yaml | kubectl apply -f -
 }
@@ -379,7 +386,7 @@ cmd_setup() {
   echo ""
   echo "== Local minikube ready =="
   echo "  Guide: ${LOCAL_GETTINGSTARTED}/README.md"
-  echo "  ./scripts/local-dev.sh port-forward"
+  echo "  ./scripts/local-dev.sh port-forward   # ingress → localhost:8080"
   echo "  Frontend: cd ../frontend && npm run dev:minikube"
   echo "  Image uploads: ./scripts/local-dev.sh setup-gcs  (once, after ADC login)"
   echo "  Return to GKE: ./scripts/local-dev.sh use-gke"
@@ -427,7 +434,13 @@ cmd_port_forward() {
     echo "ERROR: namespace ${NS} not found. Run: ./scripts/local-dev.sh setup"
     exit 1
   fi
-  echo "Forwarding trip :8080, social :8081, external-info :8082 (Ctrl+C to stop)"
+  local ingress_ns="ingress-nginx"
+  if kubectl get svc -n "${ingress_ns}" ingress-nginx-controller >/dev/null 2>&1; then
+    echo "Forwarding ingress → localhost:8080 (all API paths; Ctrl+C to stop)"
+    kubectl port-forward -n "${ingress_ns}" svc/ingress-nginx-controller 8080:80
+    return
+  fi
+  echo "WARN: ingress-nginx not found; forwarding individual services"
   kubectl port-forward -n "${NS}" svc/trip-service 8080:8080 &
   kubectl port-forward -n "${NS}" svc/social-service 8081:8081 &
   kubectl port-forward -n "${NS}" svc/external-info-service 8082:8082 &

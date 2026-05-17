@@ -11,4 +11,5 @@ resources:
   - external-info-service/service.yaml
   - firestore-emulator/deployment.yaml
   - firestore-emulator/service.yaml
+  - ingress.yaml
   # ConfigMaps are applied by scripts/local-dev.sh (project id + emulator settings)

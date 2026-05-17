@@ -13,6 +13,9 @@ public final class TripLocationRequest {
             @NotNull Long tripId,
             @NotBlank String city,
             String formattedAddress,
+            String countryCode,
+            Double latitude,
+            Double longitude,
             String description,
             @NotNull LocalDateTime startDate,
             @NotNull LocalDateTime endDate) {}

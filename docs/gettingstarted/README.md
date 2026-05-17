@@ -36,7 +36,7 @@ For the **GKE / Terraform** stack, see [infrastructure/ms2/docs/gettingstarted/R
    VITE_API_BASE_URL=http://localhost:8080 npm run dev
    ```
 
-**After setup:** Trip API at `http://localhost:8080`, social at `:8081`, external-info at `:8082` (via port-forward). Use **dev-login** without Google: `POST http://localhost:8080/api/v2/auth/dev-login` with `{"email":"you@local.dev"}`.
+**After setup:** API at `http://localhost:8080` via ingress port-forward (all services). Use **dev-login** without Google: `POST http://localhost:8080/api/v2/auth/dev-login` with `{"email":"you@local.dev"}`.
 
 > **Canonical automation:** [`scripts/local-dev.sh`](../../scripts/local-dev.sh) implements the steps below. Keep this README and that script in sync when changing flags or commands.
 
@@ -76,7 +76,7 @@ Designed for a **single Minikube** cluster with **24 GiB RAM** default (`MINIK
 | Trip API | Spring Boot + H2 + in-cluster Elasticsearch + Redis |
 | Social API | Spring Boot + in-cluster Firestore emulator |
 | External-info | Spring Boot + Redis + external HTTP APIs |
-| Ingress | None — `kubectl port-forward` to localhost |
+| Ingress | nginx (minikube addon) — path routing to trip / social / external-info |
 | Frontend | Vite dev server → `http://localhost:8080` |
 
 ---
@@ -220,13 +220,14 @@ Checks pod readiness, actuator health via port-forward, and optional **dev-login
 ./scripts/local-dev.sh port-forward
 ```
 
-| Service | Local URL | In-cluster DNS |
-|---------|-----------|----------------|
-| trip-service | `http://localhost:8080` | `trip-service.tripplanning.svc.cluster.local:8080` |
-| social-service | `http://localhost:8081` | `social-service.tripplanning.svc.cluster.local:8081` |
-| external-info-service | `http://localhost:8082` | `external-info-service.tripplanning.svc.cluster.local:8082` |
+| Entry | Local URL | Notes |
+|-------|-----------|--------|
+| API (ingress) | `http://localhost:8080` | `./scripts/local-dev.sh port-forward` → nginx ingress |
+| trip-service (debug) | `:8080` in-cluster | `trip-service.tripplanning.svc.cluster.local:8080` |
+| social-service (debug) | `:8081` in-cluster | `social-service.tripplanning.svc.cluster.local:8081` |
+| external-info-service (debug) | `:8082` in-cluster | `external-info-service.tripplanning.svc.cluster.local:8082` |
 
-**Routing:** The SPA should call **trip-service only** (`VITE_API_BASE_URL=http://localhost:8080`). Trip proxies social paths (`/api/v2/comments`, likes) and external (`/api/v2/external/*`) like the GKE Gateway.
+**Routing:** The SPA uses **one** origin (`http://localhost:8080` or Vite proxy). **Ingress** routes social paths (`/api/v2/comments`, trip community, likes) and `/api/v2/external/*` to the correct service (same path table as GKE Gateway in [`httproute-api.yaml`](../../../infrastructure/ms2/gitops/tenants/tripplanning/gateway/httproute-api.yaml)).
 
 **Logs:**
 
@@ -246,7 +247,7 @@ cp .env.example .env   # set VITE_FIREBASE_* for Google sign-in (optional for de
 npm run dev:minikube
 ```
 
-Open `http://localhost:5173`. Vite proxies `/api/v2` to `http://localhost:8080`. CORS on trip-service includes `http://localhost:5173` and `http://127.0.0.1:5173`.
+Open `http://localhost:5173`. Vite proxies `/api/v2` to `http://localhost:8080` (ingress). CORS is configured on trip-, social-, and external-info-service for `http://localhost:5173` and `http://127.0.0.1:5173`.
 
 For the **GKE** API instead: `npm run dev:k8s` (proxies to `https://api.k8s.tbd-htwg.de`).
 
@@ -364,7 +365,7 @@ cd ../infrastructure/ms2/docs/gettingstarted
 | `deploy` | §5 | Build + kubectl apply |
 | `verify` | §6 | Health smoke tests |
 | `setup-gcs` | §10 | Apply GCS bucket CORS + impersonation hint |
-| `port-forward` | §7 | localhost :8080 / :8081 / :8082 |
+| `port-forward` | §7 | ingress → localhost :8080 |
 | `status` | — | Mode, context, pods |
 | `logs [svc]` | §7 | Tail deployment logs |
 | `stop` | §2 | Stop minikube |
@@ -396,7 +397,7 @@ cd ../infrastructure/ms2/docs/gettingstarted
 | **trip-service CrashLoop / not Ready** | Elasticsearch still starting — `kubectl logs -n tripplanning deployment/trip-service --tail=80`. Raise `MINIKUBE_MEMORY`. |
 | **HSEARCH400075 / Lucene analysis configurer** | Rebuild image after fix: `local,k8s` must not load Lucene search config (see `application-local-lucene.yml`). Run `./scripts/local-dev.sh deploy`. |
 | **500 on `/trips/*/community`** | trip-service called `localhost:8081` from inside the pod — rebuild/deploy after `application-local-k8s-services.yml` fix. Check `kubectl logs deployment/trip-service`. |
-| **404 on `POST /api/v2/comments`** | trip-service must proxy to social (`SocialCommentsProxyController`) — rebuild/deploy. Not a Firestore setup issue. |
+| **404 on `POST /api/v2/comments`** | Ingress must route `/api/v2/comments` to social-service — check `kubectl get ingress -n tripplanning` and rebuild/deploy. |
 | **Comment list 500 / index errors** | Firestore emulator usually needs no manual DB; composite indexes are required on **real** Firestore (ms2 `dev-lifecycle.sh firestore-indexes`). Emulator often works without them. |
 | **500 on trip child resources** (`/accommodations`, etc.) | Elasticsearch pod OOM/crash — `kubectl get pods -l app.kubernetes.io/name=elasticsearch`. Re-apply deps: `NS=tripplanning infrastructure/ms2/scripts/install-k8s-dependencies.sh` then restart trip-service. |
 | **social-service Firestore errors** | `kubectl logs -n tripplanning deployment/social-service`; ensure `firestore-emulator` pod is Running. |

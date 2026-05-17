@@ -15,29 +15,37 @@ public class LocationService {
     private final ExternalInfoClient externalInfoClient;
 
     public LocationEntity getOrCreateLocation(String cityName) {
+        return getOrCreateLocation(cityName, null);
+    }
+
+    public LocationEntity getOrCreateLocation(String cityName, GeocodingResult resolvedFromClient) {
         String city = cityName == null ? "" : cityName.trim();
         if (city.isEmpty()) {
             throw new IllegalArgumentException("City name is required");
         }
 
-        GeocodingResult geo;
-        try {
-            geo = externalInfoClient.searchLocation(city).block();
-        } catch (Exception ignored) {
-            geo = null;
+        GeocodingResult geo = resolvedFromClient;
+        if (geo == null) {
+            try {
+                geo = externalInfoClient.searchLocation(city).block();
+            } catch (Exception ignored) {
+                geo = null;
+            }
         }
 
         if (geo != null) {
             final GeocodingResult resolved = geo;
+            String storeCity = resolved.city() != null && !resolved.city().isBlank() ? resolved.city() : city;
             return locationRepository
-                    .findByCityIgnoreCaseAndCountryCode(city, resolved.countryCode())
+                    .findByCityIgnoreCaseAndCountryCode(storeCity, resolved.countryCode())
                     .orElseGet(() -> {
                         LocationEntity newLoc = new LocationEntity();
-                        newLoc.setCity(city);
+                        newLoc.setCity(storeCity);
                         newLoc.setCountryCode(resolved.countryCode());
                         newLoc.setLatitude(resolved.lat());
                         newLoc.setLongitude(resolved.lon());
-                        newLoc.setFormattedAddress(resolved.displayName());
+                        newLoc.setFormattedAddress(
+                                resolved.displayName() != null ? resolved.displayName() : storeCity);
                         return locationRepository.save(newLoc);
                     });
         }

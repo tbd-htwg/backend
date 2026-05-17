@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.web.client.RestTemplate;
 
 import com.google.cloud.spring.data.firestore.repository.config.EnableReactiveFirestoreRepositories;
+import com.tripplanning.common.auth.AppJwtDecoderConfiguration;
 import com.tripplanning.common.auth.AuthProperties;
 import com.tripplanning.common.client.RestTripServiceClient;
 import com.tripplanning.common.client.ServiceClientConfig;
@@ -16,7 +17,7 @@ import com.tripplanning.common.config.ServiceClientProperties;
 @SpringBootApplication(scanBasePackages = {"com.tripplanning.social", "com.tripplanning.common"})
 @EnableReactiveFirestoreRepositories(basePackages = "com.tripplanning.social")
 @EnableConfigurationProperties({AuthProperties.class, ServiceClientProperties.class})
-@org.springframework.context.annotation.Import(ServiceClientConfig.class)
+@org.springframework.context.annotation.Import({ServiceClientConfig.class, AppJwtDecoderConfiguration.class})
 public class SocialServiceApplication {
 
     public static void main(String[] args) {

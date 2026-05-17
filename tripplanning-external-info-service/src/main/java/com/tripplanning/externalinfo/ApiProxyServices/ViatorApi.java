@@ -27,6 +27,9 @@ public class ViatorApi {
         this.webClient = webClientBuilder.build();
     }
 
+    /**
+     * Viator sandbox uses a fixed destination id until destination lookup by city/country is implemented.
+     */
     @Cacheable(value = "tours", key = "#location + '-' + #countryCode")
     public Mono<List<Tour>> getViatorTours(String location, String countryCode) {
         Map<String, Object> requestBody = Map.of(
