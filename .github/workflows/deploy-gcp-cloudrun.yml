@@ -1,15 +1,15 @@
 name: Deploy Backend to GCP Cloud Run
 
-"on":
-  workflow_dispatch:
-    inputs:
-      environment:
-        type: environment
-        description: Select the environment to deploy to
-        required: true
-        default: 'develop'
-  push:
-    branches: ["main", "staging", "develop"]
+# "on":
+#   workflow_dispatch:
+#     inputs:
+#       environment:
+#         type: environment
+#         description: Select the environment to deploy to
+#         required: true
+#         default: 'develop'
+#   push:
+#     branches: ["main", "staging", "develop"]
 
 ############################################################################
 # WORKFLOW PERMISSIONS AND GLOBAL VARIABLES
