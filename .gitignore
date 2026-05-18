@@ -45,3 +45,6 @@ temp/search/*
 # IDE folders
 .vscode/
 .metals/
+
+.env
+.env.local
