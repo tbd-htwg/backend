@@ -2,7 +2,7 @@
 
 Spring Boot 3 **microservices** for a **trip planning** course project (HTWG Cloud Application Development): REST APIs for users, trips, locations, accommodations, transports, **full-text trip search**, **profile and trip images** (Google Cloud Storage), **comments / likes** (Firestore), and **external travel info**. Domain data lives in **PostgreSQL** with **Flyway** migrations in deployed environments; the SPA talks to **`/api/v2`** (Spring Data REST on trip-service) plus dedicated controllers for auth, search, social features, and uploads. Typical deployment: **GKE** (ms2) with Cloud SQL, Elasticsearch, Firestore, and GCS.
 
-**Sibling app:** [../frontend/README.md](../frontend/README.md) (when this repo lives in a monorepo next to `frontend/`). **Infra overview:** [../infrastructure/README.md](../infrastructure/README.md) (same). **Local Minikube:** [docs/gettingstarted/README.md](docs/gettingstarted/README.md). **GKE deploy:** [README-GKE.md](README-GKE.md). **Agent-oriented notes:** [AGENTS.md](AGENTS.md).
+**Sibling app:** [../frontend/README.md](../frontend/README.md) (when this repo lives in a monorepo next to `frontend/`). **Infra overview:** [../infrastructure/ms2/docs/README.md](../infrastructure/ms2/docs/README.md) (same). **Local Minikube:** [docs/gettingstarted/README.md](docs/gettingstarted/README.md). **GKE deploy:** [README-GKE.md](README-GKE.md). **Agent-oriented notes:** [AGENTS.md](AGENTS.md).
 
 ## Microservices (multi-module)
 
@@ -34,9 +34,14 @@ Full stack on Kubernetes (H2, in-cluster Redis/Elasticsearch/Firestore emulator,
 
 ```bash
 cp docs/gettingstarted/.env.example docs/gettingstarted/.env
+# Optional: cp .env.local.example .env.local  (overrides; gitignored)
 ./scripts/local-dev.sh setup
 ./scripts/local-dev.sh port-forward
 ```
+
+[`scripts/local-dev.sh`](scripts/local-dev.sh) loads env in order: **`docs/gettingstarted/.env`** → **`backend/.env.local`** (optional) → **`infrastructure/ms2/docs/gettingstarted/.env`** (optional, monorepo). See [`.env.example`](docs/gettingstarted/.env.example) for `JWT_SECRET`, GCS bucket/signer, and optional `VIATOR_API_KEY`. Both `.env` files are gitignored.
+
+**Frontend** (separate terminal): from `frontend/`, run `npm run dev:minikube` after port-forward — see [../frontend/README.md](../frontend/README.md).
 
 ### JVM-only (`local` profile)
 
