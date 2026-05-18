@@ -1,7 +1,7 @@
 name: Deploy Backend to GCP Cloud Run
 
-# "on":
-#   workflow_dispatch:
+on:
+  workflow_dispatch:
 #     inputs:
 #       environment:
 #         type: environment
