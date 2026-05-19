@@ -1,4 +1,4 @@
-package com.tripplanning.external;
+package com.tripplanning.externalinfo.dto;
 
 import java.util.List;
 
@@ -36,8 +36,12 @@ public final class ExternalInfoDtos {
     public record Tour(
         String id, 
         String title, 
-        String price, 
-        String url) {}
+        String description,
+        int totalReviews,
+        double combinedAverageRating,
+        double fromPrice,
+        String currency,
+        String productUrl) {}
 
     public record TripExternalInfo(
             TravelWarning warning,

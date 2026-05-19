@@ -20,10 +20,12 @@ import lombok.Setter;
 import lombok.NoArgsConstructor;
 
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed;
 
 
 @Entity
 @Table(name = "accommodation")
+@Indexed
 @Getter
 @Setter
 @Builder
@@ -48,6 +50,16 @@ public class AccomEntity {
     @Column(nullable = false)
     @FullTextField(analyzer = "english")
     private String name;
+    
+
+    @Column 
+    private String googlePlaceId;
+
+    @FullTextField 
+    @Column 
+    private String cityName;
+
+    @Column
     private String address;
 
     @Builder.Default

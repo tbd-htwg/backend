@@ -12,8 +12,8 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.tripplanning.externalinfo.WeatherDescription;
-import com.tripplanning.externalinfo.dto.ExternalInfoDto.DailyForecast;
-import com.tripplanning.externalinfo.dto.ExternalInfoDto.WeatherData;
+import com.tripplanning.externalinfo.dto.ExternalInfoDtos.DailyForecast;
+import com.tripplanning.externalinfo.dto.ExternalInfoDtos.WeatherData;
 
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;

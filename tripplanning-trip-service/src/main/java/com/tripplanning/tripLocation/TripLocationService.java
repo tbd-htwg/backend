@@ -3,10 +3,8 @@ package com.tripplanning.tripLocation;
 import org.springframework.stereotype.Service;
 
 import com.tripplanning.external.ExternalInfoClient;
-import com.tripplanning.external.ExternalInfoDtos.GeocodingResult;
+import com.tripplanning.external.ExternalInfoDtos.PlaceDetailsResult;
 import com.tripplanning.external.ExternalInfoDtos.TripExternalInfo;
-import com.tripplanning.location.LocationEntity;
-import com.tripplanning.location.LocationService;
 import com.tripplanning.trip.TripEntity;
 import com.tripplanning.trip.TripRepository;
 import com.tripplanning.trip.read.TripCacheEvictor;
@@ -19,7 +17,6 @@ import lombok.RequiredArgsConstructor;
 public class TripLocationService {
 
     private final TripLocationRepository tripLocationRepository;
-    private final LocationService locationService;
     private final TripRepository tripRepository;
     private final ExternalInfoClient externalInfoClient;
     private final TripCacheEvictor tripCacheEvictor;
@@ -27,29 +24,24 @@ public class TripLocationService {
     @Transactional
     public TripLocationCreatedResponse addStop(TripLocationRequest.CreateTripLocationRequest request) {
         TripEntity trip = tripRepository.findById(request.tripId()).orElseThrow();
-        GeocodingResult resolved = null;
-        if (request.countryCode() != null
-                && !request.countryCode().isBlank()
-                && request.latitude() != null
-                && request.longitude() != null) {
-            resolved = new GeocodingResult(
-                    request.city(),
-                    request.formattedAddress() != null ? request.formattedAddress() : request.city(),
-                    request.latitude(),
-                    request.longitude(),
-                    request.countryCode().trim().toUpperCase());
+        
+        PlaceDetailsResult geo = externalInfoClient.fetchPlaceDetails(request.googlePlaceId()).block();
+        if (geo == null) {
+            throw new RuntimeException("Place could not be found in Google.");
         }
-        LocationEntity location = locationService.getOrCreateLocation(request.city(), resolved);
 
-        TripLocationEntity stop = new TripLocationEntity();
-        stop.setTrip(trip);
-        stop.setLocation(location);
-        stop.setDescription(request.description());
-        stop.setStartDate(request.startDate());
-        stop.setEndDate(request.endDate());
+        TripLocationEntity stop = TripLocationEntity.builder()
+                .trip(trip)
+                .googlePlaceId(request.googlePlaceId())
+                .cityName(geo.cityName()) 
+                .description(request.description())
+                .startDate(request.startDate())
+                .endDate(request.endDate())
+                .build();
 
         TripLocationEntity saved = tripLocationRepository.save(stop);
         tripCacheEvictor.evictForTripChange(request.tripId());
+        
         return TripLocationCreatedResponse.from(saved);
     }
 
@@ -57,6 +49,8 @@ public class TripLocationService {
         TripLocationEntity stop = tripLocationRepository
                 .findById(tripLocationId)
                 .orElseThrow(() -> new RuntimeException("Stop not found"));
-        return externalInfoClient.fetchExternalDetailsForLocation(stop.getLocation()).block();
+                
+        // Nutzt jetzt die googlePlaceId für den Multicast-Aufruf (Wetter, Viator, AA)
+        return externalInfoClient.fetchExternalDetailsForLocation(stop.getGooglePlaceId()).block();
     }
 }

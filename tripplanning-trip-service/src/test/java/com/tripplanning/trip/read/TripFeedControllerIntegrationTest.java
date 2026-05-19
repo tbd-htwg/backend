@@ -18,16 +18,13 @@ import org.springframework.cache.CacheManager;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
-
 import org.springframework.context.annotation.Import;
 
 import com.tripplanning.TestClientsConfig;
-import com.tripplanning.trip.TripServiceApplication;
+import com.tripplanning.TripServiceApplication;
 import com.tripplanning.accommodation.AccomEntity;
 import com.tripplanning.accommodation.AccomRepository;
 import com.tripplanning.config.CacheConfig;
-import com.tripplanning.location.LocationEntity;
-import com.tripplanning.location.LocationRepository;
 import com.tripplanning.transport.TransportEntity;
 import com.tripplanning.transport.TransportRepository;
 import com.tripplanning.trip.TripEntity;
@@ -37,12 +34,6 @@ import com.tripplanning.tripLocation.TripLocationRepository;
 import com.tripplanning.user.UserEntity;
 import com.tripplanning.user.UserRepository;
 
-/**
- * Covers the new {@code /api/v2/trips/feed} and {@code /api/v2/trips/{id}/detail} endpoints plus
- * the {@link TripCacheEvictor}-driven cache invalidation. The point of these tests is correctness
- * of the JPQL/DTO assembly and the eviction wiring; the SQL-statement count win is validated by
- * the manual local sanity check called out in {@code performance/reports/}.
- */
 @SpringBootTest(classes = TripServiceApplication.class, webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @Import(TestClientsConfig.class)
 @AutoConfigureMockMvc
@@ -53,7 +44,6 @@ class TripFeedControllerIntegrationTest {
     @Autowired private MockMvc mockMvc;
     @Autowired private UserRepository userRepository;
     @Autowired private TripRepository tripRepository;
-    @Autowired private LocationRepository locationRepository;
     @Autowired private TripLocationRepository tripLocationRepository;
     @Autowired private AccomRepository accomRepository;
     @Autowired private TransportRepository transportRepository;
@@ -68,27 +58,31 @@ class TripFeedControllerIntegrationTest {
     @BeforeEach
     void setUp() {
         clearAllCaches();
-        tripLocationRepository.deleteAll();
         tripRepository.deleteAll();
         accomRepository.deleteAll();
         transportRepository.deleteAll();
-        locationRepository.deleteAll();
         userRepository.deleteAll();
 
-        author =
-                userRepository.save(
-                        UserEntity.builder()
-                                .email("author@example.com")
-                                .name("Author")
-                                .imagePath("")
-                                .description("")
-                                .build());
-        LocationEntity loc = locationRepository.save(new LocationEntity("Tokyo"));
-        AccomEntity accom = accomRepository.save(new AccomEntity("Hotel Sakura", "hotel", "Shibuya"));
+        author = userRepository.save(
+                UserEntity.builder()
+                        .email("author@example.com")
+                        .name("Author")
+                        .imagePath("")
+                        .description("")
+                        .build());
+        
+        AccomEntity accom = accomRepository.save(
+                AccomEntity.builder()
+                        .name("Hotel Sakura")
+                        .type("hotel")
+                        .address("Shibuya, Tokyo")
+                        .googlePlaceId("ChIJ912345_TokyoPlaceId")
+                        .cityName("Tokyo")
+                        .build());
+                        
         TransportEntity transport = transportRepository.save(new TransportEntity("train"));
 
-        trip =
-                TripEntity.builder()
+        trip = TripEntity.builder()
                         .user(author)
                         .title("Spring trip")
                         .destination("Japan")
@@ -100,15 +94,15 @@ class TripFeedControllerIntegrationTest {
                         .build();
         trip = tripRepository.save(trip);
 
-        stop =
+        stop = tripLocationRepository.save(
                 TripLocationEntity.builder()
                         .trip(trip)
-                        .location(loc)
+                        .googlePlaceId("ChIJ912345_TokyoPlaceId")
+                        .cityName("Tokyo")
                         .description("First stop")
                         .startDate(LocalDateTime.of(2026, 5, 1, 9, 0))
                         .endDate(LocalDateTime.of(2026, 5, 3, 18, 0))
-                        .build();
-        stop = tripLocationRepository.save(stop);
+                        .build());
     }
 
     @Test
@@ -156,7 +150,7 @@ class TripFeedControllerIntegrationTest {
                 .andExpect(jsonPath("$.longDescription").value("Two weeks chasing sakura through Honshu."))
                 .andExpect(jsonPath("$.author.id").value(author.getId()))
                 .andExpect(jsonPath("$.stops[0].id").value(stop.getId()))
-                .andExpect(jsonPath("$.stops[0].locationName").value("Tokyo"))
+                .andExpect(jsonPath("$.stops[0].cityName").value("Tokyo")) // Falls euer DTO hier jetzt cityName nutzt
                 .andExpect(jsonPath("$.stops[0].description").value("First stop"))
                 .andExpect(jsonPath("$.accommodations[0].name").value("Hotel Sakura"))
                 .andExpect(jsonPath("$.transports[0].type").value("train"));

@@ -17,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.context.annotation.Import;
 
 import com.tripplanning.TestClientsConfig;
-import com.tripplanning.trip.TripServiceApplication;
+import com.tripplanning.TripServiceApplication;
 import com.tripplanning.user.UserEntity;
 import com.tripplanning.user.UserRepository;
 

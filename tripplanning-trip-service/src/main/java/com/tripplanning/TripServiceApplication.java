@@ -1,4 +1,4 @@
-package com.tripplanning.trip;
+package com.tripplanning;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

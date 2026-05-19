@@ -5,21 +5,18 @@ import java.time.LocalDateTime;
 public record TripLocationCreatedResponse(
         Long id,
         Long tripId,
-        Long locationId,
-        String locationName,
-        String formattedAddress,
+        String googlePlaceId,
+        String cityName,
         String description,
         LocalDateTime startDate,
         LocalDateTime endDate) {
 
     public static TripLocationCreatedResponse from(TripLocationEntity stop) {
-        var location = stop.getLocation();
         return new TripLocationCreatedResponse(
                 stop.getId(),
                 stop.getTrip().getId(),
-                location.getId(),
-                location.getCity(),
-                location.getFormattedAddress(),
+                stop.getGooglePlaceId(),
+                stop.getCityName(),
                 stop.getDescription(),
                 stop.getStartDate(),
                 stop.getEndDate());

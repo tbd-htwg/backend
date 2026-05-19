@@ -45,17 +45,18 @@ public class ExternalInfoSecurityConfig {
                 .authorizeExchange(
                         exchanges ->
                                 exchanges
-                                        .pathMatchers(HttpMethod.OPTIONS, "/**")
+                                        /* .pathMatchers(HttpMethod.OPTIONS, "/**")
                                         .permitAll()
                                         .pathMatchers("/actuator/health", "/actuator/health/**")
                                         .permitAll()
                                         .pathMatchers("/api/v1/**")
                                         .permitAll()
                                         .pathMatchers(HttpMethod.GET, "/api/v2/external/**")
-                                        .authenticated()
-                                        .anyExchange()
-                                        .authenticated())
-                .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
+                                        .authenticated()*/
+                                        .anyExchange().permitAll()
+                                        //.authenticated())
+                )
+                //.oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
                 .build();
     }
 }

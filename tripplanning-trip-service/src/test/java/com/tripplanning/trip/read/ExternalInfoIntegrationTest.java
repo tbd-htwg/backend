@@ -4,6 +4,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.configureFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -27,11 +28,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.tripplanning.TestClientsConfig;
-import com.tripplanning.location.LocationEntity;
-import com.tripplanning.location.LocationRepository;
 import com.tripplanning.trip.TripEntity;
 import com.tripplanning.trip.TripRepository;
-import com.tripplanning.trip.TripServiceApplication;
+import com.tripplanning.TripServiceApplication;
 import com.tripplanning.tripLocation.TripLocationEntity;
 import com.tripplanning.tripLocation.TripLocationRepository;
 import com.tripplanning.user.UserEntity;
@@ -69,7 +68,6 @@ class ExternalInfoIntegrationTest {
     @Autowired private MockMvc mockMvc;
     @Autowired private UserRepository userRepository;
     @Autowired private TripRepository tripRepository;
-    @Autowired private LocationRepository locationRepository;
     @Autowired private TripLocationRepository tripLocationRepository;
 
     private TripLocationEntity stop;
@@ -79,22 +77,15 @@ class ExternalInfoIntegrationTest {
         wireMockServer.resetAll();
         tripLocationRepository.deleteAll();
         tripRepository.deleteAll();
-        locationRepository.deleteAll();
         userRepository.deleteAll();
 
-        UserEntity user =
-                userRepository.save(
-                        UserEntity.builder()
-                                .email("test@example.com")
-                                .name("Tester")
-                                .imagePath("")
-                                .description("")
-                                .build());
-        LocationEntity loc = new LocationEntity("Paris");
-        loc.setCountryCode("FR");
-        loc.setLatitude(48.8566);
-        loc.setLongitude(2.3522);
-        loc = locationRepository.save(loc);
+        UserEntity user = userRepository.save(
+                UserEntity.builder()
+                        .email("test@example.com")
+                        .name("Tester")
+                        .imagePath("")
+                        .description("")
+                        .build());
 
         TripEntity trip = tripRepository.save(
                 new TripEntity(
@@ -108,13 +99,15 @@ class ExternalInfoIntegrationTest {
         stop = tripLocationRepository.save(
                 TripLocationEntity.builder()
                         .trip(trip)
-                        .location(loc)
+                        .googlePlaceId("ChIJD7fiw9u55kcRLm1vYGoUby0") // Beispiel-ID für Paris
+                        .cityName("Paris")
                         .description("Eiffel Tower")
                         .startDate(LocalDateTime.of(2026, 6, 2, 10, 0))
                         .endDate(LocalDateTime.of(2026, 6, 2, 18, 0))
                         .build());
 
-        stubFor(com.github.tomakehurst.wiremock.client.WireMock.get(urlPathEqualTo("/api/v1/details"))
+        stubFor(com.github.tomakehurst.wiremock.client.WireMock.get(urlPathEqualTo("/api/v2/external/details"))
+                .withQueryParam("placeId", equalTo("ChIJD7fiw9u55kcRLm1vYGoUby0"))
                 .willReturn(aResponse()
                         .withHeader("Content-Type", "application/json")
                         .withBody(

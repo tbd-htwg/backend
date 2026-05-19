@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.tripplanning.externalinfo.dto.ExternalInfoDto.TravelWarning;
+import com.tripplanning.externalinfo.dto.ExternalInfoDtos.TravelWarning;
 
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
