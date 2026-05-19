@@ -1,0 +1,20 @@
+# Kubernetes (minikube / GKE): use in-cluster Elasticsearch for Hibernate Search.
+# Activate with SPRING_PROFILES_ACTIVE=local,k8s (minikube) or omit gke-dev on GKE.
+spring:
+  config:
+    activate:
+      on-profile: k8s
+
+  jpa:
+    properties:
+      hibernate:
+        search:
+          backend:
+            type: elasticsearch
+            protocol: ${ELASTICSEARCH_PROTOCOL:http}
+            hosts: ${ELASTICSEARCH_HOSTS:elasticsearch.tripplanning.svc.cluster.local:9200}
+            username: ${ELASTICSEARCH_USERNAME:}
+            password: ${ELASTICSEARCH_PASSWORD:}
+            path_prefix: ${ELASTICSEARCH_PATH_PREFIX:}
+          schema_management:
+            strategy: create-or-validate

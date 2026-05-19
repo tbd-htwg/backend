@@ -1,0 +1,19 @@
+# Hibernate Search Lucene backend — JVM-only local (SPRING_PROFILES_ACTIVE=local).
+# Not loaded when k8s is active (minikube / GKE use Elasticsearch via application-k8s.yml).
+spring:
+  config:
+    activate:
+      on-profile: "local & !k8s"
+
+  jpa:
+    properties:
+      hibernate:
+        search:
+          backend:
+            type: lucene
+            directory:
+              root: ./temp/search
+            analysis:
+              configurer: "class:com.tripplanning.search.LuceneEnglishAnalysisConfigurer"
+          schema_management:
+            strategy: drop-and-create

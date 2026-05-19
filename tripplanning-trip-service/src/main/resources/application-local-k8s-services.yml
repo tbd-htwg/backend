@@ -1,0 +1,11 @@
+# In-cluster service URLs when running local profile on Kubernetes (minikube / GKE dev).
+# JVM-only local keeps localhost defaults from application-local.yml.
+spring:
+  config:
+    activate:
+      on-profile: "local & k8s"
+
+tripplanning:
+  services:
+    social-base-url: ${TRIPPLANNING_SOCIAL_SERVICE_URL:http://social-service.tripplanning.svc.cluster.local:8081}
+    external-info-base-url: ${TRIPPLANNING_EXTERNAL_INFO_SERVICE_URL:http://external-info-service.tripplanning.svc.cluster.local:8082}

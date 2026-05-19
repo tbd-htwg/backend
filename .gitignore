@@ -24,6 +24,7 @@ hs_err_pid*
 replay_pid*
 
 target/
+.local-dev/
 .m2
 
 # H2 database files (file-based persistence)
@@ -44,3 +45,6 @@ temp/search/*
 # IDE folders
 .vscode/
 .metals/
+
+.env
+.env.local
