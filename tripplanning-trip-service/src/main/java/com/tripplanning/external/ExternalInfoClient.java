@@ -22,39 +22,14 @@ public class ExternalInfoClient {
         this.webClient = builder.baseUrl(baseUrl).build();
     }
 
-    
+     //Holt AUSSCHLIESSLICH die Google-Ortsdetails vom external-info-service
     public Mono<PlaceDetailsResult> fetchPlaceDetails(String placeId) {
         return webClient.get()
                 .uri(uriBuilder -> uriBuilder
-                        .path("/api/v2/external/details") 
+                        .path("/api/v2/external/location-pack")
                         .queryParam("placeId", placeId)
                         .build())
                 .retrieve()
-                .bodyToMono(Map.class) 
-                .map(response -> {
-                    if (response != null && response.containsKey("locationInfo")) {
-                        Map<String, Object> geoMap = (Map<String, Object>) response.get("locationInfo");
-                        return new PlaceDetailsResult(
-                            (String) geoMap.get("placeName"),
-                            (String) geoMap.get("cityName"),
-                            (String) geoMap.get("formattedAddress"),
-                            (double) geoMap.get("lat"),
-                            (double) geoMap.get("lon"),
-                            (String) geoMap.get("countryCode")
-                        );
-                    }
-                    return null;
-                });
-    }
-
-
-    public Mono<TripExternalInfo> fetchExternalDetailsForLocation(String googlePlaceId) {
-        return webClient.get()
-                .uri(uriBuilder -> uriBuilder
-                        .path("/api/v2/external/location-pack")
-                        .queryParam("placeId", googlePlaceId) 
-                        .build())
-                .retrieve()
-                .bodyToMono(TripExternalInfo.class);
+                .bodyToMono(PlaceDetailsResult.class);
     }
 }

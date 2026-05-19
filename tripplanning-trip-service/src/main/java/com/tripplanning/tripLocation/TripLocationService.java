@@ -4,7 +4,6 @@ import org.springframework.stereotype.Service;
 
 import com.tripplanning.external.ExternalInfoClient;
 import com.tripplanning.external.ExternalInfoDtos.PlaceDetailsResult;
-import com.tripplanning.external.ExternalInfoDtos.TripExternalInfo;
 import com.tripplanning.trip.TripEntity;
 import com.tripplanning.trip.TripRepository;
 import com.tripplanning.trip.read.TripCacheEvictor;
@@ -45,12 +44,12 @@ public class TripLocationService {
         return TripLocationCreatedResponse.from(saved);
     }
 
-    public TripExternalInfo getExternalDetails(Long tripLocationId) {
+    public PlaceDetailsResult getExternalDetails(Long tripLocationId) {
         TripLocationEntity stop = tripLocationRepository
                 .findById(tripLocationId)
                 .orElseThrow(() -> new RuntimeException("Stop not found"));
                 
-        // Nutzt jetzt die googlePlaceId für den Multicast-Aufruf (Wetter, Viator, AA)
-        return externalInfoClient.fetchExternalDetailsForLocation(stop.getGooglePlaceId()).block();
+        // Use the googlePlaceId to fetch place details (name, city, address, coords)
+        return externalInfoClient.fetchPlaceDetails(stop.getGooglePlaceId()).block();
     }
 }
