@@ -5,11 +5,14 @@ import org.springframework.data.rest.core.annotation.HandleAfterDelete;
 import org.springframework.data.rest.core.annotation.HandleAfterLinkDelete;
 import org.springframework.data.rest.core.annotation.HandleAfterLinkSave;
 import org.springframework.data.rest.core.annotation.HandleAfterSave;
+import org.springframework.data.rest.core.annotation.HandleBeforeCreate;
+import org.springframework.data.rest.core.annotation.HandleBeforeSave;
 import org.springframework.data.rest.core.annotation.RepositoryEventHandler;
 import org.springframework.stereotype.Component;
 
 import com.tripplanning.accommodation.AccomEntity;
 import com.tripplanning.transport.TransportEntity;
+import com.tripplanning.trip.TripDestinationEnrichment;
 import com.tripplanning.trip.TripEntity;
 import com.tripplanning.tripLocation.TripLocationEntity;
 
@@ -29,6 +32,17 @@ import lombok.RequiredArgsConstructor;
 public class TripWriteEvents {
 
     private final TripCacheEvictor evictor;
+    private final TripDestinationEnrichment tripDestinationEnrichment;
+
+    @HandleBeforeCreate
+    public void beforeCreateTrip(TripEntity trip) {
+        tripDestinationEnrichment.apply(trip);
+    }
+
+    @HandleBeforeSave
+    public void beforeSaveTrip(TripEntity trip) {
+        tripDestinationEnrichment.apply(trip);
+    }
 
     @HandleAfterCreate
     public void afterCreateTrip(TripEntity trip) {

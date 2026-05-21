@@ -1,18 +1,23 @@
 package com.tripplanning.externalinfo;
 
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.tripplanning.externalinfo.ApiProxyServices.GooglePlacesApi;
-import com.tripplanning.externalinfo.ApiProxyServices.TravelWarningApi;
-import com.tripplanning.externalinfo.ApiProxyServices.ViatorApi;
-import com.tripplanning.externalinfo.ApiProxyServices.WeatherApi;
-import java.util.List;
-
-import com.tripplanning.externalinfo.dto.ExternalInfoDtos.PlaceDetailsResult;
+import com.tripplanning.externalinfo.ApiProxyServices.GooglePlacesApiException;
+import com.tripplanning.externalinfo.dto.ExternalInfoDtos.AccommodationExternalInfo;
+import com.tripplanning.externalinfo.dto.ExternalInfoDtos.PlaceSearchResult;
+import com.tripplanning.externalinfo.dto.ExternalInfoDtos.StopExternalInfo;
+import com.tripplanning.externalinfo.dto.ExternalInfoDtos.TransportDistanceResult;
 import com.tripplanning.externalinfo.dto.ExternalInfoDtos.TripExternalInfo;
 
 import lombok.RequiredArgsConstructor;
@@ -24,47 +29,140 @@ import reactor.core.publisher.Mono;
 public class ExternalPublicApiController {
 
     private final GooglePlacesApi googlePlacesApi;
-    private final TravelWarningApi travelWarningApi;
-    private final WeatherApi weatherApi;
-    private final ViatorApi viatorApi;
+    private final ExternalDetailsService externalDetailsService;
 
-    // 1. Für das Frontend: Suchfeld (Google Text Search)
     @GetMapping("/details/search")
-    public Mono<ResponseEntity<List<PlaceDetailsResult>>> search(@RequestParam String q) {
-        return googlePlacesApi.searchLocations(q)
-                .map(ResponseEntity::ok);
+    public Mono<ResponseEntity<List<PlaceSearchResult>>> search(@RequestParam String q) {
+        return googlePlacesApi
+                .searchLocations(q)
+                .map(ResponseEntity::ok)
+                .onErrorResume(GooglePlacesApiException.class, e -> Mono.error(placesUnavailable(e)));
     }
 
-    // 2. Für das Frontend: Das komplette Info-Paket (Wetter, Viator, Warnungen)
+    /** @deprecated Prefer {@code /stop-details} for trip stops (no Viator). */
     @GetMapping("/details")
-    public Mono<ResponseEntity<TripExternalInfo>> getExternalDetails(@RequestParam String placeId) {
-        return googlePlacesApi.getPlaceDetails(placeId)
-            .flatMap(geo -> {
-                if (geo == null) {
-                    return Mono.just(ResponseEntity.notFound().<TripExternalInfo>build());
-                }
-
-                return Mono.zip(
-                        travelWarningApi.getTravelWarning(geo.countryCode()),
-                        weatherApi.getWeather(geo.lat(), geo.lon()),
-                        viatorApi.getViatorTours(geo.cityName(), geo.countryCode())
-                )
-                .map(tuple -> new TripExternalInfo(tuple.getT1(), tuple.getT2(), tuple.getT3()))
-                .map(ResponseEntity::ok);
-            })
-            .onErrorResume(e -> Mono.just(ResponseEntity.internalServerError().build()));
+    public Mono<ResponseEntity<TripExternalInfo>> getExternalDetails(
+            @RequestParam String placeId,
+            @RequestParam(required = false) Double lat,
+            @RequestParam(required = false) Double lon,
+            @RequestParam(required = false) String countryCode,
+            @RequestParam(required = false) String cityName) {
+        return externalDetailsService
+                .tripExternalInfo(placeId, lat, lon, countryCode, cityName)
+                .map(ResponseEntity::ok)
+                .switchIfEmpty(Mono.just(ResponseEntity.notFound().build()))
+                .onErrorResume(GooglePlacesApiException.class, e -> Mono.error(placesUnavailable(e)))
+                .onErrorResume(e -> Mono.just(ResponseEntity.internalServerError().build()));
     }
 
-    // 3. Für den Trip-Service (8080): Nur die Google-Details (Unterkünfte/Stopps)
-    @GetMapping("/location-pack")
-    public Mono<ResponseEntity<PlaceDetailsResult>> getLocationPack(@RequestParam String placeId) {
-    return googlePlacesApi.getPlaceDetails(placeId)
-            .flatMap(geo -> {
-                if (geo == null) {
-                    return Mono.just(ResponseEntity.notFound().<PlaceDetailsResult>build());
-                }
-                return Mono.just(ResponseEntity.ok(geo));
-            })
-            .defaultIfEmpty(ResponseEntity.notFound().build());
+    /** @deprecated Prefer {@code /stop-details/batch}. */
+    @GetMapping("/details/batch")
+    public Mono<ResponseEntity<Map<String, TripExternalInfo>>> getExternalDetailsBatch(
+            @RequestParam String placeIds,
+            @RequestParam(required = false) String lats,
+            @RequestParam(required = false) String lons,
+            @RequestParam(required = false) String countryCodes,
+            @RequestParam(required = false) String cityNames) {
+        List<ExternalDetailsService.PlaceGeoInput> inputs =
+                ExternalDetailsService.parseBatchParams(placeIds, lats, lons, countryCodes, cityNames);
+        if (inputs.isEmpty()) {
+            return Mono.just(ResponseEntity.ok(Map.of()));
+        }
+        return externalDetailsService
+                .tripExternalInfoBatch(inputs)
+                .map(ResponseEntity::ok)
+                .onErrorResume(GooglePlacesApiException.class, e -> Mono.error(placesUnavailable(e)))
+                .onErrorResume(e -> Mono.just(ResponseEntity.internalServerError().build()));
+    }
+
+    @GetMapping("/stop-details")
+    public Mono<ResponseEntity<StopExternalInfo>> getStopDetails(
+            @RequestParam String placeId,
+            @RequestParam(required = false) Double lat,
+            @RequestParam(required = false) Double lon,
+            @RequestParam(required = false) String countryCode,
+            @RequestParam(required = false) String cityName) {
+        return externalDetailsService
+                .stopExternalInfo(placeId, lat, lon, countryCode, cityName)
+                .map(ResponseEntity::ok)
+                .switchIfEmpty(Mono.just(ResponseEntity.notFound().build()))
+                .onErrorResume(GooglePlacesApiException.class, e -> Mono.error(placesUnavailable(e)))
+                .onErrorResume(e -> Mono.just(ResponseEntity.internalServerError().build()));
+    }
+
+    @GetMapping("/stop-details/batch")
+    public Mono<ResponseEntity<Map<String, StopExternalInfo>>> getStopDetailsBatch(
+            @RequestParam String placeIds,
+            @RequestParam(required = false) String lats,
+            @RequestParam(required = false) String lons,
+            @RequestParam(required = false) String countryCodes,
+            @RequestParam(required = false) String cityNames) {
+        List<ExternalDetailsService.PlaceGeoInput> inputs =
+                ExternalDetailsService.parseBatchParams(placeIds, lats, lons, countryCodes, cityNames);
+        if (inputs.isEmpty()) {
+            return Mono.just(ResponseEntity.ok(Map.of()));
+        }
+        return externalDetailsService
+                .stopExternalInfoBatch(inputs)
+                .map(ResponseEntity::ok)
+                .onErrorResume(GooglePlacesApiException.class, e -> Mono.error(placesUnavailable(e)))
+                .onErrorResume(e -> Mono.just(ResponseEntity.internalServerError().build()));
+    }
+
+    @GetMapping("/accommodation-details")
+    public Mono<ResponseEntity<AccommodationExternalInfo>> getAccommodationDetails(
+            @RequestParam String placeId,
+            @RequestParam(required = false) Double lat,
+            @RequestParam(required = false) Double lon,
+            @RequestParam(required = false) String countryCode,
+            @RequestParam(required = false) String cityName,
+            @RequestParam(required = false) BigDecimal cost,
+            @RequestParam(required = false) String currency) {
+        return externalDetailsService
+                .accommodationExternalInfo(placeId, lat, lon, countryCode, cityName, cost, currency)
+                .map(ResponseEntity::ok)
+                .switchIfEmpty(Mono.just(ResponseEntity.notFound().build()))
+                .onErrorResume(GooglePlacesApiException.class, e -> Mono.error(placesUnavailable(e)))
+                .onErrorResume(e -> Mono.just(ResponseEntity.internalServerError().build()));
+    }
+
+    @GetMapping("/accommodation-details/batch")
+    public Mono<ResponseEntity<Map<String, AccommodationExternalInfo>>> getAccommodationDetailsBatch(
+            @RequestParam String keys,
+            @RequestParam String placeIds,
+            @RequestParam(required = false) String lats,
+            @RequestParam(required = false) String lons,
+            @RequestParam(required = false) String countryCodes,
+            @RequestParam(required = false) String cityNames,
+            @RequestParam(required = false) String costs,
+            @RequestParam(required = false) String currencies) {
+        var inputs =
+                ExternalDetailsService.parseAccommodationBatchParams(
+                        keys, placeIds, lats, lons, countryCodes, cityNames, costs, currencies);
+        if (inputs.isEmpty()) {
+            return Mono.just(ResponseEntity.ok(Map.of()));
+        }
+        return externalDetailsService
+                .accommodationExternalInfoBatch(inputs)
+                .map(ResponseEntity::ok)
+                .onErrorResume(GooglePlacesApiException.class, e -> Mono.error(placesUnavailable(e)))
+                .onErrorResume(e -> Mono.just(ResponseEntity.internalServerError().build()));
+    }
+
+    @GetMapping("/transport/distance")
+    public Mono<ResponseEntity<TransportDistanceResult>> getTransportDistance(
+            @RequestParam double originLat,
+            @RequestParam double originLon,
+            @RequestParam double destLat,
+            @RequestParam double destLon) {
+        return externalDetailsService
+                .transportDistance(originLat, originLon, destLat, destLon)
+                .map(ResponseEntity::ok)
+                .onErrorResume(GooglePlacesApiException.class, e -> Mono.error(placesUnavailable(e)))
+                .onErrorResume(e -> Mono.just(ResponseEntity.internalServerError().build()));
+    }
+
+    private static ResponseStatusException placesUnavailable(GooglePlacesApiException e) {
+        return new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, e.getMessage(), e);
     }
 }

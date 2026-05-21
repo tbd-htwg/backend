@@ -1,5 +1,6 @@
 package com.tripplanning.trip.read;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -27,13 +28,14 @@ public final class TripFeedDtos {
             TripFeedAuthor author,
             List<String> locations,
             List<String> accommodationNames,
-            List<String> transportTypes) {}
+            List<String> transportRoutes) {}
 
     /** Trip detail response: trip header, author, stops with image URLs, accommodations, transports. */
     public record TripFeedDetail(
             long id,
             String title,
             String destination,
+            String destinationGooglePlaceId,
             LocalDate startDate,
             String shortDescription,
             String longDescription,
@@ -44,16 +46,43 @@ public final class TripFeedDtos {
 
     public record TripFeedDetailStop(
             long id,
-            long locationId,
-            String locationName,
+            String googlePlaceId,
+            String placeName,
+            String cityName,
             String description,
             LocalDateTime startDate,
             LocalDateTime endDate,
+            Double latitude,
+            Double longitude,
+            String countryCode,
+            String formattedAddress,
             List<String> imageUrls) {}
 
-    public record TripFeedAccommodation(long id, String type, String name, String address) {}
+    public record TripFeedAccommodation(
+            long id,
+            String type,
+            String name,
+            String address,
+            String googlePlaceId,
+            String cityName,
+            Double latitude,
+            Double longitude,
+            String countryCode,
+            LocalDate checkInDate,
+            LocalDate checkOutDate,
+            BigDecimal cost,
+            String currency) {}
 
-    public record TripFeedTransport(long id, String type) {}
+    public record TripFeedTransport(
+            long id,
+            String startGooglePlaceId,
+            String endGooglePlaceId,
+            String startAddress,
+            String endAddress,
+            Double startLatitude,
+            Double startLongitude,
+            Double endLatitude,
+            Double endLongitude) {}
 
     /**
      * Page envelope. Matches Spring's {@code Page} fields enough for a trivial frontend mapping but

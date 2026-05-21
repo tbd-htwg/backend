@@ -88,44 +88,50 @@ class ExternalInfoIntegrationTest {
                         .build());
 
         TripEntity trip = tripRepository.save(
-                new TripEntity(
-                        user,
-                        "Paris trip",
-                        "Paris",
-                        LocalDate.of(2026, 6, 1),
-                        "Short",
-                        "Long"));
+                TripEntity.builder()
+                        .user(user)
+                        .title("Paris trip")
+                        .destination("Paris")
+                        .destinationGooglePlaceId("ChIJ_TestParisDestination")
+                        .startDate(LocalDate.of(2026, 6, 1))
+                        .shortDescription("Short")
+                        .longDescription("Long")
+                        .build());
 
         stop = tripLocationRepository.save(
                 TripLocationEntity.builder()
                         .trip(trip)
                         .googlePlaceId("ChIJD7fiw9u55kcRLm1vYGoUby0") // Beispiel-ID für Paris
+                        .placeName("Eiffel Tower")
                         .cityName("Paris")
                         .description("Eiffel Tower")
                         .startDate(LocalDateTime.of(2026, 6, 2, 10, 0))
                         .endDate(LocalDateTime.of(2026, 6, 2, 18, 0))
                         .build());
 
-        stubFor(com.github.tomakehurst.wiremock.client.WireMock.get(urlPathEqualTo("/api/v2/external/details"))
+        stubFor(com.github.tomakehurst.wiremock.client.WireMock.get(urlPathEqualTo("/internal/location-pack"))
                 .withQueryParam("placeId", equalTo("ChIJD7fiw9u55kcRLm1vYGoUby0"))
                 .willReturn(aResponse()
                         .withHeader("Content-Type", "application/json")
                         .withBody(
                                 """
                                 {
-                                  "warning": {"country":"FR","status":"Safety Info","message":"All clear"},
-                                  "weather": {"currentTemp":20.0,"currentWeatherCode":0,"currentDescription":"Clear sky","dailyForecasts":[]},
-                                  "tours": [{"id":"t1","title":"City tour","price":"25 €","url":"#"}]
+                                  "placeName": "Eiffel Tower",
+                                  "cityName": "Paris",
+                                  "formattedAddress": "Champ de Mars, Paris, France",
+                                  "lat": 48.8584,
+                                  "lon": 2.2945,
+                                  "countryCode": "FR"
                                 }
                                 """)));
     }
 
     @Test
-    void getStopDetails_returnsExternalInfoFromService() throws Exception {
+    void getStopDetails_returnsPlaceDetailsFromService() throws Exception {
         mockMvc.perform(get("/api/v2/trip-locations/" + stop.getId() + "/details"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.warning.country").value("FR"))
-                .andExpect(jsonPath("$.weather.currentDescription").value("Clear sky"))
-                .andExpect(jsonPath("$.tours[0].title").value("City tour"));
+                .andExpect(jsonPath("$.placeName").value("Eiffel Tower"))
+                .andExpect(jsonPath("$.cityName").value("Paris"))
+                .andExpect(jsonPath("$.countryCode").value("FR"));
     }
 }

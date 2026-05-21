@@ -73,6 +73,13 @@ class AuthSecurityIntegrationTest {
   }
 
   @Test
+  void getTripFeed_withoutToken_returns200() throws Exception {
+    mockMvc
+        .perform(get("/api/v2/trips/feed").param("page", "0").param("size", "10"))
+        .andExpect(status().isOk());
+  }
+
+  @Test
   void getUserByNumericId_withoutToken_returns200() throws Exception {
     mockMvc.perform(get("/api/v2/users/" + alice.getId())).andExpect(status().isOk());
   }

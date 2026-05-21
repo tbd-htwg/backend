@@ -1,0 +1,65 @@
+# Base defaults for local chart. Override in values-local.yaml.
+global:
+  namespace: tripplanning
+
+ingress:
+  type: nginx
+
+localDev:
+  enabled: true
+  imagePullPolicy: Never
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 75
+  scaleUpStabilizationSeconds: 60
+  scaleDownStabilizationSeconds: 300
+
+debug:
+  enabled: true
+  redisCommander:
+    image: rediscommander/redis-commander:latest
+    port: 8081
+    httpRoot: /debug/redis
+    resources:
+      requests:
+        cpu: "25m"
+        memory: "64Mi"
+      limits:
+        cpu: "100m"
+        memory: "128Mi"
+
+backingServices:
+  postgres:
+    enabled: false
+  redis:
+    enabled: true
+    serviceName: redis
+    image: redis:7-alpine
+    resources:
+      requests:
+        cpu: "50m"
+        memory: "128Mi"
+      limits:
+        cpu: "150m"
+        memory: "256Mi"
+  elasticsearch:
+    enabled: true
+    serviceName: elasticsearch
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.18
+    storageSize: 5Gi
+    resources:
+      requests:
+        cpu: "250m"
+        memory: "768Mi"
+      limits:
+        cpu: "500m"
+        memory: "1Gi"
+
+firestoreEmulator:
+  enabled: true
+  image: gcr.io/google.com/cloudsdktool/google-cloud-cli:emulators
+
+ingressDebugRoutes: true

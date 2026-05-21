@@ -27,7 +27,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "tripLocations")
+@Table(name = "trip_locations")
 @Indexed
 @Getter
 @Setter
@@ -43,6 +43,10 @@ public class TripLocationEntity {
 
     @Column(nullable = false)
     private String googlePlaceId;
+
+    @Column(nullable = false)
+    @FullTextField(analyzer = "english")
+    private String placeName;
 
     @Column(nullable = false)
     @FullTextField(analyzer = "english")

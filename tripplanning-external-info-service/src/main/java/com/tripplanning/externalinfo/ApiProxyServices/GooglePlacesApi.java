@@ -1,18 +1,31 @@
 package com.tripplanning.externalinfo.ApiProxyServices;
 
-import java.util.*;
-import org.springframework.stereotype.Service;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.MediaType;
+import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
+
 import com.tripplanning.externalinfo.dto.ExternalInfoDtos.PlaceDetailsResult;
+import com.tripplanning.externalinfo.dto.ExternalInfoDtos.PlaceSearchResult;
+
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
-
 
 @Service
 @Slf4j
 public class GooglePlacesApi {
+
+    private static final String SEARCH_FIELD_MASK =
+            "places.id,places.displayName,places.formattedAddress,places.location";
+    private static final String DETAILS_FIELD_MASK =
+            "id,displayName,formattedAddress,location,addressComponents";
+
     private final WebClient webClient;
 
     @Value("${external-api.google.maps.api-key}")
@@ -25,106 +38,181 @@ public class GooglePlacesApi {
         this.webClient = webClientBuilder.build();
     }
 
-    //Holt die vollen Details zu einer konkreten Place-ID (Inkl. Stadt und Land)
-    @SuppressWarnings("unchecked")
-    public Mono<PlaceDetailsResult> getPlaceDetails(String placeId) {
-        return webClient.get()
-            .uri(uriBuilder -> UriComponentsBuilder.fromHttpUrl(baseUrl)
-                .path("/maps/api/place/details/json")
-                .queryParam("place_id", placeId)
-                .queryParam("fields", "name,formatted_address,geometry,address_components")
-                .queryParam("key", apiKey)
-                .build()
-                .toUri())
-            .retrieve()
-            .bodyToMono(Map.class)
-            .map(response -> {
-                Map<String, Object> result = (Map<String, Object>) response.get("result");
-                if (result == null || result.isEmpty()) return null;
-
-                String placeName = (String) result.get("name"); 
-                String formattedAddress = (String) result.get("formatted_address");
-
-                Map<String, Object> geometry = (Map<String, Object>) result.get("geometry");
-                if (geometry == null) return null;
-                
-                Map<String, Object> location = (Map<String, Object>) geometry.get("location");
-                if (location == null) return null;
-                
-                double lat = ((Number) location.get("lat")).doubleValue();
-                double lon = ((Number) location.get("lng")).doubleValue();
-
-                List<Map<String, Object>> components = (List<Map<String, Object>>) result.get("address_components");
-                String cityName = extractComponent(components, "locality");
-                String countryCode = extractComponent(components, "country");
-
-                if ("Unknown".equals(cityName) || cityName.isEmpty()) {
-                    cityName = extractComponent(components, "postal_town");
-                }
-                // Falls es immer noch unbekannt ist, nehmen wir den placeName als Fallback für den Stopp
-                if ("Unknown".equals(cityName)) {
-                    cityName = placeName;
-                }
-
-                return new PlaceDetailsResult(placeName, cityName, formattedAddress, lat, lon, countryCode.toUpperCase());
-            })
-            .onErrorResume(e -> {
-                log.error("Google Places Details API Error: {}", e.getMessage());
-                return Mono.empty();
-            });
+    /** Uncached Google Places details (write path and cache miss). */
+    public Mono<PlaceDetailsResult> fetchPlaceDetailsUncached(String placeId) {
+        requireConfiguredKey();
+        String normalizedId = normalizePlaceId(placeId);
+        return webClient
+                .get()
+                .uri(baseUrl + "/places/{placeId}", normalizedId)
+                .header("X-Goog-Api-Key", apiKey)
+                .header("X-Goog-FieldMask", DETAILS_FIELD_MASK)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
+                .map(this::mapPlaceDetails)
+                .onErrorMap(this::wrapApiError);
     }
 
-    //Reine Textsuche für das Frontend-Suchfeld (Liefert kompakte Trefferliste)
-    @SuppressWarnings("unchecked")
-    public Mono<List<PlaceDetailsResult>> searchLocations(String query) {
-        return webClient.get()
-            .uri(uriBuilder -> UriComponentsBuilder.fromHttpUrl(baseUrl)
-                .path("/maps/api/place/textsearch/json") 
-                .queryParam("query", query)
-                .queryParam("key", apiKey)
-                .build()
-                .toUri())
-            .retrieve()
-            .bodyToMono(Map.class)
-            .map(response -> {
-                List<Map<String, Object>> results = (List<Map<String, Object>>) response.get("results");
-                List<PlaceDetailsResult> searchResults = new ArrayList<>();
-                
-                if (results != null) {
-                    for (Map<String, Object> place : results) {
-                        String placeName = (String) place.get("name");
-                        String formattedAddress = (String) place.get("formatted_address");
-                        String placeId = (String) place.get("place_id"); 
+    public Mono<List<PlaceSearchResult>> searchLocations(String query) {
+        requireConfiguredKey();
+        String textQuery = query == null ? "" : query.trim();
+        if (textQuery.isEmpty()) {
+            return Mono.just(List.of());
+        }
+        return webClient
+                .post()
+                .uri(baseUrl + "/places:searchText")
+                .header("X-Goog-Api-Key", apiKey)
+                .header("X-Goog-FieldMask", SEARCH_FIELD_MASK)
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(Map.of("textQuery", textQuery))
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
+                .map(this::mapSearchResults)
+                .onErrorMap(this::wrapApiError);
+    }
 
-                        Map<String, Object> geometry = (Map<String, Object>) place.get("geometry");
-                        if (geometry == null) continue;
-                        
-                        Map<String, Object> location = (Map<String, Object>) geometry.get("location");
-                        if (location == null) continue;
-                        
-                        double lat = ((Number) location.get("lat")).doubleValue();
-                        double lon = ((Number) location.get("lng")).doubleValue();
-                        
-                        searchResults.add(new PlaceDetailsResult(placeName, placeId, formattedAddress, lat, lon, "XX"));
-                    }
-                }
-                return searchResults;
-            })
-            .onErrorResume(e -> {
-                log.error("Google Places Search API Error: {}", e.getMessage());
-                return Mono.just(Collections.emptyList());
-            });
+    @SuppressWarnings("unchecked")
+    private List<PlaceSearchResult> mapSearchResults(Map<String, Object> response) {
+        List<Map<String, Object>> places = (List<Map<String, Object>>) response.get("places");
+        List<PlaceSearchResult> searchResults = new ArrayList<>();
+        if (places == null) {
+            return searchResults;
+        }
+        for (Map<String, Object> place : places) {
+            PlaceSearchResult hit = mapSearchHit(place);
+            if (hit != null) {
+                searchResults.add(hit);
+            }
+        }
+        return searchResults;
+    }
+
+    @SuppressWarnings("unchecked")
+    private PlaceSearchResult mapSearchHit(Map<String, Object> place) {
+        String placeId = (String) place.get("id");
+        if (placeId == null || placeId.isBlank()) {
+            return null;
+        }
+        String placeName = textFromDisplayName(place.get("displayName"));
+        String formattedAddress = (String) place.get("formattedAddress");
+        Map<String, Object> location = (Map<String, Object>) place.get("location");
+        if (location == null) {
+            return null;
+        }
+        Double lat = numberAsDouble(location.get("latitude"));
+        Double lon = numberAsDouble(location.get("longitude"));
+        if (lat == null || lon == null) {
+            return null;
+        }
+        return new PlaceSearchResult(
+                placeId,
+                placeName != null ? placeName : "",
+                formattedAddress != null ? formattedAddress : "",
+                lat,
+                lon);
+    }
+
+    @SuppressWarnings("unchecked")
+    private PlaceDetailsResult mapPlaceDetails(Map<String, Object> place) {
+        if (place == null || place.isEmpty()) {
+            return null;
+        }
+        String placeName = textFromDisplayName(place.get("displayName"));
+        String formattedAddress = (String) place.get("formattedAddress");
+        Map<String, Object> location = (Map<String, Object>) place.get("location");
+        if (location == null) {
+            return null;
+        }
+        Double lat = numberAsDouble(location.get("latitude"));
+        Double lon = numberAsDouble(location.get("longitude"));
+        if (lat == null || lon == null) {
+            return null;
+        }
+        List<Map<String, Object>> components = (List<Map<String, Object>>) place.get("addressComponents");
+        String cityName = extractComponent(components, "locality");
+        if ("Unknown".equals(cityName) || cityName.isEmpty()) {
+            cityName = extractComponent(components, "postal_town");
+        }
+        if ("Unknown".equals(cityName) || cityName.isEmpty()) {
+            cityName = placeName != null ? placeName : "Unknown";
+        }
+        String countryCode = extractComponent(components, "country");
+        return new PlaceDetailsResult(
+                placeName != null ? placeName : "",
+                cityName,
+                formattedAddress != null ? formattedAddress : "",
+                lat,
+                lon,
+                countryCode.toUpperCase());
     }
 
     @SuppressWarnings("unchecked")
     private String extractComponent(List<Map<String, Object>> components, String type) {
-        if (components == null) return "Unknown";
+        if (components == null) {
+            return "Unknown";
+        }
         for (Map<String, Object> comp : components) {
             List<String> types = (List<String>) comp.get("types");
             if (types != null && types.contains(type)) {
-                return (String) comp.get("short_name");
+                String shortText = (String) comp.get("shortText");
+                if (shortText != null && !shortText.isBlank()) {
+                    return shortText;
+                }
+                String longText = (String) comp.get("longText");
+                if (longText != null && !longText.isBlank()) {
+                    return longText;
+                }
             }
         }
         return "Unknown";
+    }
+
+    @SuppressWarnings("unchecked")
+    private String textFromDisplayName(Object displayName) {
+        if (displayName instanceof Map<?, ?> map) {
+            return (String) map.get("text");
+        }
+        return null;
+    }
+
+    private Double numberAsDouble(Object value) {
+        if (value instanceof Number number) {
+            return number.doubleValue();
+        }
+        return null;
+    }
+
+    private String normalizePlaceId(String placeId) {
+        if (placeId == null) {
+            return "";
+        }
+        if (placeId.startsWith("places/")) {
+            return placeId.substring("places/".length());
+        }
+        return placeId;
+    }
+
+    private void requireConfiguredKey() {
+        if (apiKey == null || apiKey.isBlank() || "missing_google_key".equals(apiKey)) {
+            throw new GooglePlacesApiException(
+                    "GOOGLE_MAPS_API_KEY is not configured (set in external-info-service secrets / .env)");
+        }
+    }
+
+    private Throwable wrapApiError(Throwable error) {
+        if (error instanceof GooglePlacesApiException) {
+            return error;
+        }
+        if (error instanceof WebClientResponseException webError) {
+            log.error(
+                    "Google Places API (New) HTTP {}: {}",
+                    webError.getStatusCode(),
+                    webError.getResponseBodyAsString());
+            return new GooglePlacesApiException(
+                    "Google Places API request failed: " + webError.getStatusCode(), webError);
+        }
+        log.error("Google Places API (New) error: {}", error.getMessage());
+        return new GooglePlacesApiException("Google Places API request failed", error);
     }
 }

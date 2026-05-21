@@ -1,0 +1,81 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: trip-service
+  labels:
+    {{- include "tripplanning.labels" . | nindent 4 }}
+    app.kubernetes.io/component: trip-service
+spec:
+  replicas: {{ .Values.services.trip.replicas }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: trip-service
+      {{- include "tripplanning.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: trip-service
+        {{- include "tripplanning.selectorLabels" . | nindent 8 }}
+    spec:
+{{- if or .Values.services.trip.bootstrap.waitForRedis .Values.services.trip.bootstrap.waitForElasticsearch }}
+      initContainers:
+{{- if .Values.services.trip.bootstrap.waitForRedis }}
+        {{- include "tripplanning.waitForRedis" . | nindent 8 }}
+{{- end }}
+{{- if .Values.services.trip.bootstrap.waitForElasticsearch }}
+        {{- include "tripplanning.waitForElasticsearch" . | nindent 8 }}
+{{- end }}
+{{- end }}
+      containers:
+        - name: trip-service
+          image: "{{ .Values.services.trip.image.repository }}:{{ .Values.services.trip.image.tag }}"
+          imagePullPolicy: {{ .Values.localDev.imagePullPolicy }}
+          ports:
+            - containerPort: {{ .Values.services.trip.port }}
+          envFrom:
+            - configMapRef:
+                name: trip-service-config
+{{- range .Values.services.trip.secretRefs }}
+            - secretRef:
+                name: {{ . }}
+{{- end }}
+{{- if .Values.localDev.enabled }}
+          env:
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: /var/secrets/google/adc.json
+          volumeMounts:
+            - name: trip-data
+              mountPath: /app/temp
+            - name: gcp-adc
+              mountPath: /var/secrets/google
+              readOnly: true
+{{- end }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.services.trip.readinessPath }}
+              port: {{ .Values.services.trip.port }}
+            initialDelaySeconds: {{ .Values.services.trip.bootstrap.readinessInitialDelaySeconds }}
+            periodSeconds: {{ .Values.services.trip.bootstrap.readinessPeriodSeconds }}
+            failureThreshold: {{ .Values.services.trip.bootstrap.readinessFailureThreshold }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.services.trip.livenessPath }}
+              port: {{ .Values.services.trip.port }}
+            initialDelaySeconds: {{ .Values.services.trip.bootstrap.livenessInitialDelaySeconds }}
+            periodSeconds: {{ .Values.services.trip.bootstrap.livenessPeriodSeconds }}
+          resources:
+            requests:
+              cpu: {{ .Values.services.trip.resources.requests.cpu }}
+              memory: {{ .Values.services.trip.resources.requests.memory }}
+            limits:
+              cpu: {{ .Values.services.trip.resources.limits.cpu }}
+              memory: {{ .Values.services.trip.resources.limits.memory }}
+{{- if .Values.localDev.enabled }}
+      volumes:
+        - name: trip-data
+          emptyDir: {}
+        - name: gcp-adc
+          secret:
+            secretName: gcp-adc
+            optional: true
+{{- end }}

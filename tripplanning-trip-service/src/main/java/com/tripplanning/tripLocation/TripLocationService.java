@@ -2,8 +2,9 @@ package com.tripplanning.tripLocation;
 
 import org.springframework.stereotype.Service;
 
-import com.tripplanning.external.ExternalInfoClient;
 import com.tripplanning.external.ExternalInfoDtos.PlaceDetailsResult;
+import com.tripplanning.external.PlaceEnrichmentHelper;
+import com.tripplanning.place.PlaceService;
 import com.tripplanning.trip.TripEntity;
 import com.tripplanning.trip.TripRepository;
 import com.tripplanning.trip.read.TripCacheEvictor;
@@ -17,22 +18,21 @@ public class TripLocationService {
 
     private final TripLocationRepository tripLocationRepository;
     private final TripRepository tripRepository;
-    private final ExternalInfoClient externalInfoClient;
+    private final PlaceEnrichmentHelper placeEnrichmentHelper;
+    private final PlaceService placeService;
     private final TripCacheEvictor tripCacheEvictor;
 
     @Transactional
     public TripLocationCreatedResponse addStop(TripLocationRequest.CreateTripLocationRequest request) {
         TripEntity trip = tripRepository.findById(request.tripId()).orElseThrow();
         
-        PlaceDetailsResult geo = externalInfoClient.fetchPlaceDetails(request.googlePlaceId()).block();
-        if (geo == null) {
-            throw new RuntimeException("Place could not be found in Google.");
-        }
+        PlaceDetailsResult geo = placeEnrichmentHelper.requirePlaceDetails(request.googlePlaceId());
 
         TripLocationEntity stop = TripLocationEntity.builder()
                 .trip(trip)
                 .googlePlaceId(request.googlePlaceId())
-                .cityName(geo.cityName()) 
+                .placeName(geo.placeName())
+                .cityName(geo.cityName())
                 .description(request.description())
                 .startDate(request.startDate())
                 .endDate(request.endDate())
@@ -45,11 +45,14 @@ public class TripLocationService {
     }
 
     public PlaceDetailsResult getExternalDetails(Long tripLocationId) {
-        TripLocationEntity stop = tripLocationRepository
-                .findById(tripLocationId)
-                .orElseThrow(() -> new RuntimeException("Stop not found"));
-                
-        // Use the googlePlaceId to fetch place details (name, city, address, coords)
-        return externalInfoClient.fetchPlaceDetails(stop.getGooglePlaceId()).block();
+        TripLocationEntity stop =
+                tripLocationRepository
+                        .findById(tripLocationId)
+                        .orElseThrow(() -> new RuntimeException("Stop not found"));
+
+        return placeService
+                .findPlaceForRead(stop.getGooglePlaceId())
+                .map(placeService::toDetailsResult)
+                .orElseGet(() -> placeEnrichmentHelper.requirePlaceDetails(stop.getGooglePlaceId()));
     }
 }

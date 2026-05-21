@@ -1,0 +1,24 @@
+{{- if and (eq .Values.ingress.type "nginx") .Values.ingressDebugRoutes }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: tripplanning-debug-external
+  labels:
+    {{- include "tripplanning.labels" . | nindent 4 }}
+  annotations:
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /internal/debug/$2
+spec:
+  ingressClassName: nginx
+  rules:
+    - http:
+        paths:
+          - path: /debug/external(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: external-info-service
+                port:
+                  number: 8082
+{{- end }}

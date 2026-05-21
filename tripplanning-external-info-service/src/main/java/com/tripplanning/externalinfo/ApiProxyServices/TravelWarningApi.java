@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.tripplanning.externalinfo.TravelWarningContentParser;
 import com.tripplanning.externalinfo.dto.ExternalInfoDtos.TravelWarning;
 
 import lombok.extern.slf4j.Slf4j;
@@ -29,63 +30,118 @@ public class TravelWarningApi {
             return Mono.just(dynamicCountryMap);
         }
 
-        return webClient.get()
+        return webClient
+                .get()
                 .uri("https://www.auswaertiges-amt.de/opendata/travelwarning")
                 .retrieve()
                 .bodyToMono(JsonNode.class)
-                .map(node -> {
-                    JsonNode rows = node.path("response");
-                    if (rows.isObject()) {
-                        rows.fields().forEachRemaining(entry -> {
-                            String id = entry.getKey();
-                            JsonNode countryData = entry.getValue();
-                            String isoCode = countryData.path("countryCode").asText();
-                            if (!isoCode.isBlank()) {
-                                dynamicCountryMap.put(isoCode.toUpperCase(), id);
+                .map(
+                        node -> {
+                            JsonNode rows = node.path("response");
+                            if (rows.isObject()) {
+                                rows.fields()
+                                        .forEachRemaining(
+                                                entry -> {
+                                                    String id = entry.getKey();
+                                                    JsonNode countryData = entry.getValue();
+                                                    String isoCode =
+                                                            countryData
+                                                                    .path("countryCode")
+                                                                    .asText();
+                                                    if (!isoCode.isBlank()) {
+                                                        dynamicCountryMap.put(
+                                                                isoCode.toUpperCase(), id);
+                                                    }
+                                                });
                             }
+                            log.info(
+                                    "Dynamic mapping loaded: {} countries",
+                                    dynamicCountryMap.size());
+                            return dynamicCountryMap;
                         });
-                    }
-                    log.info("Dynamic mapping loaded: {} countries", dynamicCountryMap.size());
-                    return dynamicCountryMap;
-                });
     }
 
     @Cacheable(value = "warnings", key = "#countryCode")
     public Mono<TravelWarning> getTravelWarning(String countryCode) {
-        return refreshCountryMap().flatMap(map -> {
-            String aaId = map.get(countryCode.toUpperCase());
-            if (aaId == null) {
-                return Mono.just(new TravelWarning(countryCode, "Info", "No data found."));
-            }
+        return refreshCountryMap()
+                .flatMap(
+                        map -> {
+                            String normalizedCode = countryCode.toUpperCase();
+                            String aaId = map.get(normalizedCode);
+                            if (aaId == null) {
+                                return Mono.just(
+                                        new TravelWarning(
+                                                normalizedCode,
+                                                normalizedCode,
+                                                "Info",
+                                                "No travel advisory available.",
+                                                ""));
+                            }
 
-            return webClient.get()
-                    .uri("https://www.auswaertiges-amt.de/opendata/travelwarning/" + aaId)
-                    .retrieve()
-                    .bodyToMono(JsonNode.class)
-                    .map(node -> {
-                        JsonNode data = node.path("response").path(aaId);
-                        boolean isWarning = data.path("warning").asBoolean();
-                        String rawMsg = isWarning ? data.path("content").asText() : data.path("title").asText();
-                        String cleanMsg = rawMsg.replaceAll("<[^>]*>", "");
-                        String shortMsg = truncateAtSentenceEnd(cleanMsg, 250);
-                        String aaUrl = "https://www.auswaertiges-amt.de/de/service/laender/display-node/id-" + aaId;
-                        String finalMessage = shortMsg + " More info: " + aaUrl;
-                        return new TravelWarning(
-                                countryCode, isWarning ? "Warning" : "Safety Info", finalMessage);
-                    });
-        });
+                            return webClient
+                                    .get()
+                                    .uri(
+                                            "https://www.auswaertiges-amt.de/opendata/travelwarning/"
+                                                    + aaId)
+                                    .retrieve()
+                                    .bodyToMono(JsonNode.class)
+                                    .map(
+                                            node -> {
+                                                JsonNode data =
+                                                        node.path("response").path(aaId);
+                                                String title = data.path("title").asText();
+                                                String htmlContent =
+                                                        data.path("content").asText("");
+                                                String summary =
+                                                        TravelWarningContentParser.extractSummary(
+                                                                htmlContent);
+                                                String countryName =
+                                                        parseCountryDisplayName(
+                                                                title,
+                                                                data.path("countryName")
+                                                                        .asText());
+                                                String status =
+                                                        TravelWarningContentParser.resolveStatus(
+                                                                data.path("warning").asBoolean(),
+                                                                data.path("partialWarning")
+                                                                        .asBoolean(),
+                                                                data.path("situationWarning")
+                                                                        .asBoolean(),
+                                                                data.path("situationPartWarning")
+                                                                        .asBoolean());
+                                                String aaUrl =
+                                                        "https://www.auswaertiges-amt.de/de/service/laender/display-node/id-"
+                                                                + aaId;
+                                                return new TravelWarning(
+                                                        normalizedCode,
+                                                        countryName,
+                                                        status,
+                                                        summary,
+                                                        aaUrl);
+                                            });
+                        });
     }
 
-    private String truncateAtSentenceEnd(String message, int maxLength) {
-        if (message == null || message.length() <= maxLength) {
-            return message;
+    /**
+     * Titles look like {@code USA/Vereinigte Staaten: Reise- und Sicherheitshinweise}; prefer the
+     * German segment after {@code /} when present.
+     */
+    static String parseCountryDisplayName(String title, String fallbackCountryName) {
+        if (title != null && title.contains(":")) {
+            String beforeColon = title.substring(0, title.indexOf(':')).trim();
+            if (beforeColon.contains("/")) {
+                String[] parts = beforeColon.split("/", 2);
+                if (parts.length == 2 && !parts[1].isBlank()) {
+                    return parts[1].trim();
+                }
+            }
+            if (!beforeColon.isBlank()) {
+                return beforeColon;
+            }
         }
-        String sub = message.substring(0, maxLength);
-        int lastDot = sub.lastIndexOf(".");
-        if (lastDot > 50) {
-            return sub.substring(0, lastDot + 1);
+        if (fallbackCountryName != null && !fallbackCountryName.isBlank()) {
+            return fallbackCountryName.trim();
         }
-        int lastSpace = sub.lastIndexOf(" ");
-        return (lastSpace > 0 ? sub.substring(0, lastSpace) : sub) + "...";
+        return "Unknown country";
     }
 }

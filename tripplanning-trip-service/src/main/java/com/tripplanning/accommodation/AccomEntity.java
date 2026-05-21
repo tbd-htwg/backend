@@ -1,5 +1,7 @@
 package com.tripplanning.accommodation;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -61,6 +63,18 @@ public class AccomEntity {
 
     @Column
     private String address;
+
+    @Column
+    private LocalDate checkInDate;
+
+    @Column
+    private LocalDate checkOutDate;
+
+    @Column(precision = 12, scale = 2)
+    private BigDecimal cost;
+
+    @Column(length = 3)
+    private String currency;
 
     @Builder.Default
     @ManyToMany(mappedBy = "accommodations")

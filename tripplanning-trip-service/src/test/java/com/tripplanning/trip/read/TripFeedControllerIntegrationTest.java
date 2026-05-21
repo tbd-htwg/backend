@@ -5,6 +5,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -78,14 +79,26 @@ class TripFeedControllerIntegrationTest {
                         .address("Shibuya, Tokyo")
                         .googlePlaceId("ChIJ912345_TokyoPlaceId")
                         .cityName("Tokyo")
+                        .checkInDate(LocalDate.of(2026, 5, 1))
+                        .checkOutDate(LocalDate.of(2026, 5, 5))
+                        .cost(new BigDecimal("450.00"))
+                        .currency("EUR")
                         .build());
-                        
-        TransportEntity transport = transportRepository.save(new TransportEntity("train"));
+
+        TransportEntity transport =
+                transportRepository.save(
+                        TransportEntity.builder()
+                                .startGooglePlaceId("ChIJ_start")
+                                .endGooglePlaceId("ChIJ_end")
+                                .startAddress("Tokyo Station")
+                                .endAddress("Kyoto Station")
+                                .build());
 
         trip = TripEntity.builder()
                         .user(author)
                         .title("Spring trip")
                         .destination("Japan")
+                        .destinationGooglePlaceId("ChIJ_TestJapanPlaceId")
                         .startDate(LocalDate.of(2026, 5, 1))
                         .shortDescription("Cherry blossoms")
                         .longDescription("Two weeks chasing sakura through Honshu.")
@@ -98,6 +111,7 @@ class TripFeedControllerIntegrationTest {
                 TripLocationEntity.builder()
                         .trip(trip)
                         .googlePlaceId("ChIJ912345_TokyoPlaceId")
+                        .placeName("Tokyo Tower")
                         .cityName("Tokyo")
                         .description("First stop")
                         .startDate(LocalDateTime.of(2026, 5, 1, 9, 0))
@@ -115,9 +129,9 @@ class TripFeedControllerIntegrationTest {
                 .andExpect(jsonPath("$.items[0].destination").value("Japan"))
                 .andExpect(jsonPath("$.items[0].author.id").value(author.getId()))
                 .andExpect(jsonPath("$.items[0].author.name").value("Author"))
-                .andExpect(jsonPath("$.items[0].locations[0]").value("Tokyo"))
+                .andExpect(jsonPath("$.items[0].locations[0]").value("Tokyo Tower"))
                 .andExpect(jsonPath("$.items[0].accommodationNames[0]").value("Hotel Sakura"))
-                .andExpect(jsonPath("$.items[0].transportTypes[0]").value("train"));
+                .andExpect(jsonPath("$.items[0].transportRoutes[0]").value("Tokyo Station → Kyoto Station"));
     }
 
     @Test
@@ -150,10 +164,17 @@ class TripFeedControllerIntegrationTest {
                 .andExpect(jsonPath("$.longDescription").value("Two weeks chasing sakura through Honshu."))
                 .andExpect(jsonPath("$.author.id").value(author.getId()))
                 .andExpect(jsonPath("$.stops[0].id").value(stop.getId()))
-                .andExpect(jsonPath("$.stops[0].cityName").value("Tokyo")) // Falls euer DTO hier jetzt cityName nutzt
+                .andExpect(jsonPath("$.stops[0].placeName").value("Tokyo Tower"))
+                .andExpect(jsonPath("$.stops[0].cityName").value("Tokyo"))
                 .andExpect(jsonPath("$.stops[0].description").value("First stop"))
                 .andExpect(jsonPath("$.accommodations[0].name").value("Hotel Sakura"))
-                .andExpect(jsonPath("$.transports[0].type").value("train"));
+                .andExpect(jsonPath("$.accommodations[0].googlePlaceId").value("ChIJ912345_TokyoPlaceId"))
+                .andExpect(jsonPath("$.accommodations[0].cost").value(450.0))
+                .andExpect(jsonPath("$.accommodations[0].currency").value("EUR"))
+                .andExpect(jsonPath("$.transports[0].startGooglePlaceId").value("ChIJ_start"))
+                .andExpect(jsonPath("$.transports[0].endGooglePlaceId").value("ChIJ_end"))
+                .andExpect(jsonPath("$.transports[0].startAddress").value("Tokyo Station"))
+                .andExpect(jsonPath("$.transports[0].endAddress").value("Kyoto Station"));
     }
 
     @Test
@@ -170,16 +191,13 @@ class TripFeedControllerIntegrationTest {
     }
 
     @Test
-    void evictForTripChange_invalidatesDetailAndFeedCaches() {
-        tripFeedService.detail(trip.getId());
+    void evictForTripChange_invalidatesFeedCaches() {
         tripFeedService.feed(0, 10);
-        assertThat(cacheManager.getCache(CacheConfig.TRIP_DETAIL).get(trip.getId())).isNotNull();
         assertThat(cacheManager.getCache(CacheConfig.TRIP_FEED_PAGE).get(List.of(0, 10)))
                 .isNotNull();
 
         tripCacheEvictor.evictForTripChange(trip.getId());
 
-        assertThat(cacheManager.getCache(CacheConfig.TRIP_DETAIL).get(trip.getId())).isNull();
         assertThat(cacheManager.getCache(CacheConfig.TRIP_FEED_PAGE).get(List.of(0, 10))).isNull();
     }
 

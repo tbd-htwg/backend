@@ -39,9 +39,11 @@ public class TripSearchService {
             .where(f -> f.match()
                 .fields("title", "shortDescription", "destination",
                         "user.name",
+                        "tripLocations.placeName",
                         "tripLocations.cityName",
                         "accommodations.name",
-                        "transports.type")
+                        "transports.startAddress",
+                        "transports.endAddress")
                 .matching(trimmed)
                 .fuzzy(1))
             .fetch(offset, size);
@@ -64,10 +66,10 @@ public class TripSearchService {
             .destination(trip.getDestination())
             .startDate(trip.getStartDate())
             .locations(trip.getTripLocations().stream()
-                .map(tl -> tl.getCityName())
+                .map(tl -> tl.getPlaceName())
                 .collect(Collectors.toList()))
             .accommodationNames(trip.getAccommodationNames())
-            .transportTypes(trip.getTransportTypes())
+            .transportRoutes(trip.getTransportRoutes())
             .build();
     }
 }

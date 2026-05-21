@@ -31,6 +31,13 @@ spring:
   flyway:
     enabled: false
 
+management:
+  endpoint:
+    health:
+      group:
+        readiness:
+          include: readinessState
+
   elasticsearch:
     restclient:
       sniffer:
@@ -45,5 +52,6 @@ tripplanning:
     jwt-expiration-seconds: 3600
   search:
     elasticsearch-index-name: tripentity-test
+    readiness-enabled: false
   services:
     external-info-base-url: http://localhost:8082

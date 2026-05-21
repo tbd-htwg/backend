@@ -19,7 +19,9 @@ COPY tripplanning-common tripplanning-common
 COPY tripplanning-trip-service tripplanning-trip-service
 COPY tripplanning-social-service tripplanning-social-service
 COPY tripplanning-external-info-service tripplanning-external-info-service
-RUN mvn -pl tripplanning-${SERVICE}-service -am package -DskipTests
+# Bust layer cache on redeploy (local-dev.sh passes CACHEBUST=$(date +%s)).
+ARG CACHEBUST=0
+RUN echo "cachebust=${CACHEBUST}" && mvn -pl tripplanning-${SERVICE}-service -am package -DskipTests
 
 FROM eclipse-temurin:21-jre-jammy
 WORKDIR /app

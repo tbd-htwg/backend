@@ -7,6 +7,8 @@ import com.tripplanning.transport.TransportEntity;
 @Projection(name = "tripDetail", types = { TransportEntity.class })
 public interface TransportProjection {
     long getId();
-    String getType();
-}
 
+    String getStartAddress();
+
+    String getEndAddress();
+}

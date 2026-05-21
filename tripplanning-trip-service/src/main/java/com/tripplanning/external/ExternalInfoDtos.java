@@ -19,6 +19,7 @@ public final class ExternalInfoDtos {
             double currentTemp,
             int currentWeatherCode,
             String currentDescription,
+            String observedAt,
             List<DailyForecast> dailyForecasts) {}
 
     public record DailyForecast(
@@ -29,9 +30,11 @@ public final class ExternalInfoDtos {
             String description) {}
 
     public record TravelWarning(
-        String country, 
-        String status, 
-        String message) {}
+            String countryCode,
+            String countryName,
+            String status,
+            String summary,
+            String infoUrl) {}
 
     public record Tour(
         String id, 

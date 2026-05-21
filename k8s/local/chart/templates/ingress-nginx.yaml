@@ -1,0 +1,25 @@
+{{- if and (eq .Values.ingress.type "nginx") .Values.ingressRoutes }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: tripplanning-api
+  labels:
+    {{- include "tripplanning.labels" . | nindent 4 }}
+  annotations:
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "120"
+spec:
+  ingressClassName: nginx
+  rules:
+    - http:
+        paths:
+{{- range .Values.ingressRoutes }}
+          - path: {{ .path | quote }}
+            pathType: {{ .pathType }}
+            backend:
+              service:
+                name: {{ .service }}
+                port:
+                  number: {{ .port }}
+{{- end }}
+{{- end }}

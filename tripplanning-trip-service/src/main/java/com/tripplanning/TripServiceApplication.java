@@ -20,16 +20,16 @@ import com.tripplanning.common.config.ServiceClientProperties;
     "com.tripplanning.user",
     "com.tripplanning.accommodation",
     "com.tripplanning.transport",
-    "com.tripplanning.location",
-    "com.tripplanning.tripLocation"
+    "com.tripplanning.tripLocation",
+    "com.tripplanning.place"
 })
 @EnableJpaRepositories(basePackages = {
     "com.tripplanning.trip",
     "com.tripplanning.user",
     "com.tripplanning.accommodation",
     "com.tripplanning.transport",
-    "com.tripplanning.location",
-    "com.tripplanning.tripLocation"
+    "com.tripplanning.tripLocation",
+    "com.tripplanning.place"
 })
 @EnableConfigurationProperties({AuthProperties.class, ServiceClientProperties.class})
 @org.springframework.context.annotation.Import(ServiceClientConfig.class)

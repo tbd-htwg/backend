@@ -68,7 +68,7 @@ public class TripFeedService {
                             materialiseAuthor(item.author()),
                             item.locations(),
                             item.accommodationNames(),
-                            item.transportTypes()));
+                            item.transportRoutes()));
         }
         return new TripFeedPage<>(items, raw.page(), raw.size(), raw.totalItems(), raw.totalPages());
     }
@@ -86,17 +86,23 @@ public class TripFeedService {
             stops.add(
                     new TripFeedDetailStop(
                             stop.id(),
-                            stop.locationId(),
-                            stop.locationName(),
+                            stop.googlePlaceId(),
+                            stop.placeName(),
+                            stop.cityName(),
                             stop.description(),
                             stop.startDate(),
                             stop.endDate(),
+                            stop.latitude(),
+                            stop.longitude(),
+                            stop.countryCode(),
+                            stop.formattedAddress(),
                             signed));
         }
         return new TripFeedDetail(
                 raw.id(),
                 raw.title(),
                 raw.destination(),
+                raw.destinationGooglePlaceId(),
                 raw.startDate(),
                 raw.shortDescription(),
                 raw.longDescription(),

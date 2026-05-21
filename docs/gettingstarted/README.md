@@ -138,6 +138,7 @@ cp .env.example .env
 | `INTERNAL_SECRET` | No | Default `dev-internal-service-secret`; social `/internal/**` |
 | `GOOGLE_PROJECT` | No | Default `milestone2-tbd-cad` |
 | `TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID` | No | Defaults to `GOOGLE_PROJECT` |
+| `GOOGLE_MAPS_API_KEY` | Yes (place search) | Places API (New) for `/api/v2/external/details/search` and enrichment; enable `places.googleapis.com` |
 | `VIATOR_API_KEY` | No | Real Viator tour data in external-info-service |
 
 ---
@@ -179,7 +180,7 @@ Created by `local-dev.sh` from `.env` (not Secret Manager):
 |--------|------|
 | `trip-service-secrets` | `TRIPPLANNING_AUTH_JWT_SECRET` |
 | `social-service-secrets` | `TRIPPLANNING_AUTH_JWT_SECRET`, `TRIPPLANNING_INTERNAL_SECRET` |
-| `external-info-service-secrets` | `VIATOR_API_KEY` (optional) |
+| `external-info-service-secrets` | `GOOGLE_MAPS_API_KEY`, `VIATOR_API_KEY` (optional) |
 
 Re-apply after changing `.env`: `./scripts/local-dev.sh deploy`.
 
@@ -187,7 +188,7 @@ Re-apply after changing `.env`: `./scripts/local-dev.sh deploy`.
 
 ## 5. Deploy
 
-Builds JARs, images in the Minikube Docker daemon, installs Redis + Elasticsearch, applies `k8s/local` (apps + firestore-emulator):
+Builds JARs, images in the Minikube Docker daemon, renders `k8s/local/chart` with Helm, applies Redis + Elasticsearch + apps + Firestore emulator:
 
 ```bash
 ./scripts/local-dev.sh deploy
@@ -197,9 +198,8 @@ Steps inside `deploy`:
 
 1. `mvn package` (trip, social, external-info modules)
 2. `docker build` with `imagePullPolicy: Never` tags `tripplanning-*-service:local`
-3. [`install-k8s-dependencies.sh`](../../../infrastructure/ms2/scripts/install-k8s-dependencies.sh) — Redis + Elasticsearch in `tripplanning`
-4. `kubectl apply -k k8s/local`
-5. ConfigMaps + rollout restart
+3. `helm template` → `kubectl apply` from `k8s/local/chart` (see `k8s/local/README.md`)
+4. ConfigMaps + rollout restart
 
 **First trip-service start** can take 1–3 minutes (Elasticsearch index warmup).
 
@@ -224,6 +224,12 @@ Checks pod readiness, actuator health via port-forward, and optional **dev-login
 | Entry | Local URL | Notes |
 |-------|-----------|--------|
 | API (ingress) | `http://localhost:8080` | `./scripts/local-dev.sh port-forward` → nginx ingress |
+
+Place search (requires `GOOGLE_MAPS_API_KEY` and Places API New enabled):
+
+```bash
+curl -s 'http://localhost:8080/api/v2/external/details/search?q=Paris' | jq .
+```
 | trip-service (debug) | `:8080` in-cluster | `trip-service.tripplanning.svc.cluster.local:8080` |
 | social-service (debug) | `:8081` in-cluster | `social-service.tripplanning.svc.cluster.local:8081` |
 | external-info-service (debug) | `:8082` in-cluster | `external-info-service.tripplanning.svc.cluster.local:8082` |
@@ -400,7 +406,7 @@ cd ../infrastructure/ms2/docs/gettingstarted
 | **500 on `/trips/*/community`** | trip-service called `localhost:8081` from inside the pod — rebuild/deploy after `application-local-k8s-services.yml` fix. Check `kubectl logs deployment/trip-service`. |
 | **404 on `POST /api/v2/comments`** | Ingress must route `/api/v2/comments` to social-service — check `kubectl get ingress -n tripplanning` and rebuild/deploy. |
 | **Comment list 500 / index errors** | Firestore emulator usually needs no manual DB; composite indexes are required on **real** Firestore (ms2 `dev-lifecycle.sh firestore-indexes`). Emulator often works without them. |
-| **500 on trip child resources** (`/accommodations`, etc.) | Elasticsearch pod OOM/crash — `kubectl get pods -l app.kubernetes.io/name=elasticsearch`. Re-apply deps: `NS=tripplanning infrastructure/ms2/scripts/install-k8s-dependencies.sh` then restart trip-service. |
+| **500 on trip child resources** (`/accommodations`, etc.) | Elasticsearch pod OOM/crash — `kubectl get pods -l app.kubernetes.io/component=elasticsearch`. Re-apply: `./scripts/local-dev.sh deploy` then restart trip-service. |
 | **social-service Firestore errors** | `kubectl logs -n tripplanning deployment/social-service`; ensure `firestore-emulator` pod is Running. |
 | **ImagePullBackOff** | Images must be built **inside** minikube Docker (`eval "$(minikube docker-env)"` is done by `deploy`). Tag must be `:local` with `imagePullPolicy: Never`. |
 | **dev-login 404** | Trip must use `SPRING_PROFILES_ACTIVE=local,k8s` (ConfigMap from `local-dev.sh`). |

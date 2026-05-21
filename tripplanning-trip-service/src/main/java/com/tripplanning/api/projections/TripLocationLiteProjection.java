@@ -21,7 +21,13 @@ public interface TripLocationLiteProjection {
     @Value("#{target.googlePlaceId}")
     String getGooglePlaceId();
 
+    @Value("#{target.placeName}")
+    String getPlaceName();
+
     @Value("#{target.cityName}")
+    String getCityName();
+
+    @Value("#{target.placeName}")
     String getLocationName();
     
 }

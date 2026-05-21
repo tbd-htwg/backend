@@ -17,6 +17,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tripplanning.externalinfo.dto.ExternalInfoDtos.Tour;
+import com.tripplanning.externalinfo.util.HtmlText;
 
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
@@ -96,28 +97,22 @@ public class ViatorApi {
                     List<Map<String, Object>> products = (List<Map<String, Object>>) response.get("products");
                     
                     if (products != null) {
-                        for (Map<String, Object> p : products) {
+                        int limit = Math.min(products.size(), 15);
+                        for (int i = 0; i < limit; i++) {
+                            Map<String, Object> p = products.get(i);
                             try {
                                 // 1. Basis-Informationen extrahieren
-                                String title = p.get("title") != null ? p.get("title").toString() : "No title";
-                                String description = p.get("description") != null ? p.get("description").toString() : "";
-                                String productUrl = p.get("productUrl") != null ? p.get("productUrl").toString() : "#";
+                                String title =
+                                        HtmlText.strip(
+                                                p.get("title") != null
+                                                        ? p.get("title").toString()
+                                                        : "No title");
+                                String productUrl =
+                                        p.get("productUrl") != null
+                                                ? p.get("productUrl").toString()
+                                                : "";
 
-                                // 2. Bewertungen (reviews) auslesen
-                                @SuppressWarnings("unchecked")
-                                Map<String, Object> reviews = (Map<String, Object>) p.get("reviews");
-                                int totalReviews = 0;
-                                double combinedAverageRating = 0.0;
-                                if (reviews != null) {
-                                    if (reviews.get("totalReviews") != null) {
-                                        totalReviews = ((Number) reviews.get("totalReviews")).intValue();
-                                    }
-                                    if (reviews.get("combinedAverageRating") != null) {
-                                        combinedAverageRating = ((Number) reviews.get("combinedAverageRating")).doubleValue();
-                                    }
-                                }
-
-                                // 3. Preise (pricing) auslesen
+                                // 2. Preise (pricing) auslesen
                                 @SuppressWarnings("unchecked")
                                 Map<String, Object> pricing = (Map<String, Object>) p.get("pricing");
                                 String currency = "EUR";
@@ -133,18 +128,20 @@ public class ViatorApi {
                                     }
                                 }
 
-                                // 4. Objekt passgenau für deine Website hinzufügen
-                                // HINWEIS: Falls dein Tour-Konstruktor andere Typen verlangt, musst du ihn hier anpassen!
-                                tours.add(new Tour(
-                                        p.get("productCode") != null ? p.get("productCode").toString() : "UNKNOWN",
-                                        title,
-                                        description,
-                                        totalReviews,
-                                        combinedAverageRating,
-                                        fromPrice,
-                                        currency,
-                                        productUrl
-                                ));
+                                String priceLabel =
+                                        fromPrice > 0
+                                                ? String.format("%.2f %s", fromPrice, currency)
+                                                : "";
+                                String url =
+                                        productUrl.isBlank() ? "#" : productUrl;
+                                tours.add(
+                                        new Tour(
+                                                p.get("productCode") != null
+                                                        ? p.get("productCode").toString()
+                                                        : "UNKNOWN",
+                                                title,
+                                                priceLabel,
+                                                url));
 
                             } catch (Exception e) {
                                 // Falls ein einzelnes Produkt korrupt ist, überspringen wir es, damit die Gesamt-API nicht stirbt!
@@ -156,12 +153,13 @@ public class ViatorApi {
                 })
                 .onErrorResume(e -> {
                     log.error("Viator API Error: {}", e.getMessage());
-                    return Mono.just(List.of(new Tour(
-                            "MOCK",
-                            "Discovery Tour " + location,
-                            "Fallback due to API error.",
-                            0, 0.0, 0.0, "EUR", "#"
-                    )));
+                    return Mono.just(
+                            List.of(
+                                    new Tour(
+                                            "MOCK",
+                                            "Discovery Tour " + location,
+                                            "",
+                                            "#")));
                 });
     }
 
