@@ -1,12 +1,12 @@
 package com.tripplanning.external;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
-import com.tripplanning.external.ExternalInfoDtos.GeocodingResult;
-import com.tripplanning.external.ExternalInfoDtos.TripExternalInfo;
-import com.tripplanning.location.LocationEntity;
+import com.tripplanning.external.ExternalInfoDtos.PlaceDetailsResult;
 
 import reactor.core.publisher.Mono;
 
@@ -14,30 +14,53 @@ import reactor.core.publisher.Mono;
 public class ExternalInfoClient {
 
     private final WebClient webClient;
+    private final String internalSecret;
 
     public ExternalInfoClient(
             WebClient.Builder builder,
-            @Value("${tripplanning.services.external-info-base-url}") String baseUrl) {
+            @Value("${tripplanning.services.external-info-base-url}") String baseUrl,
+            @Value("${tripplanning.services.internal-secret:}") String internalSecret) {
         this.webClient = builder.baseUrl(baseUrl).build();
+        this.internalSecret = internalSecret;
     }
 
-    public Mono<GeocodingResult> searchLocation(String query) {
-        return webClient.get()
-                .uri(uri -> uri.path("/api/v1/details/search/first").queryParam("q", query).build())
-                .retrieve()
-                .bodyToMono(GeocodingResult.class);
+    public Mono<PlaceDetailsResult> fetchPlaceDetails(String placeId) {
+        return fetchPlaceDetails(placeId, false);
     }
 
-    public Mono<TripExternalInfo> fetchExternalDetailsForLocation(LocationEntity location) {
-        return webClient.get()
-                .uri(uriBuilder -> uriBuilder
-                        .path("/api/v1/details")
-                        .queryParam("countryCode", location.getCountryCode())
-                        .queryParam("location", location.getCity())
-                        .queryParam("lat", location.getLatitude())
-                        .queryParam("lon", location.getLongitude())
-                        .build())
+    /** @param fresh when true, bypasses Redis place cache (write path). */
+    public Mono<PlaceDetailsResult> fetchPlaceDetails(String placeId, boolean fresh) {
+        return webClient
+                .get()
+                .uri(
+                        uriBuilder ->
+                                uriBuilder
+                                        .path("/internal/location-pack")
+                                        .queryParam("placeId", placeId)
+                                        .queryParam("fresh", fresh)
+                                        .build())
+                .headers(
+                        headers -> {
+                            if (internalSecret != null && !internalSecret.isBlank()) {
+                                headers.set("X-Internal-Secret", internalSecret);
+                            }
+                        })
                 .retrieve()
-                .bodyToMono(TripExternalInfo.class);
+                .bodyToMono(PlaceDetailsResult.class)
+                .onErrorMap(ExternalInfoClient::mapError);
+    }
+
+    private static Throwable mapError(Throwable error) {
+        if (error instanceof WebClientResponseException webError) {
+            if (webError.getStatusCode() == HttpStatus.NOT_FOUND) {
+                return error;
+            }
+            if (webError.getStatusCode().is4xxClientError()) {
+                return new org.springframework.web.server.ResponseStatusException(
+                        HttpStatus.BAD_GATEWAY,
+                        "External info service rejected place lookup: " + webError.getStatusCode());
+            }
+        }
+        return error;
     }
 }

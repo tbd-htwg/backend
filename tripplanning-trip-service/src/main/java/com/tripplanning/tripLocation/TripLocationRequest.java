@@ -11,11 +11,7 @@ public final class TripLocationRequest {
 
     public record CreateTripLocationRequest(
             @NotNull Long tripId,
-            @NotBlank String city,
-            String formattedAddress,
-            String countryCode,
-            Double latitude,
-            Double longitude,
+            @NotBlank String googlePlaceId,
             String description,
             @NotNull LocalDateTime startDate,
             @NotNull LocalDateTime endDate) {}

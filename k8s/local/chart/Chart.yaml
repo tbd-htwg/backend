@@ -1,0 +1,6 @@
+apiVersion: v2
+name: tripplanning-local
+description: Minikube/local manifests for tripplanning (rendered via helm template in scripts/local-dev.sh)
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

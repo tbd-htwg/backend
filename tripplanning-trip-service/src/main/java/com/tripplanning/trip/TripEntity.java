@@ -2,6 +2,7 @@ package com.tripplanning.trip;
 
 import com.tripplanning.accommodation.AccomEntity;
 import com.tripplanning.transport.TransportEntity;
+import com.tripplanning.transport.TransportRoutes;
 import com.tripplanning.tripLocation.TripLocationEntity;
 import com.tripplanning.user.UserEntity;
 
@@ -96,9 +97,14 @@ public class TripEntity {
   @Column(nullable = false, length = 255)
   private String title;
 
+  /** Denormalized Google place name; set only by {@link TripDestinationEnrichment}, not by clients. */
   @FullTextField(analyzer = "english")
   @Column(nullable = false, length = 255)
   private String destination;
+
+  @NotBlank
+  @Column(length = 255)
+  private String destinationGooglePlaceId;
 
   @NotNull
   @Column(nullable = false)
@@ -112,18 +118,14 @@ public class TripEntity {
   @Column(nullable = false, columnDefinition = "TEXT")
   private String longDescription;
 
-  public List<String> getLocationNames() {
-    return tripLocations.stream()
-        .map(tl -> tl.getLocation().getCity())
-        .toList();
-  }
-
   public List<String> getAccommodationNames() {
     return accommodations.stream().map(AccomEntity::getName).toList();
   }
 
-  public List<String> getTransportTypes() {
-    return transports.stream().map(TransportEntity::getType).toList();
+  public List<String> getTransportRoutes() {
+    return transports.stream()
+        .map(t -> TransportRoutes.format(t.getStartAddress(), t.getEndAddress()))
+        .toList();
   }
 
 }

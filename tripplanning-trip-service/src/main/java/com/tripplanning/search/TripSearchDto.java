@@ -18,5 +18,5 @@ public class TripSearchDto {
     private LocalDate startDate;
     private List<String> locations;
     private List<String> accommodationNames;
-    private List<String> transportTypes;
+    private List<String> transportRoutes;
 }

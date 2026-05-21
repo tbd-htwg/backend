@@ -33,6 +33,8 @@ STATE_FILE="${LOCAL_DEV_DIR}/state.env"
 PID_DIR="${LOCAL_DEV_DIR}/pids"
 LOG_DIR="${LOCAL_DEV_DIR}/logs"
 K8S_LOCAL="${BACKEND_DIR}/k8s/local"
+K8S_CHART="${K8S_LOCAL}/chart"
+K8S_RENDERED="${K8S_LOCAL}/rendered/manifests.yaml"
 NS="tripplanning"
 
 MINIKUBE_CPUS="${MINIKUBE_CPUS:-4}"
@@ -68,6 +70,7 @@ GKE_CLUSTER="${GKE_CLUSTER:-tripplanning-gke}"
 JWT_SECRET="${JWT_SECRET:-local-dev-only-change-me-32bytes-min!!}"
 INTERNAL_SECRET="${INTERNAL_SECRET:-dev-internal-service-secret}"
 VIATOR_API_KEY="${VIATOR_API_KEY:-}"
+GOOGLE_MAPS_API_KEY="${GOOGLE_MAPS_API_KEY:-}"
 TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID="${TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID:-${GOOGLE_PROJECT}}"
 GCP_STORAGE_BUCKET_NAME="${GCP_STORAGE_BUCKET_NAME:-${GOOGLE_PROJECT}-images-bucket}"
 GCP_IMPERSONATE_SERVICE_ACCOUNT="${GCP_IMPERSONATE_SERVICE_ACCOUNT:-tripplanning-image-url-sig@${GOOGLE_PROJECT}.iam.gserviceaccount.com}"
@@ -292,9 +295,9 @@ apply_local_configmaps() {
     --from-literal=TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID="${TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID}" \
     --from-literal=CORS_ALLOWED_ORIGINS="http://localhost:5173,http://127.0.0.1:5173" \
     --from-literal=ELASTICSEARCH_PROTOCOL=http \
-    --from-literal=ELASTICSEARCH_HOSTS=elasticsearch.tripplanning.svc.cluster.local:9200 \
+    --from-literal=ELASTICSEARCH_HOSTS=elasticsearch:9200 \
     --from-literal=TRIPPLANNING_SEARCH_ELASTICSEARCH_INDEX_NAME=tripentity-local \
-    --from-literal=SPRING_DATA_REDIS_HOST=redis.tripplanning.svc.cluster.local \
+    --from-literal=SPRING_DATA_REDIS_HOST=redis \
     --from-literal=SPRING_DATA_REDIS_PORT=6379 \
     --from-literal=GCP_STORAGE_BUCKET_NAME="${GCP_STORAGE_BUCKET_NAME}" \
     --from-literal=GCP_IMPERSONATE_SERVICE_ACCOUNT="${GCP_IMPERSONATE_SERVICE_ACCOUNT}" \
@@ -315,7 +318,7 @@ apply_local_configmaps() {
     --namespace="${NS}" \
     --from-literal=SERVER_PORT=8082 \
     --from-literal=CORS_ALLOWED_ORIGINS="http://localhost:5173,http://127.0.0.1:5173" \
-    --from-literal=SPRING_DATA_REDIS_HOST=redis.tripplanning.svc.cluster.local \
+    --from-literal=SPRING_DATA_REDIS_HOST=redis \
     --from-literal=SPRING_DATA_REDIS_PORT=6379 \
     --dry-run=client -o yaml | kubectl apply -f -
 }
@@ -329,6 +332,7 @@ apply_local_secrets() {
   kubectl create secret generic trip-service-secrets \
     --namespace="${NS}" \
     --from-literal=TRIPPLANNING_AUTH_JWT_SECRET="${JWT_SECRET}" \
+    --from-literal=TRIPPLANNING_INTERNAL_SECRET="${INTERNAL_SECRET}" \
     --dry-run=client -o yaml | kubectl apply -f -
   kubectl create secret generic social-service-secrets \
     --namespace="${NS}" \
@@ -338,38 +342,73 @@ apply_local_secrets() {
   kubectl create secret generic external-info-service-secrets \
     --namespace="${NS}" \
     --from-literal=TRIPPLANNING_AUTH_JWT_SECRET="${JWT_SECRET}" \
+    --from-literal=TRIPPLANNING_INTERNAL_SECRET="${INTERNAL_SECRET}" \
     --from-literal=VIATOR_API_KEY="${VIATOR_API_KEY}" \
+    --from-literal=GOOGLE_MAPS_API_KEY="${GOOGLE_MAPS_API_KEY}" \
     --dry-run=client -o yaml | kubectl apply -f -
 }
 
+render_local_manifests() {
+  require_cmd helm
+  mkdir -p "$(dirname "${K8S_RENDERED}")"
+  local firestore_enabled="true"
+  if [[ "${USE_HOST_FIRESTORE_EMULATOR}" == "true" ]]; then
+    firestore_enabled="false"
+  fi
+  echo "== helm template (k8s/local/chart) =="
+  helm template tripplanning "${K8S_CHART}" \
+    -f "${K8S_CHART}/values.yaml" \
+    -f "${K8S_CHART}/values-local.yaml" \
+    --namespace "${NS}" \
+    --set services.trip.image.tag="${IMAGE_TAG}" \
+    --set services.social.image.tag="${IMAGE_TAG}" \
+    --set services.externalInfo.image.tag="${IMAGE_TAG}" \
+    --set firestoreEmulator.enabled="${firestore_enabled}" \
+    >"${K8S_RENDERED}"
+}
+
 cmd_deploy() {
-  require_cmd mvn docker
+  require_cmd mvn docker helm
   apply_local_secrets
   echo "== Maven package =="
   (cd "${BACKEND_DIR}" && mvn -q -pl tripplanning-trip-service,tripplanning-social-service,tripplanning-external-info-service -am package -DskipTests)
   echo "== Docker build (minikube daemon) =="
   eval "$(minikube docker-env)"
-  (cd "${BACKEND_DIR}" && docker build --build-arg SERVICE=trip -t "tripplanning-trip-service:${IMAGE_TAG}" .)
-  (cd "${BACKEND_DIR}" && docker build --build-arg SERVICE=social -t "tripplanning-social-service:${IMAGE_TAG}" .)
-  (cd "${BACKEND_DIR}" && docker build --build-arg SERVICE=external-info -t "tripplanning-external-info-service:${IMAGE_TAG}" .)
-  echo "== In-cluster dependencies (Redis + Elasticsearch) =="
-  NS="${NS}" "${REPO_ROOT}/infrastructure/ms2/scripts/install-k8s-dependencies.sh"
-
+  local cachebust
+  cachebust="$(date +%s)"
+  (cd "${BACKEND_DIR}" && docker build --build-arg SERVICE=trip --build-arg CACHEBUST="${cachebust}" -t "tripplanning-trip-service:${IMAGE_TAG}" .)
+  (cd "${BACKEND_DIR}" && docker build --build-arg SERVICE=social --build-arg CACHEBUST="${cachebust}" -t "tripplanning-social-service:${IMAGE_TAG}" .)
+  (cd "${BACKEND_DIR}" && docker build --build-arg SERVICE=external-info --build-arg CACHEBUST="${cachebust}" -t "tripplanning-external-info-service:${IMAGE_TAG}" .)
   sync_gcp_adc_secret
 
-  echo "== kubectl apply (apps + firestore-emulator) =="
-  kubectl apply -k "${K8S_LOCAL}"
+  render_local_manifests
+
+  echo "== kubectl apply (rendered manifests) =="
+  kubectl apply -n "${NS}" -f "${K8S_RENDERED}"
+
   apply_local_configmaps
-  kubectl rollout restart deployment/trip-service deployment/social-service deployment/external-info-service -n "${NS}" 2>/dev/null || true
+
+  echo "== restart app deployments (pick up rebuilt :${IMAGE_TAG} images) =="
+  kubectl rollout restart deployment/trip-service deployment/social-service deployment/external-info-service -n "${NS}"
+
+  echo "Waiting for redis..."
+  kubectl wait --for=condition=available deployment/redis -n "${NS}" --timeout=120s 2>/dev/null \
+    || kubectl rollout status deployment/redis -n "${NS}" --timeout=120s
+  kubectl wait --for=condition=ready pod -l app.kubernetes.io/component=redis -n "${NS}" --timeout=120s
+  echo "Waiting for elasticsearch..."
+  kubectl rollout status statefulset/elasticsearch -n "${NS}" --timeout=300s || true
+
   if [[ "${USE_HOST_FIRESTORE_EMULATOR}" != "true" ]]; then
-    kubectl rollout restart deployment/firestore-emulator -n "${NS}" 2>/dev/null || true
     echo "Waiting for firestore-emulator..."
     kubectl rollout status deployment/firestore-emulator -n "${NS}" --timeout=120s || true
   fi
-  echo "Waiting for rollouts..."
-  kubectl rollout status deployment/trip-service -n "${NS}" --timeout=300s || true
+  echo "Waiting for app rollouts..."
+  kubectl rollout status deployment/trip-service -n "${NS}" --timeout=600s || true
   kubectl rollout status deployment/social-service -n "${NS}" --timeout=180s || true
   kubectl rollout status deployment/external-info-service -n "${NS}" --timeout=120s || true
+  if [[ "${USE_HOST_FIRESTORE_EMULATOR}" != "true" ]]; then
+    kubectl rollout status deployment/redis-commander -n "${NS}" --timeout=60s 2>/dev/null || true
+  fi
   kubectl get pods -n "${NS}"
 }
 

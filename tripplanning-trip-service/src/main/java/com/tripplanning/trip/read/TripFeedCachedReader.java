@@ -1,5 +1,6 @@
 package com.tripplanning.trip.read;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -15,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.tripplanning.config.CacheConfig;
+import com.tripplanning.transport.TransportRoutes;
 import com.tripplanning.common.client.SocialServiceClient;
 import com.tripplanning.trip.TripRepository;
 import com.tripplanning.trip.read.TripFeedDtos.TripFeedAccommodation;
@@ -122,7 +124,7 @@ public class TripFeedCachedReader {
         return assembleRawPage(headers, page, size, totalItems);
     }
 
-    @Cacheable(value = CacheConfig.TRIP_DETAIL, key = "#tripId")
+    /** Not cached in Redis: detail DTOs embed {@link TripFeedDtos} types that are awkward to round-trip. */
     @Transactional(readOnly = true)
     public TripFeedDetailRaw detailRaw(long tripId) {
         TripDetailHeaderRow header;
@@ -131,7 +133,7 @@ public class TripFeedCachedReader {
                     entityManager
                             .createQuery(
                                     "SELECT new com.tripplanning.trip.read.TripFeedCachedReader$TripDetailHeaderRow("
-                                            + "t.id, t.title, t.destination, t.startDate,"
+                                            + "t.id, t.title, t.destination, t.destinationGooglePlaceId, t.startDate,"
                                             + " t.shortDescription, t.longDescription,"
                                             + " u.id, u.name, u.imagePath)"
                                             + " FROM TripEntity t JOIN t.user u"
@@ -147,8 +149,10 @@ public class TripFeedCachedReader {
                 entityManager
                         .createQuery(
                                 "SELECT new com.tripplanning.trip.read.TripFeedCachedReader$TripStopRow("
-                                        + "tl.id, l.id, l.city, tl.description, tl.startDate, tl.endDate)"
-                                        + " FROM TripLocationEntity tl JOIN tl.location l"
+                                        + "tl.id, tl.googlePlaceId, tl.placeName, tl.cityName, tl.description, tl.startDate, tl.endDate,"
+                                        + " gp.latitude, gp.longitude, gp.countryCode, gp.formattedAddress)"
+                                        + " FROM TripLocationEntity tl"
+                                        + " LEFT JOIN GooglePlaceEntity gp ON gp.googlePlaceId = tl.googlePlaceId"
                                         + " WHERE tl.trip.id = :id ORDER BY tl.id",
                                 TripStopRow.class)
                         .setParameter("id", tripId)
@@ -158,8 +162,10 @@ public class TripFeedCachedReader {
                 entityManager
                         .createQuery(
                                 "SELECT new com.tripplanning.trip.read.TripFeedCachedReader$TripAccomRow("
-                                        + "a.id, a.type, a.name, a.address)"
+                                        + "a.id, a.type, a.name, a.address, a.googlePlaceId, gp.cityName, gp.latitude, gp.longitude, gp.countryCode,"
+                                        + " a.checkInDate, a.checkOutDate, a.cost, a.currency)"
                                         + " FROM TripEntity t JOIN t.accommodations a"
+                                        + " LEFT JOIN GooglePlaceEntity gp ON gp.googlePlaceId = a.googlePlaceId"
                                         + " WHERE t.id = :id ORDER BY a.id",
                                 TripAccomRow.class)
                         .setParameter("id", tripId)
@@ -169,8 +175,11 @@ public class TripFeedCachedReader {
                 entityManager
                         .createQuery(
                                 "SELECT new com.tripplanning.trip.read.TripFeedCachedReader$TripTransportRow("
-                                        + "tr.id, tr.type)"
+                                        + "tr.id, tr.startGooglePlaceId, tr.endGooglePlaceId, tr.startAddress, tr.endAddress,"
+                                        + " gpStart.latitude, gpStart.longitude, gpEnd.latitude, gpEnd.longitude)"
                                         + " FROM TripEntity t JOIN t.transports tr"
+                                        + " LEFT JOIN GooglePlaceEntity gpStart ON gpStart.googlePlaceId = tr.startGooglePlaceId"
+                                        + " LEFT JOIN GooglePlaceEntity gpEnd ON gpEnd.googlePlaceId = tr.endGooglePlaceId"
                                         + " WHERE t.id = :id ORDER BY tr.id",
                                 TripTransportRow.class)
                         .setParameter("id", tripId)
@@ -183,26 +192,55 @@ public class TripFeedCachedReader {
             stops.add(
                     new TripFeedDetailStopRaw(
                             row.tripLocationId(),
-                            row.locationId(),
-                            row.locationName(),
+                            row.googlePlaceId(),
+                            row.placeName(),
+                            row.cityName(),
                             row.description() == null ? "" : row.description(),
                             row.startDate(),
                             row.endDate(),
+                            row.latitude(),
+                            row.longitude(),
+                            row.countryCode(),
+                            row.formattedAddress(),
                             imagePathsByStopId.getOrDefault(row.tripLocationId(), List.of())));
         }
         List<TripFeedAccommodation> accommodations = new ArrayList<>(accomRows.size());
         for (TripAccomRow row : accomRows) {
             accommodations.add(
-                    new TripFeedAccommodation(row.id(), row.type(), row.name(), row.address()));
+                    new TripFeedAccommodation(
+                            row.id(),
+                            row.type(),
+                            row.name(),
+                            row.address(),
+                            row.googlePlaceId(),
+                            row.cityName(),
+                            row.latitude(),
+                            row.longitude(),
+                            row.countryCode(),
+                            row.checkInDate(),
+                            row.checkOutDate(),
+                            row.cost(),
+                            row.currency()));
         }
         List<TripFeedTransport> transports = new ArrayList<>(transportRows.size());
         for (TripTransportRow row : transportRows) {
-            transports.add(new TripFeedTransport(row.id(), row.type()));
+            transports.add(
+                    new TripFeedTransport(
+                            row.id(),
+                            row.startGooglePlaceId(),
+                            row.endGooglePlaceId(),
+                            row.startAddress(),
+                            row.endAddress(),
+                            row.startLatitude(),
+                            row.startLongitude(),
+                            row.endLatitude(),
+                            row.endLongitude()));
         }
         return new TripFeedDetailRaw(
                 header.id(),
                 header.title(),
                 header.destination(),
+                header.destinationGooglePlaceId(),
                 header.startDate(),
                 header.shortDescription(),
                 header.longDescription() == null ? "" : header.longDescription(),
@@ -266,7 +304,7 @@ public class TripFeedCachedReader {
 
         Map<Long, List<String>> locationsByTripId = batchLocationNamesByTripId(ids);
         Map<Long, List<String>> accomNamesByTripId = batchAccommodationNamesByTripId(ids);
-        Map<Long, List<String>> transportTypesByTripId = batchTransportTypesByTripId(ids);
+        Map<Long, List<String>> transportRoutesByTripId = batchTransportRoutesByTripId(ids);
 
         List<TripFeedItemRaw> items = new ArrayList<>(headers.size());
         for (TripHeaderRow row : headers) {
@@ -280,7 +318,7 @@ public class TripFeedCachedReader {
                             new TripFeedAuthorRaw(row.authorId(), row.authorName(), row.authorImagePath()),
                             locationsByTripId.getOrDefault(row.id(), List.of()),
                             accomNamesByTripId.getOrDefault(row.id(), List.of()),
-                            transportTypesByTripId.getOrDefault(row.id(), List.of())));
+                            transportRoutesByTripId.getOrDefault(row.id(), List.of())));
         }
         return new TripFeedPageRaw(items, page, size, totalItems, totalPages(totalItems, size));
     }
@@ -291,8 +329,8 @@ public class TripFeedCachedReader {
                 entityManager
                         .createQuery(
                                 "SELECT new com.tripplanning.trip.read.TripFeedCachedReader$TripStopNameRow("
-                                        + "tl.trip.id, l.city, tl.id)"
-                                        + " FROM TripLocationEntity tl JOIN tl.location l"
+                                        + "tl.trip.id, tl.placeName, tl.id)"
+                                        + " FROM TripLocationEntity tl"
                                         + " WHERE tl.trip.id IN :ids"
                                         + " ORDER BY tl.trip.id, tl.id",
                                 TripStopNameRow.class)
@@ -300,7 +338,7 @@ public class TripFeedCachedReader {
                         .getResultList();
         Map<Long, List<String>> out = new LinkedHashMap<>();
         for (TripStopNameRow row : rows) {
-            out.computeIfAbsent(row.tripId(), k -> new ArrayList<>()).add(row.locationName());
+            out.computeIfAbsent(row.tripId(), k -> new ArrayList<>()).add(row.placeName());
         }
         return out;
     }
@@ -325,13 +363,13 @@ public class TripFeedCachedReader {
         return out;
     }
 
-    private Map<Long, List<String>> batchTransportTypesByTripId(List<Long> tripIds) {
+    private Map<Long, List<String>> batchTransportRoutesByTripId(List<Long> tripIds) {
         if (tripIds.isEmpty()) return Map.of();
         @SuppressWarnings("unchecked")
         List<Object[]> rows =
                 entityManager
                         .createQuery(
-                                "SELECT t.id, tr.type FROM TripEntity t JOIN t.transports tr"
+                                "SELECT t.id, tr.startAddress, tr.endAddress FROM TripEntity t JOIN t.transports tr"
                                         + " WHERE t.id IN :ids"
                                         + " ORDER BY t.id, tr.id")
                         .setParameter("ids", tripIds)
@@ -339,8 +377,8 @@ public class TripFeedCachedReader {
         Map<Long, List<String>> out = new LinkedHashMap<>();
         for (Object[] row : rows) {
             Long tripId = (Long) row[0];
-            String type = (String) row[1];
-            out.computeIfAbsent(tripId, k -> new ArrayList<>()).add(type);
+            String route = TransportRoutes.format((String) row[1], (String) row[2]);
+            out.computeIfAbsent(tripId, k -> new ArrayList<>()).add(route);
         }
         return out;
     }
@@ -375,12 +413,13 @@ public class TripFeedCachedReader {
             TripFeedAuthorRaw author,
             List<String> locations,
             List<String> accommodationNames,
-            List<String> transportTypes) {}
+            List<String> transportRoutes) {}
 
     public record TripFeedDetailRaw(
             long id,
             String title,
             String destination,
+            String destinationGooglePlaceId,
             LocalDate startDate,
             String shortDescription,
             String longDescription,
@@ -391,11 +430,16 @@ public class TripFeedCachedReader {
 
     public record TripFeedDetailStopRaw(
             long id,
-            long locationId,
-            String locationName,
+            String googlePlaceId,
+            String placeName,
+            String cityName,
             String description,
             LocalDateTime startDate,
             LocalDateTime endDate,
+            Double latitude,
+            Double longitude,
+            String countryCode,
+            String formattedAddress,
             List<String> imagePaths) {}
 
     public record TripFeedAuthorRaw(long id, String name, String imagePath) {}
@@ -419,6 +463,7 @@ public class TripFeedCachedReader {
             Long id,
             String title,
             String destination,
+            String destinationGooglePlaceId,
             LocalDate startDate,
             String shortDescription,
             String longDescription,
@@ -428,15 +473,42 @@ public class TripFeedCachedReader {
 
     public record TripStopRow(
             Long tripLocationId,
-            Long locationId,
-            String locationName,
+            String googlePlaceId,
+            String placeName,
+            String cityName,
             String description,
             LocalDateTime startDate,
-            LocalDateTime endDate) {}
+            LocalDateTime endDate,
+            Double latitude,
+            Double longitude,
+            String countryCode,
+            String formattedAddress) {}
 
-    public record TripStopNameRow(Long tripId, String locationName, Long tripLocationId) {}
+    public record TripStopNameRow(Long tripId, String placeName, Long tripLocationId) {}
 
-    public record TripAccomRow(Long id, String type, String name, String address) {}
+    public record TripAccomRow(
+            Long id,
+            String type,
+            String name,
+            String address,
+            String googlePlaceId,
+            String cityName,
+            Double latitude,
+            Double longitude,
+            String countryCode,
+            LocalDate checkInDate,
+            LocalDate checkOutDate,
+            BigDecimal cost,
+            String currency) {}
 
-    public record TripTransportRow(Long id, String type) {}
+    public record TripTransportRow(
+            Long id,
+            String startGooglePlaceId,
+            String endGooglePlaceId,
+            String startAddress,
+            String endAddress,
+            Double startLatitude,
+            Double startLongitude,
+            Double endLatitude,
+            Double endLongitude) {}
 }

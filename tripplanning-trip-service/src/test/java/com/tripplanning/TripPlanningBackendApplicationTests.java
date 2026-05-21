@@ -6,7 +6,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 import org.springframework.context.annotation.Import;
 
-import com.tripplanning.trip.TripServiceApplication;
+import com.tripplanning.TripServiceApplication;
 
 @SpringBootTest(classes = TripServiceApplication.class)
 @Import(TestClientsConfig.class)

@@ -20,14 +20,14 @@ Reference for the **local ms2-shaped** stack on Minikube: in-cluster components,
 
 | Component | Implementation | Manifest |
 |-----------|----------------|----------|
-| **trip-service** | Spring Boot, H2 + ES + Redis | [`k8s/local/trip-service/`](../../k8s/local/trip-service/) |
+| **trip-service** | Spring Boot, H2 + ES + Redis | [`k8s/local/chart/templates/deployments/trip-deployment.yaml`](../../k8s/local/chart/templates/deployments/trip-deployment.yaml) |
 | **social-service** | Spring Boot, Firestore emulator | [`k8s/local/social-service/`](../../k8s/local/social-service/) |
 | **external-info-service** | Spring Boot, Redis | [`k8s/local/external-info-service/`](../../k8s/local/external-info-service/) |
-| **Redis** | `redis:7-alpine` | [`infrastructure/ms2/k8s/dependencies/redis/`](../../../infrastructure/ms2/k8s/dependencies/redis/) |
-| **Elasticsearch** | Elastic 8.15.x, emptyDir | [`infrastructure/ms2/k8s/dependencies/elasticsearch/`](../../../infrastructure/ms2/k8s/dependencies/elasticsearch/) |
+| **Redis** | `redis:7-alpine` | [`k8s/local/chart/templates/backing/`](../../k8s/local/chart/templates/backing/) |
+| **Elasticsearch** | Elastic 7.17.x, StatefulSet + 5Gi PVC | [`k8s/local/elasticsearch/`](../../k8s/local/elasticsearch/) |
 | **Firestore emulator** | `google-cloud-cli:emulators` | [`k8s/local/firestore-emulator/`](../../k8s/local/firestore-emulator/) |
 
-Installed by [`scripts/local-dev.sh`](../../scripts/local-dev.sh) → `install-k8s-dependencies.sh` (Redis/ES) + `kubectl apply -k k8s/local`.
+Installed by [`scripts/local-dev.sh`](../../scripts/local-dev.sh) → `helm template` + `kubectl apply` from [`k8s/local/chart`](../../k8s/local/chart/) (Redis, Elasticsearch, apps, Firestore emulator).
 
 ### Host-only
 
@@ -104,7 +104,7 @@ flowchart TB
 
 Optional direct pod/service port-forwards (`:8081`, `:8082`) are for debugging only.
 
-The SPA uses **one** base URL (`VITE_API_BASE_URL=http://localhost:8080` or Vite proxy to the same). **Ingress** routes by path prefix (see [`k8s/local/ingress.yaml`](../../k8s/local/ingress.yaml)):
+The SPA uses **one** base URL (`VITE_API_BASE_URL=http://localhost:8080` or Vite proxy to the same). **Ingress** routes by path prefix (see [`k8s/local/chart/templates/ingress-nginx.yaml`](../../k8s/local/chart/templates/ingress-nginx.yaml)):
 
 | Path prefix | Backend |
 |-------------|---------|
@@ -312,7 +312,7 @@ Minikube trip-service stores H2 and search data in-pod (`emptyDir` at `/app/temp
 |-------|------|
 | Lifecycle automation | [`scripts/local-dev.sh`](../../scripts/local-dev.sh), [README.md](README.md) |
 | Verify smoke tests | [`scripts/verify-local-deployment.sh`](../../scripts/verify-local-deployment.sh) |
-| Local K8s manifests | [`k8s/local/`](../../k8s/local/) (includes [`ingress.yaml`](../../k8s/local/ingress.yaml)) |
+| Local K8s manifests | [`k8s/local/chart/`](../../k8s/local/chart/) (Helm templates; rendered by `local-dev.sh`) |
 | Redis / Elasticsearch | [`infrastructure/ms2/k8s/dependencies/`](../../../infrastructure/ms2/k8s/dependencies/) |
 | Spring local + k8s profiles | `tripplanning-*/src/main/resources/application-local.yml`, `application-k8s.yml` |
 | GKE counterpart | [ms2 gettingstarted](../../../infrastructure/ms2/docs/gettingstarted/) |

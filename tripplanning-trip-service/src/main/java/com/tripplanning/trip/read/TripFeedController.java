@@ -1,5 +1,6 @@
 package com.tripplanning.trip.read;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -53,7 +54,10 @@ public class TripFeedController {
     }
 
     @GetMapping("/{id}/detail")
-    public TripFeedDetail detail(@PathVariable("id") long id) {
-        return tripFeedService.detail(id);
+    public ResponseEntity<TripFeedDetail> detail(@PathVariable("id") long id) {
+        if (!tripFeedService.tripExists(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(tripFeedService.detail(id));
     }
 }

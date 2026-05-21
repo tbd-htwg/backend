@@ -32,6 +32,6 @@ public interface TripListProjection {
     @Value("#{target.accommodationNames}")
     List<String> getAccommodationNames();
 
-    @Value("#{target.transportTypes}")
-    List<String> getTransportTypes();
+    @Value("#{target.transportRoutes}")
+    List<String> getTransportRoutes();
 }

@@ -14,6 +14,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import com.tripplanning.common.security.InternalApiAuthFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -90,19 +91,19 @@ public class SecurityConfig {
                     .permitAll()
                     .requestMatchers("/internal/**")
                     .permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/search/**")
+                    .requestMatchers(AntPathRequestMatcher.antMatcher(HttpMethod.GET, "/api/search/**"))
                     .permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/v2/users/{id:\\d+}")
+                    .requestMatchers(AntPathRequestMatcher.antMatcher(HttpMethod.GET, "/api/v2/users/{id:\\d+}"))
                     .permitAll()
                     .requestMatchers(
-                        HttpMethod.GET,
-                        "/api/v2/users",
-                        "/api/v2/users/search",
-                        "/api/v2/users/search/**")
+                        AntPathRequestMatcher.antMatcher(HttpMethod.GET, "/api/v2/users"),
+                        AntPathRequestMatcher.antMatcher(HttpMethod.GET, "/api/v2/users/search"),
+                        AntPathRequestMatcher.antMatcher(HttpMethod.GET, "/api/v2/users/search/**"))
                     .authenticated()
-                    .requestMatchers(HttpMethod.GET, "/api/v2/**")
+                    // Ant paths: MVC requestMatchers miss custom controllers under /api/v2/trips/* (feed, detail).
+                    .requestMatchers(AntPathRequestMatcher.antMatcher(HttpMethod.GET, "/api/v2/**"))
                     .permitAll()
-                    .requestMatchers(HttpMethod.HEAD, "/api/v2/**")
+                    .requestMatchers(AntPathRequestMatcher.antMatcher(HttpMethod.HEAD, "/api/v2/**"))
                     .permitAll()
                     .anyRequest()
                     .authenticated())

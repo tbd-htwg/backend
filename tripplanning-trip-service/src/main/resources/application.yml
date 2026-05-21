@@ -18,6 +18,9 @@ tripplanning:
   # several backends share one Elasticsearch cluster (e.g. tripentity-develop, tripentity-staging).
   search:
     elasticsearch-index-name: ${TRIPPLANNING_SEARCH_ELASTICSEARCH_INDEX_NAME:tripentity}
+    readiness-enabled: ${TRIPPLANNING_SEARCH_READINESS_ENABLED:true}
+    lock-key: tripplanning:search:index:lock
+    status-key: tripplanning:search:index:status
   services:
     trip-base-url: ${TRIPPLANNING_TRIP_SERVICE_URL:http://localhost:8080}
     social-base-url: ${TRIPPLANNING_SOCIAL_SERVICE_URL:http://localhost:8081}
@@ -33,6 +36,11 @@ management:
     health:
       probes:
         enabled: true
+      group:
+        readiness:
+          include: readinessState, searchIndex
+        liveness:
+          include: livenessState
 
 spring:
   datasource:

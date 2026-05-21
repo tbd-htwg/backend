@@ -1,0 +1,24 @@
+{{- if and (eq .Values.ingress.type "nginx") .Values.ingressDebugRoutes }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: tripplanning-debug-elasticsearch
+  labels:
+    {{- include "tripplanning.labels" . | nindent 4 }}
+  annotations:
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  ingressClassName: nginx
+  rules:
+    - http:
+        paths:
+          - path: /debug/elasticsearch(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: elasticsearch
+                port:
+                  number: 9200
+{{- end }}

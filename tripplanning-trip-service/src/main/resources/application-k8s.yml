@@ -5,10 +5,21 @@ spring:
     activate:
       on-profile: k8s
 
+  elasticsearch:
+    restclient:
+      sniffer:
+        enabled: false
+
   jpa:
     properties:
       hibernate:
         search:
+          # Default write-sync fails the HTTP request when Elasticsearch is down or restarting
+          # (JpaSystemException in afterTransactionCompletion). Async keeps DB writes successful.
+          indexing:
+            plan:
+              synchronization:
+                strategy: async
           backend:
             type: elasticsearch
             protocol: ${ELASTICSEARCH_PROTOCOL:http}
@@ -17,4 +28,9 @@ spring:
             password: ${ELASTICSEARCH_PASSWORD:}
             path_prefix: ${ELASTICSEARCH_PATH_PREFIX:}
           schema_management:
-            strategy: create-or-validate
+            # create-or-validate fails when mappings change (e.g. transport type → start/end addresses).
+            strategy: create-or-update
+
+tripplanning:
+  search:
+    readiness-enabled: true

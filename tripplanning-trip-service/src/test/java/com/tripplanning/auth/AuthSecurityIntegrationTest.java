@@ -17,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.context.annotation.Import;
 
 import com.tripplanning.TestClientsConfig;
-import com.tripplanning.trip.TripServiceApplication;
+import com.tripplanning.TripServiceApplication;
 import com.tripplanning.user.UserEntity;
 import com.tripplanning.user.UserRepository;
 
@@ -70,6 +70,13 @@ class AuthSecurityIntegrationTest {
   @Test
   void getTrips_withoutToken_returns200() throws Exception {
     mockMvc.perform(get("/api/v2/trips")).andExpect(status().isOk());
+  }
+
+  @Test
+  void getTripFeed_withoutToken_returns200() throws Exception {
+    mockMvc
+        .perform(get("/api/v2/trips/feed").param("page", "0").param("size", "10"))
+        .andExpect(status().isOk());
   }
 
   @Test

@@ -1,0 +1,42 @@
+{{- if .Values.debug.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-commander
+  labels:
+    {{- include "tripplanning.labels" . | nindent 4 }}
+    app.kubernetes.io/component: redis-commander
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: redis-commander
+      {{- include "tripplanning.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: redis-commander
+        {{- include "tripplanning.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: redis-commander
+          image: {{ .Values.debug.redisCommander.image | quote }}
+          ports:
+            - containerPort: {{ .Values.debug.redisCommander.port }}
+          env:
+            - name: REDIS_HOSTS
+              value: local:redis:6379
+            - name: HTTP_USER
+              value: ""
+            - name: HTTP_PASSWORD
+              value: ""
+            - name: URL_PREFIX
+              value: {{ .Values.debug.redisCommander.httpRoot | quote }}
+          resources:
+            requests:
+              cpu: {{ .Values.debug.redisCommander.resources.requests.cpu }}
+              memory: {{ .Values.debug.redisCommander.resources.requests.memory }}
+            limits:
+              cpu: {{ .Values.debug.redisCommander.resources.limits.cpu }}
+              memory: {{ .Values.debug.redisCommander.resources.limits.memory }}
+{{- end }}

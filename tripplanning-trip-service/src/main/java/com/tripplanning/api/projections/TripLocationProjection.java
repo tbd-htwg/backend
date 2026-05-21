@@ -16,10 +16,16 @@ public interface TripLocationProjection {
     @Value("#{target.trip.id}")
     Long getTripId();
     
-    @Value("#{target.location.id}")
-    Long getLocationId();
+    @Value("#{target.googlePlaceId}")
+    String getGooglePlaceId();
 
-    @Value("#{target.location.city}")
+    @Value("#{target.placeName}")
+    String getPlaceName();
+
+    @Value("#{target.cityName}")
+    String getCityName();
+
+    @Value("#{target.placeName}")
     String getLocationName();
     
     String getDescription();

@@ -1,5 +1,7 @@
 package com.tripplanning.accommodation;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,10 +22,12 @@ import lombok.Setter;
 import lombok.NoArgsConstructor;
 
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed;
 
 
 @Entity
 @Table(name = "accommodation")
+@Indexed
 @Getter
 @Setter
 @Builder
@@ -48,7 +52,29 @@ public class AccomEntity {
     @Column(nullable = false)
     @FullTextField(analyzer = "english")
     private String name;
+    
+
+    @Column 
+    private String googlePlaceId;
+
+    @FullTextField 
+    @Column 
+    private String cityName;
+
+    @Column
     private String address;
+
+    @Column
+    private LocalDate checkInDate;
+
+    @Column
+    private LocalDate checkOutDate;
+
+    @Column(precision = 12, scale = 2)
+    private BigDecimal cost;
+
+    @Column(length = 3)
+    private String currency;
 
     @Builder.Default
     @ManyToMany(mappedBy = "accommodations")

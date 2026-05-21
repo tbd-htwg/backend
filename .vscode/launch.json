@@ -3,6 +3,29 @@
   "configurations": [
     {
       "type": "java",
+      "name": "TripServiceApplication",
+      "request": "launch",
+      "mainClass": "com.tripplanning.TripServiceApplication",
+      "projectName": "tripplanning-trip-service",
+      "vmArgs": "-Dspring.profiles.active=local,local-lucene", 
+      "env": {
+        "TRIPPLANNING_EXTERNAL_INFO_SERVICE_URL": "http://localhost:8082"
+      }
+    },
+    {
+      "type": "java",
+      "name": "ExternalInfoServiceApplication",
+      "request": "launch",
+      "mainClass": "com.tripplanning.externalinfo.ExternalInfoServiceApplication",
+      "projectName": "tripplanning-external-info-service",
+      "vmArgs": "-Dspring.profiles.active=local",
+      "env": {
+        "GOOGLE_MAPS_API_KEY": "",
+        "VIATOR_API_KEY": ""
+      }
+    },
+    {
+      "type": "java",
       "name": "Spring Boot (local)",
       "request": "launch",
       "mainClass": "com.tripplanning.Application",
