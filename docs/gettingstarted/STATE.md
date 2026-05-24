@@ -2,7 +2,7 @@
 
 Reference for the **local ms2-shaped** stack on Minikube: in-cluster components, localhost access, and the small set of GCP services still used (Identity Platform, GCS, Google Places / Routes APIs).
 
-**Scope:** `kubectl` context `minikube`, namespace `tripplanning`. For setup/teardown, see [README.md](README.md). For GKE / Terraform inventory, see [ms2 STATE.md](../../../infrastructure/ms2/docs/gettingstarted/STATE.md).
+**Scope:** `kubectl` context `minikube`, namespace `tripplanning`. For setup/teardown, see [README.md](README.md). For GKE / Terraform inventory, see [ms2 overview](../../../infrastructure/ms2/docs/overview.md) and [Terraform dev env](../../../infrastructure/ms2/terraform/envs/dev/README.md).
 
 ---
 
@@ -14,23 +14,24 @@ Reference for the **local ms2-shaped** stack on Minikube: in-cluster components,
 |----------|----------|----------------|
 | **Cluster** | Minikube | Context `minikube`; default driver `docker` |
 | **Namespace** | Kubernetes | `tripplanning` |
-| **Images** | Local Docker (minikube daemon) | `tripplanning-{trip,social,external-info}-service:local`, `imagePullPolicy: Never` |
+| **Images** | Local Docker (minikube daemon) | `tripplanning-{trip,social,external-info,seed-job}-service:local` (seed-job image tag `:local`), `imagePullPolicy: Never` |
 
 ### In-cluster (namespace `tripplanning`)
 
 | Component | Implementation | Manifest |
 |-----------|----------------|----------|
-| **trip-service** | Spring Boot, H2 + ES + Redis | [`k8s/local/chart/templates/deployments/trip-deployment.yaml`](../../k8s/local/chart/templates/deployments/trip-deployment.yaml) |
+| **trip-service** | Spring Boot, PostgreSQL + ES + Redis | [`k8s/local/chart/templates/deployments/trip-deployment.yaml`](../../k8s/local/chart/templates/deployments/trip-deployment.yaml) |
 | **social-service** | Spring Boot, Firestore emulator | [`k8s/local/chart/templates/deployments/social-deployment.yaml`](../../k8s/local/chart/templates/deployments/social-deployment.yaml) |
 | **external-info-service** | Spring Boot, Redis + Caffeine cache | [`k8s/local/chart/templates/deployments/external-info-deployment.yaml`](../../k8s/local/chart/templates/deployments/external-info-deployment.yaml) |
+| **PostgreSQL** | Postgres 16, StatefulSet + PVC | [`k8s/local/chart/templates/backing/postgres-*.yaml`](../../k8s/local/chart/templates/backing/) |
 | **Redis** | `redis:7-alpine` | [`k8s/local/chart/templates/backing/redis-*.yaml`](../../k8s/local/chart/templates/backing/) |
 | **Elasticsearch** | Elastic 7.17.x, StatefulSet + 5Gi PVC | [`k8s/local/chart/templates/backing/elasticsearch-*.yaml`](../../k8s/local/chart/templates/backing/) |
 | **Firestore emulator** | `google-cloud-cli:emulators` | [`k8s/local/chart/templates/firestore-emulator.yaml`](../../k8s/local/chart/templates/firestore-emulator.yaml) |
 | **redis-commander** (debug) | Web UI for Redis | [`k8s/local/chart/templates/debug/redis-commander-*.yaml`](../../k8s/local/chart/templates/debug/) |
 
-Installed by [`scripts/local-dev.sh`](../../scripts/local-dev.sh) → `helm template` + `kubectl apply` from [`k8s/local/chart`](../../k8s/local/chart/) (Redis, Elasticsearch, apps, Firestore emulator, optional debug UIs).
+Installed by [`scripts/local-dev.sh`](../../scripts/local-dev.sh) → `helm template` + `kubectl apply` from [`k8s/local/chart`](../../k8s/local/chart/) (Postgres, Redis, Elasticsearch, apps, Firestore emulator, optional debug UIs).
 
-**Postgres:** chart includes a StatefulSet template (`backingServices.postgres`) but it is **`enabled: false`** in local values — trip-service uses **H2 in-pod**, not Postgres.
+**Postgres:** enabled in [`values-local.yaml`](../../k8s/local/chart/values-local.yaml) (`backingServices.postgres.enabled: true`). Trip-service uses profile **`local,k8s,postgres`** with Flyway migrations. **H2** is only for **JVM-only** dev (`SPRING_PROFILES_ACTIVE=local` without `postgres`).
 
 ### Host-only
 
@@ -45,7 +46,7 @@ Installed by [`scripts/local-dev.sh`](../../scripts/local-dev.sh) → `helm temp
 
 | Service | Used by | Local behavior |
 |---------|---------|----------------|
-| **Identity Platform / Firebase** | trip-service (`POST /api/v2/auth/google`) | Real project; optional if using dev-login only |
+| **Identity Platform / Firebase** | trip-service (`POST /api/v2/auth/firebase`) | Real project; optional if using dev-login only |
 | **GCS images bucket** | trip-service signed uploads | Real bucket via ADC + SA impersonation in `application-local.yml` |
 | **Google Places API (New)** | external-info-service | Place search and details via `GOOGLE_MAPS_API_KEY` |
 | **Google Routes API** | external-info-service | Transport distance/duration |
@@ -73,7 +74,7 @@ flowchart TB
     Ext[external-info-service]
     Redis[(Redis)]
     ES[(Elasticsearch)]
-    H2[(H2 emptyDir)]
+    PG[(PostgreSQL)]
     FSE[(Firestore emulator)]
   end
 
@@ -91,7 +92,7 @@ flowchart TB
   GW --> Ext
   Trip --> Redis
   Trip --> ES
-  Trip --> H2
+  Trip --> PG
   Social --> FSE
   Ext --> Redis
   Social -->|internal| Trip
@@ -114,7 +115,7 @@ flowchart TB
 
 Optional direct pod/service port-forwards (`:8081`, `:8082`) are for debugging only.
 
-The SPA uses **one** base URL (`VITE_API_BASE_URL=http://localhost:8080` or Vite proxy to the same). **Ingress** routes by path prefix (see [`k8s/local/chart/templates/ingress-nginx.yaml`](../../k8s/local/chart/templates/ingress-nginx.yaml)):
+The SPA uses **one** base URL (`VITE_API_BASE_URL=http://localhost:8080` or Vite proxy to the same). **Ingress** routes by path prefix (see [`k8s/local/chart/values-local.yaml`](../../k8s/local/chart/values-local.yaml) `ingressRoutes`):
 
 | Path prefix | Backend |
 |-------------|---------|
@@ -123,6 +124,7 @@ The SPA uses **one** base URL (`VITE_API_BASE_URL=http://localhost:8080` or Vite
 | `/internal/debug` | trip-service (search-index / Redis debug) |
 | `/debug/redis` | redis-commander |
 | `/api/search`, `/api/v2` (catch-all), `/actuator`, auth | trip-service |
+| `/swagger-ui`, `/v3` | trip-service (OpenAPI / Swagger UI) |
 
 With `ingressDebugRoutes: true` (default in `values-local.yaml`), separate ingress resources also expose `/debug/elasticsearch` and `/debug/external`.
 
@@ -163,13 +165,16 @@ flowchart LR
   Trip --> IdP
   SPA -->|place search| Ext
   Ext --> Places
+  SPA -->|stop weather/warnings| Ext
   SPA -->|PUT signed URL| GCS
 ```
 
 **Behaviors:**
 
-- Single API entry: `VITE_API_BASE_URL=http://localhost:8080`.
+- Single API entry: `VITE_API_BASE_URL=http://localhost:8080` (or Vite proxy to the same).
 - **dev-login** on trip-service avoids Firebase for local testing.
+- Place search: `GET /api/v2/external/details/search` via ingress.
+- Stop weather/warnings: `GET /api/v2/external/stop-details` (not deprecated `/external/details`).
 - Image uploads: signed URL from trip-service; browser PUT to GCS (requires ADC on dev machine).
 
 ---
@@ -197,7 +202,7 @@ flowchart TB
   end
 
   subgraph DataStores
-    H2[(H2 file emptyDir)]
+    PG[(PostgreSQL)]
     GP[(google_places cache)]
     FSE[(Firestore emulator)]
     ES[(Elasticsearch)]
@@ -213,7 +218,7 @@ flowchart TB
     Viator[Viator API sandbox]
   end
 
-  Trip --> H2
+  Trip --> PG
   Trip --> GP
   Trip --> ES
   Trip --> Redis
@@ -236,12 +241,13 @@ flowchart TB
 
 | Service | SQL | Elasticsearch | Redis | Firestore | GCS | Other HTTP |
 |---------|:---:|:-------------:|:-----:|:---------:|:---:|------------|
-| **trip-service** | H2 + `google_places` (JPA, no Flyway locally) | Hibernate Search `tripentity-local` | Cache 10s TTL; search-index lock/status | — | Signed uploads | social, external-info (`/internal/location-pack`) |
+| **trip-service** | PostgreSQL + `google_places` (JPA, Flyway V1–V14) | Hibernate Search `tripentity-local` | Cache 10s TTL; search-index lock/status | — | Signed uploads | social, external-info (`/internal/location-pack`) |
 | **social-service** | — | — | — | Emulator `(default)` | — | trip-service |
-| **external-info-service** | — | — | Present in cluster; reactive `@Cacheable` uses **Caffeine** | — | — | Google Places + Routes, AA, Open-Meteo, Viator; JWT on public routes |
+| **external-info-service** | — | — | Present in cluster; reactive `@Cacheable` uses **Caffeine** | — | — | Google Places + Routes, AA, Open-Meteo, Viator; `/internal/**` uses `X-Internal-Secret` |
 
 **In-cluster DNS:**
 
+- `postgres.tripplanning.svc.cluster.local:5432`
 - `elasticsearch.tripplanning.svc.cluster.local:9200`
 - `redis.tripplanning.svc.cluster.local:6379`
 - `firestore-emulator.tripplanning.svc.cluster.local:8080`
@@ -262,10 +268,10 @@ flowchart LR
   subgraph TripFlow["trip-service"]
     Req[API request] --> Cache{Redis cache?}
     Cache -->|hit| Resp[Response]
-    Cache -->|miss| H2[(H2)]
-    H2 --> Index[Hibernate Search]
+    Cache -->|miss| PG[(PostgreSQL)]
+    PG --> Index[Hibernate Search]
     Index --> ES[(Elasticsearch)]
-    H2 --> Resp
+    PG --> Resp
   end
 
   subgraph ExtFlow["external-info-service"]
@@ -309,6 +315,8 @@ image tag:        local
 trip-service:     tripplanning-trip-service:local
 social-service:   tripplanning-social-service:local
 external-info:    tripplanning-external-info-service:local
+seed-job:         tripplanning-seed-job:local
+postgres:         postgres:5432 (db tripplanning)
 firestore:        firestore-emulator:8080
 GCP project:      tbd-cloudappdev (auth + GCS + Places API; local dev)
 localhost API:    http://localhost:8080 (ingress port-forward)
@@ -321,14 +329,14 @@ frontend dev:     http://localhost:5173
 
 | Path | Purpose |
 |------|---------|
-| `pom.xml` | Maven parent; modules: `tripplanning-common`, `tripplanning-trip-service`, `tripplanning-social-service`, `tripplanning-external-info-service` |
+| `pom.xml` | Maven parent; modules: `tripplanning-common`, `tripplanning-trip-service`, `tripplanning-social-service`, `tripplanning-external-info-service`, `tripplanning-seed-job` |
 | `tripplanning-*/` | Service source and `src/main/resources/application-*.yml` |
 | `k8s/local/chart/` | Helm chart for Minikube (see [`k8s/local/README.md`](../../k8s/local/README.md)) |
-| `scripts/local-dev.sh` | Build images, apply manifests, port-forward, verify |
+| `scripts/local-dev.sh` | Build images, apply manifests, port-forward, verify, seed-job |
 | `docs/gettingstarted/` | This guide, `.env.example`, [STATE.md](STATE.md) |
 | `temp/db/`, `temp/search/` | **Host JVM-only** H2 + Lucene when running trip-service with `local` profile outside k8s (runtime files gitignored; `.gitkeep` only tracked) |
 
-Minikube trip-service stores H2 and search data in-pod (`emptyDir` at `/app/temp`), not in the host `temp/` directory.
+Minikube trip-service stores SQL data in the **postgres StatefulSet PVC**. Host `temp/` is not used for the default Minikube deploy.
 
 ---
 
@@ -339,11 +347,12 @@ Minikube trip-service stores H2 and search data in-pod (`emptyDir` at `/app/temp
 | Lifecycle automation | [`scripts/local-dev.sh`](../../scripts/local-dev.sh), [README.md](README.md) |
 | Verify smoke tests | [`scripts/verify-local-deployment.sh`](../../scripts/verify-local-deployment.sh) |
 | Local K8s manifests | [`k8s/local/chart/`](../../k8s/local/chart/) (Helm templates; rendered by `local-dev.sh`) |
-| Redis / Elasticsearch (local chart) | [`k8s/local/chart/templates/backing/`](../../k8s/local/chart/templates/backing/) |
+| Redis / Elasticsearch / Postgres (local chart) | [`k8s/local/chart/templates/backing/`](../../k8s/local/chart/templates/backing/) |
 | Places & external-info API | `tripplanning-external-info-service/.../ExternalPublicApiController.java`, `InternalExternalApiController.java`, `ExternalDetailsService.java` |
 | Place cache (trip-service) | `tripplanning-trip-service/.../place/PlaceService.java` |
 | Search index coordination | `tripplanning-trip-service/.../search/SearchIndexCoordinationService.java` |
-| Flyway (GKE Postgres only) | `tripplanning-trip-service/src/main/resources/db/migration/V10__*.sql` … `V13__*.sql` |
-| Spring local + k8s profiles | `tripplanning-*/src/main/resources/application-local.yml`, `application-k8s.yml` |
-| GKE counterpart | [ms2 gettingstarted](../../../infrastructure/ms2/docs/gettingstarted/) |
+| Perf seed job | [`tripplanning-seed-job/README.md`](../../tripplanning-seed-job/README.md) |
+| Flyway (Postgres) | `tripplanning-trip-service/src/main/resources/db/migration/V10__*.sql` … `V14__*.sql` |
+| Spring local + k8s profiles | `tripplanning-*/src/main/resources/application-local.yml`, `application-k8s.yml`, `application-postgres.yml` |
+| GKE counterpart | [ms2 overview](../../../infrastructure/ms2/docs/overview.md) |
 | Frontend API client | [`frontend/src/api/client.ts`](../../../frontend/src/api/client.ts) |

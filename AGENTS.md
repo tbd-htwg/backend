@@ -10,14 +10,17 @@ Maven **multi-module** Spring Boot 3 backend:
 
 | Module | Port | Role |
 |--------|------|------|
-| `tripplanning-trip-service` | 8080 | Trips, users, locations, auth, GCS images, search |
+| `tripplanning-trip-service` | 8080 | Trips, users, Google Places (`place`), trip stops (`tripLocation`), auth, GCS images, search |
 | `tripplanning-social-service` | 8081 | Firestore comments / likes |
-| `tripplanning-external-info-service` | 8082 | Weather, warnings, geocoding, Viator tours |
+| `tripplanning-external-info-service` | 8082 | Google Places search, Google Routes transport distance, weather, warnings, Viator tours |
+| `tripplanning-seed-job` | — | One-shot perf seed (PostgreSQL + Firestore; `./scripts/local-dev.sh seed-job`) |
 | `tripplanning-common` | — | Shared clients and auth config |
+
+> Ignore repo-root `external-info-service/` — the supported module is `tripplanning-external-info-service`.
 
 **Spring Data REST** on trip-service exposes domain resources under **`/api/v2`**. **OpenAPI 3** JSON: **`/v3/api-docs`** (public). Swagger UI: **`/swagger-ui/index.html`**.
 
-**Recommended local stack:** Minikube via [`scripts/local-dev.sh`](scripts/local-dev.sh) — see [docs/gettingstarted/README.md](docs/gettingstarted/README.md).
+**Recommended local stack:** Minikube via [`scripts/local-dev.sh`](scripts/local-dev.sh) — see [docs/gettingstarted/README.md](docs/gettingstarted/README.md). Default Minikube profile for trip-service: **`local,k8s,postgres`** (in-cluster PostgreSQL + Flyway), not file H2.
 
 ## Run locally (`local` profile, JVM-only)
 
@@ -30,8 +33,8 @@ SPRING_PROFILES_ACTIVE=local mvn -pl tripplanning-trip-service spring-boot:run
 
 - **H2** file DB: `./temp/db/tripplanning-dev` (gitignored; recreated on run); **Flyway off**; JPA **`create-drop`** each run.
 - **Hibernate Search** uses the **Lucene** backend; indexes under **`./temp/search`** (gitignored).
-- **Minikube** uses in-pod H2 (`emptyDir` at `/app/temp`) and in-cluster Elasticsearch — not the host `temp/` directory.
-- **Firestore** for social: emulator on **`localhost:9090`** (JVM path) or in-cluster `firestore-emulator` (k8s path).
+- **Minikube** uses in-cluster **PostgreSQL** and Elasticsearch — not the host `temp/` directory.
+- **Firestore** for social: emulator on **`localhost:9090`** (JVM path) or in-cluster `firestore-emulator:8080` (k8s path).
 - Auth: override with **`TRIPPLANNING_AUTH_JWT_SECRET`** (≥32 bytes); **`TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID`** for Google token verification.
 
 Default trip-service: **`http://localhost:8080`**.
@@ -40,8 +43,8 @@ Default trip-service: **`http://localhost:8080`**.
 
 | Area | Module / package |
 |------|------------------|
-| Core domain (JPA + REST) | `tripplanning-trip-service` — `user`, `trip`, `tripLocation`, `location`, `accommodation`, `transport` |
-| Auth (Google ID token → app JWT) | `tripplanning-trip-service` — `com.tripplanning.auth` |
+| Core domain (JPA + REST) | `tripplanning-trip-service` — `user`, `trip`, `tripLocation`, `place`, `accommodation`, `transport` |
+| Auth (Firebase ID token → app JWT) | `tripplanning-trip-service` — `com.tripplanning.auth` (`POST /api/v2/auth/firebase`) |
 | Social (Firestore) | `tripplanning-social-service` — `com.tripplanning.social` |
 | Full-text search | `tripplanning-trip-service` — `com.tripplanning.search` — **`/api/search/**`** |
 | Images (GCS) | `tripplanning-trip-service` — `com.tripplanning.images` |
@@ -49,12 +52,12 @@ Default trip-service: **`http://localhost:8080`**.
 | Security, OpenAPI | `tripplanning-trip-service` — `com.tripplanning.api.config` |
 | JSON projections | `tripplanning-trip-service` — `com.tripplanning.api.projections` |
 
-Production-like runs use **PostgreSQL**, **Flyway** in `tripplanning-trip-service/src/main/resources/db/migration`, **Elasticsearch** for Hibernate Search. **Not** the same as `local`.
+Production-like runs use **PostgreSQL**, **Flyway** in `tripplanning-trip-service/src/main/resources/db/migration` (V10–V14 Google Places), **Elasticsearch** for Hibernate Search. **Not** the same as JVM-only `local`.
 
 ## Conventions
 
 - Keep new code aligned with existing packages and Spring patterns in the correct module.
-- **Do not** turn Flyway back on for `local` without an intentional workflow change (Postgres-flavored migrations do not match ad-hoc H2).
+- **Do not** turn Flyway back on for JVM-only `local` without an intentional workflow change (Postgres-flavored migrations do not match ad-hoc H2).
 - Trip HTTP security: [`SecurityConfig.java`](tripplanning-trip-service/src/main/java/com/tripplanning/api/config/SecurityConfig.java).
 
 ## Firestore like document IDs

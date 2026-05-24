@@ -1,6 +1,6 @@
 # Trip planning backend
 
-Spring Boot 3 **microservices** for a **trip planning** course project (HTWG Cloud Application Development): REST APIs for users, trips, **Google Places–backed stops and destinations**, accommodations, transports, **full-text trip search**, **profile and trip images** (Google Cloud Storage), **comments / likes** (Firestore), and **external travel info** (weather, warnings, Viator tours, transport distance). Trip-service caches resolved places in a **`google_places`** table and enriches writes via external-info-service. Domain data lives in **PostgreSQL** with **Flyway** migrations in deployed environments (V10–V13 add Google Places columns); the SPA talks to **`/api/v2`** (Spring Data REST on trip-service) plus dedicated controllers for auth, trip feed, accommodation/transport writes, search, social features, and uploads. Typical deployment: **GKE** (ms2) with Cloud SQL, Elasticsearch, Firestore, and GCS.
+Spring Boot 3 **microservices** for a **trip planning** course project (HTWG Cloud Application Development): REST APIs for users, trips, **Google Places–backed stops and destinations**, accommodations, transports, **full-text trip search**, **profile and trip images** (Google Cloud Storage), **comments / likes** (Firestore), and **external travel info** (weather, warnings, Viator tours, transport distance). Trip-service caches resolved places in a **`google_places`** table and enriches writes via external-info-service. Domain data lives in **PostgreSQL** with **Flyway** migrations in deployed environments (V10–V14 add Google Places schema); the SPA talks to **`/api/v2`** (Spring Data REST on trip-service) plus dedicated controllers for auth, trip feed, accommodation/transport writes, search, social features, and uploads. Typical deployment: **GKE** (ms2) with Cloud SQL, Elasticsearch, Firestore, and GCS.
 
 **Sibling app:** [../frontend/README.md](../frontend/README.md) (when this repo lives in a monorepo next to `frontend/`). **Infra overview:** [../infrastructure/ms2/docs/README.md](../infrastructure/ms2/docs/README.md) (same). **Local Minikube:** [docs/gettingstarted/README.md](docs/gettingstarted/README.md). **GKE deploy:** [README-GKE.md](README-GKE.md). **Agent-oriented notes:** [AGENTS.md](AGENTS.md).
 
@@ -11,9 +11,10 @@ Spring Boot 3 **microservices** for a **trip planning** course project (HTWG Clo
 | `tripplanning-trip-service` | 8080 | Trips, Google Places stops, auth, GCS images, search, trip feed |
 | `tripplanning-social-service` | 8081 | Firestore comments / likes |
 | `tripplanning-external-info-service` | 8082 | Google Places search, weather, travel warnings, Viator tours, transport distance |
+| `tripplanning-seed-job` | — | One-shot perf seed (PostgreSQL + Firestore; see [`tripplanning-seed-job/README.md`](tripplanning-seed-job/README.md)) |
 | `tripplanning-common` | — | Shared clients and config |
 
-**Local minikube:** [docs/gettingstarted/README.md](docs/gettingstarted/README.md) · **GKE deploy:** [../infrastructure/ms2/docs/gettingstarted/README.md](../infrastructure/ms2/docs/gettingstarted/README.md)
+**Local minikube:** [docs/gettingstarted/README.md](docs/gettingstarted/README.md) · **GKE deploy:** [../infrastructure/ms2/docs/README.md](../infrastructure/ms2/docs/README.md)
 
 **Paths:** Shell commands use the **backend project root** (`pom.xml` here). In a monorepo that folder is often named `backend/` under a top-level directory; if you opened **only** the backend repository, you are already at that root. Relative paths such as `../frontend/` assume the monorepo layout—adjust or ignore if your checkout differs.
 
@@ -28,7 +29,7 @@ Spring Boot 3 **microservices** for a **trip planning** course project (HTWG Clo
 
 ### Minikube (recommended)
 
-Full stack on Kubernetes (H2, in-cluster Redis/Elasticsearch/Firestore emulator, three microservices):
+Full stack on Kubernetes (in-cluster **PostgreSQL**, Redis, Elasticsearch, Firestore emulator, three microservices):
 
 **[docs/gettingstarted/README.md](docs/gettingstarted/README.md)** · architecture: [docs/gettingstarted/STATE.md](docs/gettingstarted/STATE.md)
 
@@ -58,7 +59,7 @@ SPRING_PROFILES_ACTIVE=local mvn -pl tripplanning-trip-service spring-boot:run
 
 ## Production-like / default profile
 
-Uses **`application.yml`**: **PostgreSQL** datasource (**`SPRING_DATASOURCE_*`**), **Flyway** on (`tripplanning-trip-service/src/main/resources/db/migration`, including V10–V13 Google Places schema), Hibernate **`ddl-auto: validate`**, Hibernate Search backend **Elasticsearch** (**`ELASTICSEARCH_HOSTS`**, optional auth/path).
+Uses **`application.yml`**: **PostgreSQL** datasource (**`SPRING_DATASOURCE_*`**), **Flyway** on (`tripplanning-trip-service/src/main/resources/db/migration`, including V10–V14 Google Places schema), Hibernate **`ddl-auto: validate`**, Hibernate Search backend **Elasticsearch** (**`ELASTICSEARCH_HOSTS`**, optional auth/path).
 
 Also configure:
 
@@ -90,7 +91,7 @@ Otherwise set `-o` to the path of `doc/swagger_v2.json` in your frontend checkou
 
 | Method | Endpoint | Notes |
 |--------|----------|--------|
-| Google | **`POST /api/v2/auth/google`** | Body: `{ "credential": "<Firebase ID token>" }` → `{ tokenType, accessToken, user }` |
+| Google | **`POST /api/v2/auth/firebase`** | Body: `{ "credential": "<Firebase ID token>" }` → `{ tokenType, accessToken, user }` (deprecated alias: `/auth/google`) |
 | Current user | **`GET /api/v2/auth/me`** | Requires `Authorization: Bearer <accessToken>` |
 | Dev only | **`POST /api/v2/auth/dev-login`** | **`local` profile only**; body `{ "email", "name?" }` |
 
@@ -113,9 +114,18 @@ Set **`TRIPPLANNING_AUTH_TEST_BEARER_TOKEN`** to a shared secret on `develop` (a
 
 New like documents use a deterministic id **`{userId}_{tripId}`** so one read/delete can target the document without a field query. Older deployments may still hold legacy random ids; APIs that query by `userId` and `tripId` can still find those rows.
 
-## Seed example data
+## Seed data
 
-Realistic demo data (users, trips, stops with `googlePlaceId`, accommodations, transports, likes, comments) via the REST API. See [getting-started Places section](docs/gettingstarted/README.md#8-places--external-info-api-contract) for required write payloads:
+**Recommended (performance dataset):** after Minikube setup and GCS sample images:
+
+```bash
+./scripts/local-dev.sh sync-sample-images
+./scripts/local-dev.sh seed-job
+```
+
+See [`tripplanning-seed-job/README.md`](tripplanning-seed-job/README.md). Writes `performance/seeding_example/perf_seed_manifest.json` for Locust.
+
+**Small smoke dataset** via REST API (users, trips, stops with `googlePlaceId`, accommodations, transports, likes, comments). See [getting-started Places section](docs/gettingstarted/README.md#8-places--external-info-api-contract) for required write payloads:
 
 ```bash
 cd ../performance/seeding_example
