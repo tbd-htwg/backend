@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.tripplanning.images.TripFeedLocationImagesHelper;
+import com.tripplanning.trip.read.TripFeedDtos.TripLocationImageRead;
 import com.tripplanning.tripLocation.TripLocationRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -46,14 +47,15 @@ public class TripFeedImagesController {
     }
 
     /**
-     * Second-stage signed URLs for trip detail: keys are trip-location ids, values are image URLs for that stop.
+     * Second-stage signed image metadata for trip detail: keys are trip-location ids, values are image
+     * id + signed read URL pairs for that stop (needed for delete after reload).
      */
     @GetMapping("/{tripId}/trip-location-image-urls")
-    public Map<Long, List<String>> tripLocationImageUrls(@PathVariable Long tripId) {
+    public Map<Long, List<TripLocationImageRead>> tripLocationImageUrls(@PathVariable Long tripId) {
         if (!tripRepository.existsById(tripId)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Trip not found");
         }
-        return tripFeedLocationImagesHelper.collectSignedUrlsByTripLocationId(
+        return tripFeedLocationImagesHelper.collectSignedImagesByTripLocationId(
                 tripLocationRepository.findAllByTripIdWithImages(tripId));
     }
 }

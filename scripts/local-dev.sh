@@ -16,7 +16,9 @@
 #   delete        minikube delete + clean .local-dev/pids
 #   deploy        Build images in minikube Docker, kubectl apply
 #   verify        Pod health + actuator smoke checks (§6)
-#   setup-gcs     Apply GCS images-bucket CORS for browser uploads (§10)
+#   setup-gcs     Apply GCS images-bucket CORS for browser uploads (§11)
+#   setup-gcs-iam One-time signer SA + bucket IAM + user impersonation (tbd-cloudappdev)
+#   sync-sample-images  Rsync _sample_images/ → gs://…/sample/ (manual; not part of deploy)
 #   status        Mode, context, pods
 #   port-forward  Forward ingress :8080 (API gateway) or per-service ports for debugging
 #   logs [svc]    Tail deployment logs (trip-service|social-service|external-info-service)
@@ -64,7 +66,7 @@ if [[ -f "${MS2_GETTINGSTARTED}/.env" ]]; then
   set +a
 fi
 
-GOOGLE_PROJECT="${GOOGLE_PROJECT:-milestone2-tbd-cad}"
+GOOGLE_PROJECT="${GOOGLE_PROJECT:-tbd-cloudappdev}"
 GOOGLE_REGION="${GOOGLE_REGION:-europe-west1}"
 GKE_CLUSTER="${GKE_CLUSTER:-tripplanning-gke}"
 JWT_SECRET="${JWT_SECRET:-local-dev-only-change-me-32bytes-min!!}"
@@ -72,9 +74,11 @@ INTERNAL_SECRET="${INTERNAL_SECRET:-dev-internal-service-secret}"
 VIATOR_API_KEY="${VIATOR_API_KEY:-}"
 GOOGLE_MAPS_API_KEY="${GOOGLE_MAPS_API_KEY:-}"
 TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID="${TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID:-${GOOGLE_PROJECT}}"
-GCP_STORAGE_BUCKET_NAME="${GCP_STORAGE_BUCKET_NAME:-${GOOGLE_PROJECT}-images-bucket}"
+GCP_STORAGE_BUCKET_NAME="${GCP_STORAGE_BUCKET_NAME:-tbd-test}"
 GCP_IMPERSONATE_SERVICE_ACCOUNT="${GCP_IMPERSONATE_SERVICE_ACCOUNT:-tripplanning-image-url-sig@${GOOGLE_PROJECT}.iam.gserviceaccount.com}"
 ADC_FILE="${ADC_FILE:-${HOME}/.config/gcloud/application_default_credentials.json}"
+# Opt-in only: deploy/setup do not rsync _sample_images/ (~2.8 GiB) unless SYNC_SAMPLE_IMAGES=true
+SYNC_SAMPLE_IMAGES="${SYNC_SAMPLE_IMAGES:-false}"
 
 firestore_emulator_host_port() {
   if [[ "${USE_HOST_FIRESTORE_EMULATOR}" == "true" ]]; then
@@ -257,15 +261,27 @@ cmd_setup_gcs() {
     echo "ERROR: ADC required. Run: gcloud auth application-default login"
     exit 1
   fi
+  gcloud config set project "${GOOGLE_PROJECT}" >/dev/null
   echo "== GCS images bucket CORS (browser PUT to signed URLs) =="
   echo "   Bucket: gs://${GCP_STORAGE_BUCKET_NAME}"
   gsutil cors set "${cors_file}" "gs://${GCP_STORAGE_BUCKET_NAME}"
   echo ""
-  echo "Ensure your Google user can impersonate the signer SA (one-time, if uploads fail with signBlob/impersonation errors):"
-  echo "  gcloud iam service-accounts add-iam-policy-binding ${GCP_IMPERSONATE_SERVICE_ACCOUNT} \\"
-  echo "    --member=\"user:\$(gcloud config get-value account)\" \\"
-  echo "    --role=\"roles/iam.serviceAccountTokenCreator\" \\"
-  echo "    --project=\"${GOOGLE_PROJECT}\""
+  echo "If uploads fail with signBlob/impersonation errors, run once:"
+  echo "  ./scripts/local-dev.sh setup-gcs-iam"
+}
+
+cmd_setup_gcs_iam() {
+  "${SCRIPT_DIR}/setup-gcs-dev-iam.sh"
+}
+
+maybe_sync_sample_images() {
+  if [[ "${SYNC_SAMPLE_IMAGES}" == "true" || "${SYNC_SAMPLE_IMAGES}" == "1" ]]; then
+    cmd_sync_sample_images
+  fi
+}
+
+cmd_sync_sample_images() {
+  "${SCRIPT_DIR}/sync-sample-images.sh"
 }
 
 stop_host_firestore_emulator() {
@@ -380,6 +396,7 @@ cmd_deploy() {
   (cd "${BACKEND_DIR}" && docker build --build-arg SERVICE=social --build-arg CACHEBUST="${cachebust}" -t "tripplanning-social-service:${IMAGE_TAG}" .)
   (cd "${BACKEND_DIR}" && docker build --build-arg SERVICE=external-info --build-arg CACHEBUST="${cachebust}" -t "tripplanning-external-info-service:${IMAGE_TAG}" .)
   sync_gcp_adc_secret
+  maybe_sync_sample_images
 
   render_local_manifests
 
@@ -427,7 +444,8 @@ cmd_setup() {
   echo "  Guide: ${LOCAL_GETTINGSTARTED}/README.md"
   echo "  ./scripts/local-dev.sh port-forward   # ingress → localhost:8080"
   echo "  Frontend: cd ../frontend && npm run dev:minikube"
-  echo "  Image uploads: ./scripts/local-dev.sh setup-gcs  (once, after ADC login)"
+  echo "  Image uploads: ./scripts/local-dev.sh setup-gcs-iam && setup-gcs  (once, after ADC login)"
+  echo "  Sample images: ./scripts/local-dev.sh sync-sample-images  (optional; skipped on deploy by default)"
   echo "  Return to GKE: ./scripts/local-dev.sh use-gke"
 }
 
@@ -492,7 +510,7 @@ cmd_logs() {
 }
 
 usage() {
-  sed -n '6,22p' "$0" | sed 's/^# \{0,1\}//'
+  sed -n '6,23p' "$0" | sed 's/^# \{0,1\}//'
 }
 
 main() {
@@ -500,6 +518,7 @@ main() {
   shift || true
   case "${cmd}" in
     use-gke) cmd_use_gke ;;
+    sync-sample-images) cmd_sync_sample_images ;;
     help|-h|--help) usage ;;
     *)
       ensure_local_kubectl_target
@@ -512,6 +531,7 @@ main() {
         deploy) cmd_deploy ;;
         verify) cmd_verify "$@" ;;
         setup-gcs|bucket-cors) cmd_setup_gcs ;;
+        setup-gcs-iam) cmd_setup_gcs_iam ;;
         status) cmd_status ;;
         port-forward) cmd_port_forward ;;
         logs) cmd_logs "$@" ;;

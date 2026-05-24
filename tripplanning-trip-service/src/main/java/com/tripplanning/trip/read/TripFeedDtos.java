@@ -58,6 +58,9 @@ public final class TripFeedDtos {
             String formattedAddress,
             List<String> imageUrls) {}
 
+    /** Authenticated trip-detail second stage: persisted image id plus signed read URL. */
+    public record TripLocationImageRead(long id, String signedReadUrl) {}
+
     public record TripFeedAccommodation(
             long id,
             String type,
