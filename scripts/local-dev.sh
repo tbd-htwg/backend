@@ -14,9 +14,12 @@
 #   start         use-local + deploy
 #   stop          Stop host emulator (if used) and minikube
 #   delete        minikube delete + clean .local-dev/pids
-#   deploy        Build images in minikube Docker, kubectl apply
+#   deploy        Build images in minikube Docker, helm upgrade --install
 #   verify        Pod health + actuator smoke checks (§6)
-#   setup-gcs     Apply GCS images-bucket CORS for browser uploads (§10)
+#   setup-gcs     Apply GCS images-bucket CORS for browser uploads (§11)
+#   setup-gcs-iam One-time signer SA + bucket IAM + user impersonation (tbd-cloudappdev)
+#   sync-sample-images  Rsync _sample_images/ → gs://…/sample/ (manual; not part of deploy)
+#   seed-job            Wipe PostgreSQL + Firestore, run tripplanning-seed-job, write perf_seed_manifest.json
 #   status        Mode, context, pods
 #   port-forward  Forward ingress :8080 (API gateway) or per-service ports for debugging
 #   logs [svc]    Tail deployment logs (trip-service|social-service|external-info-service)
@@ -64,7 +67,7 @@ if [[ -f "${MS2_GETTINGSTARTED}/.env" ]]; then
   set +a
 fi
 
-GOOGLE_PROJECT="${GOOGLE_PROJECT:-milestone2-tbd-cad}"
+GOOGLE_PROJECT="${GOOGLE_PROJECT:-tbd-cloudappdev}"
 GOOGLE_REGION="${GOOGLE_REGION:-europe-west1}"
 GKE_CLUSTER="${GKE_CLUSTER:-tripplanning-gke}"
 JWT_SECRET="${JWT_SECRET:-local-dev-only-change-me-32bytes-min!!}"
@@ -72,9 +75,11 @@ INTERNAL_SECRET="${INTERNAL_SECRET:-dev-internal-service-secret}"
 VIATOR_API_KEY="${VIATOR_API_KEY:-}"
 GOOGLE_MAPS_API_KEY="${GOOGLE_MAPS_API_KEY:-}"
 TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID="${TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID:-${GOOGLE_PROJECT}}"
-GCP_STORAGE_BUCKET_NAME="${GCP_STORAGE_BUCKET_NAME:-${GOOGLE_PROJECT}-images-bucket}"
+GCP_STORAGE_BUCKET_NAME="${GCP_STORAGE_BUCKET_NAME:-tbd-test}"
 GCP_IMPERSONATE_SERVICE_ACCOUNT="${GCP_IMPERSONATE_SERVICE_ACCOUNT:-tripplanning-image-url-sig@${GOOGLE_PROJECT}.iam.gserviceaccount.com}"
 ADC_FILE="${ADC_FILE:-${HOME}/.config/gcloud/application_default_credentials.json}"
+# Opt-in only: deploy/setup do not rsync _sample_images/ (~2.8 GiB) unless SYNC_SAMPLE_IMAGES=true
+SYNC_SAMPLE_IMAGES="${SYNC_SAMPLE_IMAGES:-false}"
 
 firestore_emulator_host_port() {
   if [[ "${USE_HOST_FIRESTORE_EMULATOR}" == "true" ]]; then
@@ -257,15 +262,27 @@ cmd_setup_gcs() {
     echo "ERROR: ADC required. Run: gcloud auth application-default login"
     exit 1
   fi
+  gcloud config set project "${GOOGLE_PROJECT}" >/dev/null
   echo "== GCS images bucket CORS (browser PUT to signed URLs) =="
   echo "   Bucket: gs://${GCP_STORAGE_BUCKET_NAME}"
   gsutil cors set "${cors_file}" "gs://${GCP_STORAGE_BUCKET_NAME}"
   echo ""
-  echo "Ensure your Google user can impersonate the signer SA (one-time, if uploads fail with signBlob/impersonation errors):"
-  echo "  gcloud iam service-accounts add-iam-policy-binding ${GCP_IMPERSONATE_SERVICE_ACCOUNT} \\"
-  echo "    --member=\"user:\$(gcloud config get-value account)\" \\"
-  echo "    --role=\"roles/iam.serviceAccountTokenCreator\" \\"
-  echo "    --project=\"${GOOGLE_PROJECT}\""
+  echo "If uploads fail with signBlob/impersonation errors, run once:"
+  echo "  ./scripts/local-dev.sh setup-gcs-iam"
+}
+
+cmd_setup_gcs_iam() {
+  "${SCRIPT_DIR}/setup-gcs-dev-iam.sh"
+}
+
+maybe_sync_sample_images() {
+  if [[ "${SYNC_SAMPLE_IMAGES}" == "true" || "${SYNC_SAMPLE_IMAGES}" == "1" ]]; then
+    cmd_sync_sample_images
+  fi
+}
+
+cmd_sync_sample_images() {
+  "${SCRIPT_DIR}/sync-sample-images.sh"
 }
 
 stop_host_firestore_emulator() {
@@ -289,7 +306,12 @@ apply_local_configmaps() {
   kubectl get namespace "${NS}" >/dev/null 2>&1 || kubectl create namespace "${NS}"
   kubectl create configmap trip-service-config \
     --namespace="${NS}" \
-    --from-literal=SPRING_PROFILES_ACTIVE=local,k8s \
+    --from-literal=SPRING_PROFILES_ACTIVE=local,k8s,postgres \
+    --from-literal=POSTGRES_HOST=postgres \
+    --from-literal=POSTGRES_PORT=5432 \
+    --from-literal=POSTGRES_DB=tripplanning \
+    --from-literal=POSTGRES_USER=tripplanning \
+    --from-literal=POSTGRES_PASSWORD=tripplanning \
     --from-literal=TRIPPLANNING_SOCIAL_SERVICE_URL="http://social-service.tripplanning.svc.cluster.local:8081" \
     --from-literal=TRIPPLANNING_EXTERNAL_INFO_SERVICE_URL="http://external-info-service.tripplanning.svc.cluster.local:8082" \
     --from-literal=TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID="${TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID}" \
@@ -351,11 +373,18 @@ apply_local_secrets() {
 render_local_manifests() {
   require_cmd helm
   mkdir -p "$(dirname "${K8S_RENDERED}")"
+  echo "== helm template (k8s/local/chart) → ${K8S_RENDERED} =="
+  helm_local_template_args >"${K8S_RENDERED}"
+}
+
+# Shared helm args for template / upgrade (values + dynamic env from .env).
+helm_local_template_args() {
   local firestore_enabled="true"
   if [[ "${USE_HOST_FIRESTORE_EMULATOR}" == "true" ]]; then
     firestore_enabled="false"
   fi
-  echo "== helm template (k8s/local/chart) =="
+  local fse_host
+  fse_host="$(firestore_emulator_host_port)"
   helm template tripplanning "${K8S_CHART}" \
     -f "${K8S_CHART}/values.yaml" \
     -f "${K8S_CHART}/values-local.yaml" \
@@ -364,14 +393,104 @@ render_local_manifests() {
     --set services.social.image.tag="${IMAGE_TAG}" \
     --set services.externalInfo.image.tag="${IMAGE_TAG}" \
     --set firestoreEmulator.enabled="${firestore_enabled}" \
-    >"${K8S_RENDERED}"
+    --set services.trip.env.TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID="${TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID}" \
+    --set services.trip.env.GCP_STORAGE_BUCKET_NAME="${GCP_STORAGE_BUCKET_NAME}" \
+    --set services.trip.env.GCP_IMPERSONATE_SERVICE_ACCOUNT="${GCP_IMPERSONATE_SERVICE_ACCOUNT}" \
+    --set services.social.env.SPRING_CLOUD_GCP_FIRESTORE_HOST_PORT="${fse_host}" \
+    --set services.social.env.SPRING_CLOUD_GCP_FIRESTORE_EMULATOR_ENABLED=true \
+    --set services.social.env.GOOGLE_CLOUD_PROJECT="${TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID}" \
+    --set services.social.env.TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID="${TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID}" \
+    "$@"
+}
+
+helm_upgrade_local() {
+  require_cmd helm
+  kubectl get namespace "${NS}" >/dev/null 2>&1 || kubectl create namespace "${NS}"
+  local firestore_enabled="true"
+  if [[ "${USE_HOST_FIRESTORE_EMULATOR}" == "true" ]]; then
+    firestore_enabled="false"
+  fi
+  local fse_host
+  fse_host="$(firestore_emulator_host_port)"
+  echo "== helm upgrade --install tripplanning (k8s/local/chart) =="
+  # --take-ownership: adopt resources previously applied via kubectl apply / helm template.
+  helm upgrade --install tripplanning "${K8S_CHART}" \
+    -n "${NS}" \
+    --create-namespace \
+    --take-ownership \
+    -f "${K8S_CHART}/values.yaml" \
+    -f "${K8S_CHART}/values-local.yaml" \
+    --set services.trip.image.tag="${IMAGE_TAG}" \
+    --set services.social.image.tag="${IMAGE_TAG}" \
+    --set services.externalInfo.image.tag="${IMAGE_TAG}" \
+    --set firestoreEmulator.enabled="${firestore_enabled}" \
+    --set services.trip.env.TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID="${TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID}" \
+    --set services.trip.env.GCP_STORAGE_BUCKET_NAME="${GCP_STORAGE_BUCKET_NAME}" \
+    --set services.trip.env.GCP_IMPERSONATE_SERVICE_ACCOUNT="${GCP_IMPERSONATE_SERVICE_ACCOUNT}" \
+    --set services.social.env.SPRING_CLOUD_GCP_FIRESTORE_HOST_PORT="${fse_host}" \
+    --set services.social.env.SPRING_CLOUD_GCP_FIRESTORE_EMULATOR_ENABLED=true \
+    --set services.social.env.GOOGLE_CLOUD_PROJECT="${TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID}" \
+    --set services.social.env.TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID="${TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID}" \
+    "$@"
+}
+
+cmd_seed_job() {
+  require_cmd mvn docker helm kubectl
+  ensure_local_kubectl_target
+  apply_local_secrets
+  echo "== Maven package (seed-job) =="
+  (cd "${BACKEND_DIR}" && mvn -q -pl tripplanning-seed-job -am package -DskipTests)
+  echo "== Docker build seed-job =="
+  eval "$(minikube docker-env)"
+  local cachebust
+  cachebust="$(date +%s)"
+  (cd "${BACKEND_DIR}" && docker build --build-arg SERVICE=seed-job --build-arg CACHEBUST="${cachebust}" -t "tripplanning-seed-job:${IMAGE_TAG}" .)
+
+  local fse_host
+  fse_host="$(firestore_emulator_host_port)"
+  echo "== helm upgrade (postgres + apps) =="
+  helm_upgrade_local --set backingServices.postgres.enabled=true
+
+  # Job spec.template is immutable — remove any previous run, then apply a fresh Job manifest.
+  echo "== Remove previous seed job (if any) =="
+  kubectl delete job tripplanning-seed-job -n "${NS}" --ignore-not-found=true --wait=true 2>/dev/null \
+    || kubectl delete job tripplanning-seed-job -n "${NS}" --ignore-not-found=true
+
+  echo "== Apply seed job manifest =="
+  helm_local_template_args \
+    --set backingServices.postgres.enabled=true \
+    --set seedJob.enabled=true \
+    --set seedJob.image.tag="${IMAGE_TAG}" \
+    --set seedJob.firestoreHostPort="${fse_host}" \
+    | kubectl apply -n "${NS}" -f -
+
+  echo "Waiting for postgres..."
+  kubectl rollout status statefulset/postgres -n "${NS}" --timeout=300s || true
+  kubectl wait --for=condition=ready pod -l app.kubernetes.io/component=postgres -n "${NS}" --timeout=300s || true
+
+  echo "Restart trip/social to pick up postgres + config..."
+  kubectl rollout restart deployment/trip-service deployment/social-service -n "${NS}" || true
+  kubectl rollout status deployment/trip-service -n "${NS}" --timeout=600s || true
+
+  echo "== Waiting for seed job =="
+  kubectl wait --for=condition=complete job/tripplanning-seed-job -n "${NS}" --timeout=3600s
+  local pod
+  pod="$(kubectl get pods -n "${NS}" -l job-name=tripplanning-seed-job -o jsonpath='{.items[0].metadata.name}')"
+  kubectl logs -n "${NS}" "${pod}" --tail=80
+  local manifest_dest="${REPO_ROOT}/performance/seeding_example/perf_seed_manifest.json"
+  kubectl cp "${NS}/${pod}:/tmp/perf_seed_manifest.json" "${manifest_dest}"
+  echo "Copied manifest to ${manifest_dest}"
+
+  echo "Restart trip/social after seed (search index + DB connections)..."
+  kubectl rollout restart deployment/trip-service deployment/social-service -n "${NS}" || true
+  kubectl rollout status deployment/trip-service -n "${NS}" --timeout=600s || true
 }
 
 cmd_deploy() {
   require_cmd mvn docker helm
   apply_local_secrets
   echo "== Maven package =="
-  (cd "${BACKEND_DIR}" && mvn -q -pl tripplanning-trip-service,tripplanning-social-service,tripplanning-external-info-service -am package -DskipTests)
+  (cd "${BACKEND_DIR}" && mvn -q -pl tripplanning-trip-service,tripplanning-social-service,tripplanning-external-info-service,tripplanning-seed-job -am package -DskipTests)
   echo "== Docker build (minikube daemon) =="
   eval "$(minikube docker-env)"
   local cachebust
@@ -379,14 +498,13 @@ cmd_deploy() {
   (cd "${BACKEND_DIR}" && docker build --build-arg SERVICE=trip --build-arg CACHEBUST="${cachebust}" -t "tripplanning-trip-service:${IMAGE_TAG}" .)
   (cd "${BACKEND_DIR}" && docker build --build-arg SERVICE=social --build-arg CACHEBUST="${cachebust}" -t "tripplanning-social-service:${IMAGE_TAG}" .)
   (cd "${BACKEND_DIR}" && docker build --build-arg SERVICE=external-info --build-arg CACHEBUST="${cachebust}" -t "tripplanning-external-info-service:${IMAGE_TAG}" .)
+  (cd "${BACKEND_DIR}" && docker build --build-arg SERVICE=seed-job --build-arg CACHEBUST="${cachebust}" -t "tripplanning-seed-job:${IMAGE_TAG}" .)
   sync_gcp_adc_secret
+  maybe_sync_sample_images
+
+  helm_upgrade_local
 
   render_local_manifests
-
-  echo "== kubectl apply (rendered manifests) =="
-  kubectl apply -n "${NS}" -f "${K8S_RENDERED}"
-
-  apply_local_configmaps
 
   echo "== restart app deployments (pick up rebuilt :${IMAGE_TAG} images) =="
   kubectl rollout restart deployment/trip-service deployment/social-service deployment/external-info-service -n "${NS}"
@@ -427,7 +545,9 @@ cmd_setup() {
   echo "  Guide: ${LOCAL_GETTINGSTARTED}/README.md"
   echo "  ./scripts/local-dev.sh port-forward   # ingress → localhost:8080"
   echo "  Frontend: cd ../frontend && npm run dev:minikube"
-  echo "  Image uploads: ./scripts/local-dev.sh setup-gcs  (once, after ADC login)"
+  echo "  Image uploads: ./scripts/local-dev.sh setup-gcs-iam && setup-gcs  (once, after ADC login)"
+  echo "  Sample images: ./scripts/local-dev.sh sync-sample-images  (optional; skipped on deploy by default)"
+  echo "  Perf dataset:    ./scripts/local-dev.sh seed-job  (PostgreSQL + Firestore; needs sync-sample-images first)"
   echo "  Return to GKE: ./scripts/local-dev.sh use-gke"
 }
 
@@ -492,7 +612,7 @@ cmd_logs() {
 }
 
 usage() {
-  sed -n '6,22p' "$0" | sed 's/^# \{0,1\}//'
+  sed -n '6,23p' "$0" | sed 's/^# \{0,1\}//'
 }
 
 main() {
@@ -500,6 +620,8 @@ main() {
   shift || true
   case "${cmd}" in
     use-gke) cmd_use_gke ;;
+    sync-sample-images) cmd_sync_sample_images ;;
+    seed-job) cmd_seed_job ;;
     help|-h|--help) usage ;;
     *)
       ensure_local_kubectl_target
@@ -512,6 +634,7 @@ main() {
         deploy) cmd_deploy ;;
         verify) cmd_verify "$@" ;;
         setup-gcs|bucket-cors) cmd_setup_gcs ;;
+        setup-gcs-iam) cmd_setup_gcs_iam ;;
         status) cmd_status ;;
         port-forward) cmd_port_forward ;;
         logs) cmd_logs "$@" ;;

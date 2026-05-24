@@ -9,6 +9,7 @@ import java.util.Map;
 import org.springframework.stereotype.Component;
 
 import com.tripplanning.trip.TripEntity;
+import com.tripplanning.trip.read.TripFeedDtos.TripLocationImageRead;
 import com.tripplanning.tripLocation.TripLocationEntity;
 import com.tripplanning.tripLocation.TripLocationImageEntity;
 
@@ -43,8 +44,9 @@ public class TripFeedLocationImagesHelper {
     }
 
     /** Signed GET URLs per trip-location id (trip detail second stage). */
-    public Map<Long, List<String>> collectSignedUrlsByTripLocationId(List<TripLocationEntity> stops) {
-        Map<Long, List<String>> out = new LinkedHashMap<>();
+    public Map<Long, List<TripLocationImageRead>> collectSignedImagesByTripLocationId(
+            List<TripLocationEntity> stops) {
+        Map<Long, List<TripLocationImageRead>> out = new LinkedHashMap<>();
         if (stops == null) {
             return out;
         }
@@ -52,18 +54,18 @@ public class TripFeedLocationImagesHelper {
                 .sorted(Comparator.comparing(TripLocationEntity::getId))
                 .forEach(
                         tl -> {
-                            List<String> urls = new ArrayList<>();
+                            List<TripLocationImageRead> images = new ArrayList<>();
                             if (tl.getImages() != null) {
                                 for (TripLocationImageEntity img : tl.getImages()) {
                                     String url =
                                             imageService.createSignedReadUrlIfAuthenticated(
                                                     img.getImagePath());
                                     if (url != null && !url.isBlank()) {
-                                        urls.add(url);
+                                        images.add(new TripLocationImageRead(img.getId(), url));
                                     }
                                 }
                             }
-                            out.put(tl.getId(), urls);
+                            out.put(tl.getId(), images);
                         });
         return out;
     }

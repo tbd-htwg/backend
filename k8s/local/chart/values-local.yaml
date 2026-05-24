@@ -1,4 +1,8 @@
 # Minikube overrides — merged by scripts/local-dev.sh (helm template -f values.yaml -f values-local.yaml).
+backingServices:
+  postgres:
+    enabled: true
+
 services:
   trip:
     name: trip-service
@@ -15,7 +19,12 @@ services:
         cpu: "2000m"
         memory: "1536Mi"
     env:
-      SPRING_PROFILES_ACTIVE: "local,k8s"
+      SPRING_PROFILES_ACTIVE: "local,k8s,postgres"
+      POSTGRES_HOST: "postgres"
+      POSTGRES_PORT: "5432"
+      POSTGRES_DB: "tripplanning"
+      POSTGRES_USER: "tripplanning"
+      POSTGRES_PASSWORD: "tripplanning"
       ELASTICSEARCH_PROTOCOL: "http"
       ELASTICSEARCH_HOSTS: "elasticsearch:9200"
       TRIPPLANNING_SEARCH_ELASTICSEARCH_INDEX_NAME: "tripentity-local"

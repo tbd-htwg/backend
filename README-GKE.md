@@ -1,6 +1,6 @@
 # Backend microservices (GKE)
 
-**GKE / Terraform platform:** [infrastructure/ms2/docs/gettingstarted/README.md](../infrastructure/ms2/docs/gettingstarted/README.md) — includes **Identity / Firebase** for `POST /api/v2/auth/google`.
+**GKE / Terraform platform:** [infrastructure/ms2/docs/README.md](../infrastructure/ms2/docs/README.md) · [Terraform dev env](../infrastructure/ms2/terraform/envs/dev/README.md) — includes **Identity / Firebase** for `POST /api/v2/auth/firebase`.
 
 **Local Minikube (canonical):** [docs/gettingstarted/README.md](docs/gettingstarted/README.md) · [STATE.md](docs/gettingstarted/STATE.md)
 
@@ -9,9 +9,12 @@ Maven multi-module layout:
 | Module | Artifact | Port (local) |
 |--------|----------|----------------|
 | `tripplanning-common` | shared clients, auth properties | — |
-| `tripplanning-trip-service` | Cloud SQL, search, GCS, auth | 8080 |
+| `tripplanning-trip-service` | Cloud SQL / Postgres, search, GCS, auth | 8080 |
 | `tripplanning-social-service` | Firestore likes/comments | 8081 |
-| `tripplanning-external-info-service` | Weather, travel warnings, geocoding, tours | 8082 |
+| `tripplanning-external-info-service` | Google Places, weather, travel warnings, Viator tours, transport distance | 8082 |
+| `tripplanning-seed-job` | One-shot perf seed (PostgreSQL + Firestore) | — |
+
+> Ignore repo-root `external-info-service/` — the supported module is `backend/tripplanning-external-info-service`.
 
 ## Build
 
@@ -19,6 +22,7 @@ Maven multi-module layout:
 mvn -pl tripplanning-trip-service -am package
 mvn -pl tripplanning-social-service -am package
 mvn -pl tripplanning-external-info-service -am package
+mvn -pl tripplanning-seed-job -am package
 ```
 
 ## Docker
@@ -27,6 +31,7 @@ mvn -pl tripplanning-external-info-service -am package
 docker build --build-arg SERVICE=trip -t tripplanning-trip-service ./backend
 docker build --build-arg SERVICE=social -t tripplanning-social-service ./backend
 docker build --build-arg SERVICE=external-info -t tripplanning-external-info-service ./backend
+docker build --build-arg SERVICE=seed-job -t tripplanning-seed-job ./backend
 ```
 
 ## Local development
@@ -42,20 +47,20 @@ cp docs/gettingstarted/.env.example docs/gettingstarted/.env   # JWT_SECRET ≥ 
 ./scripts/local-dev.sh port-forward
 ```
 
-Uses H2 (trip), in-cluster **Redis**, **Elasticsearch**, **Firestore emulator**, and **GCP Identity Platform** + **GCS** (optional Google sign-in and image uploads). Prerequisites:
+Uses in-cluster **PostgreSQL** (trip), **Redis**, **Elasticsearch**, **Firestore emulator**, and **GCP Identity Platform** + **GCS** (optional Google sign-in and image uploads). Prerequisites:
 
 ```bash
 gcloud auth application-default login
-gcloud auth application-default set-quota-project milestone2-tbd-cad
+gcloud auth application-default set-quota-project tbd-cloudappdev
 kubectl version --client
 ```
 
-Deploy to GKE (`dev-lifecycle.sh` sets the GKE kubectl context automatically):
+Deploy to GKE:
 
 ```bash
 ./scripts/local-dev.sh use-gke
-cd ../infrastructure/ms2/docs/gettingstarted
-./dev-lifecycle.sh deploy
+cd ../infrastructure/ms2/terraform/envs/dev
+# follow Terraform / GitOps deploy for your environment
 ```
 
 ### Option B — plain JVM (no Kubernetes)
@@ -71,10 +76,10 @@ cd ../infrastructure/ms2/docs/gettingstarted
 
 - Trip: `HEAD /internal/trips/{id}`, `GET /internal/users?ids=`, `POST /internal/cache/trips/liked-by/evict`
 - Social: `GET /internal/users/{userId}/liked-trip-ids`
-- External-info (cluster-internal): `GET /api/v1/details`, `GET /api/v1/details/search`
+- External-info: `GET /internal/location-pack?placeId=&fresh=` (trip-service enrichment); public routes at `/api/v2/external/**`
 
-Trip-service exposes a gateway: `GET /api/v2/external/details` and `GET /api/v2/trip-locations/{id}/details`.
+Trip-service also exposes: `GET /api/v2/trip-locations/{id}/details` (proxy to external-info for one stop).
 
 Optional header `X-Internal-Secret` when `TRIPPLANNING_INTERNAL_SECRET` is set.
 
-**Host `temp/` directory:** When running trip-service with the `local` profile via Maven (Option B), H2 and Lucene files land under `temp/db/` and `temp/search/` at the backend root. These paths are gitignored except `.gitkeep`; delete runtime files anytime to reset local DB/search state. Minikube uses in-pod `emptyDir` instead.
+**Host `temp/` directory:** When running trip-service with the `local` profile via Maven (Option B), H2 and Lucene files land under `temp/db/` and `temp/search/` at the backend root. These paths are gitignored except `.gitkeep`; delete runtime files anytime to reset local DB/search state. Minikube uses in-cluster **PostgreSQL** instead.

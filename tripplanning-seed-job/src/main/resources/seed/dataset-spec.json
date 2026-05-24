@@ -1,0 +1,15 @@
+{
+  "totalUsers": 5000,
+  "totalTrips": 15000,
+  "tripsPerUserMin": 1,
+  "tripsPerUserMax": 10,
+  "socialTripFraction": 0.5,
+  "minCommentsPerUser": 1,
+  "minLikesPerUser": 1,
+  "tripLocationsPerTrip": 2,
+  "accommodationsPerTrip": 1,
+  "transportsPerTrip": 1,
+  "imagePathsPerStopMin": 1,
+  "imagePathsPerStopMax": 3,
+  "gcsImagePrefix": "sample"
+}

@@ -1,6 +1,6 @@
 # Trip planning backend
 
-Spring Boot 3 **microservices** for a **trip planning** course project (HTWG Cloud Application Development): REST APIs for users, trips, locations, accommodations, transports, **full-text trip search**, **profile and trip images** (Google Cloud Storage), **comments / likes** (Firestore), and **external travel info**. Domain data lives in **PostgreSQL** with **Flyway** migrations in deployed environments; the SPA talks to **`/api/v2`** (Spring Data REST on trip-service) plus dedicated controllers for auth, search, social features, and uploads. Typical deployment: **GKE** (ms2) with Cloud SQL, Elasticsearch, Firestore, and GCS.
+Spring Boot 3 **microservices** for a **trip planning** course project (HTWG Cloud Application Development): REST APIs for users, trips, **Google Places–backed stops and destinations**, accommodations, transports, **full-text trip search**, **profile and trip images** (Google Cloud Storage), **comments / likes** (Firestore), and **external travel info** (weather, warnings, Viator tours, transport distance). Trip-service caches resolved places in a **`google_places`** table and enriches writes via external-info-service. Domain data lives in **PostgreSQL** with **Flyway** migrations in deployed environments (V10–V14 add Google Places schema); the SPA talks to **`/api/v2`** (Spring Data REST on trip-service) plus dedicated controllers for auth, trip feed, accommodation/transport writes, search, social features, and uploads. Typical deployment: **GKE** (ms2) with Cloud SQL, Elasticsearch, Firestore, and GCS.
 
 **Sibling app:** [../frontend/README.md](../frontend/README.md) (when this repo lives in a monorepo next to `frontend/`). **Infra overview:** [../infrastructure/ms2/docs/README.md](../infrastructure/ms2/docs/README.md) (same). **Local Minikube:** [docs/gettingstarted/README.md](docs/gettingstarted/README.md). **GKE deploy:** [README-GKE.md](README-GKE.md). **Agent-oriented notes:** [AGENTS.md](AGENTS.md).
 
@@ -8,12 +8,13 @@ Spring Boot 3 **microservices** for a **trip planning** course project (HTWG Clo
 
 | Module | Port (local) | Role |
 |--------|----------------|------|
-| `tripplanning-trip-service` | 8080 | Trips, locations, auth, GCS images, search |
+| `tripplanning-trip-service` | 8080 | Trips, Google Places stops, auth, GCS images, search, trip feed |
 | `tripplanning-social-service` | 8081 | Firestore comments / likes |
-| `tripplanning-external-info-service` | 8082 | Weather, travel warnings, geocoding, Viator tours |
+| `tripplanning-external-info-service` | 8082 | Google Places search, weather, travel warnings, Viator tours, transport distance |
+| `tripplanning-seed-job` | — | One-shot perf seed (PostgreSQL + Firestore; see [`tripplanning-seed-job/README.md`](tripplanning-seed-job/README.md)) |
 | `tripplanning-common` | — | Shared clients and config |
 
-**Local minikube:** [docs/gettingstarted/README.md](docs/gettingstarted/README.md) · **GKE deploy:** [../infrastructure/ms2/docs/gettingstarted/README.md](../infrastructure/ms2/docs/gettingstarted/README.md)
+**Local minikube:** [docs/gettingstarted/README.md](docs/gettingstarted/README.md) · **GKE deploy:** [../infrastructure/ms2/docs/README.md](../infrastructure/ms2/docs/README.md)
 
 **Paths:** Shell commands use the **backend project root** (`pom.xml` here). In a monorepo that folder is often named `backend/` under a top-level directory; if you opened **only** the backend repository, you are already at that root. Relative paths such as `../frontend/` assume the monorepo layout—adjust or ignore if your checkout differs.
 
@@ -28,7 +29,7 @@ Spring Boot 3 **microservices** for a **trip planning** course project (HTWG Clo
 
 ### Minikube (recommended)
 
-Full stack on Kubernetes (H2, in-cluster Redis/Elasticsearch/Firestore emulator, three microservices):
+Full stack on Kubernetes (in-cluster **PostgreSQL**, Redis, Elasticsearch, Firestore emulator, three microservices):
 
 **[docs/gettingstarted/README.md](docs/gettingstarted/README.md)** · architecture: [docs/gettingstarted/STATE.md](docs/gettingstarted/STATE.md)
 
@@ -39,7 +40,9 @@ cp docs/gettingstarted/.env.example docs/gettingstarted/.env
 ./scripts/local-dev.sh port-forward
 ```
 
-[`scripts/local-dev.sh`](scripts/local-dev.sh) loads env in order: **`docs/gettingstarted/.env`** → **`backend/.env.local`** (optional) → **`infrastructure/ms2/docs/gettingstarted/.env`** (optional, monorepo). See [`.env.example`](docs/gettingstarted/.env.example) for `JWT_SECRET`, GCS bucket/signer, and optional `VIATOR_API_KEY`. Both `.env` files are gitignored.
+[`scripts/local-dev.sh`](scripts/local-dev.sh) loads env in order: **`docs/gettingstarted/.env`** → **`backend/.env.local`** (optional) → **`infrastructure/ms2/docs/gettingstarted/.env`** (optional, monorepo). See [`.env.example`](docs/gettingstarted/.env.example) for `JWT_SECRET`, **`GOOGLE_MAPS_API_KEY`** (Places API New), GCS bucket/signer, and optional `VIATOR_API_KEY`. Both `.env` files are gitignored.
+
+Place search and trip write enrichment require a valid **`GOOGLE_MAPS_API_KEY`** — see [Places & external info](docs/gettingstarted/README.md#8-places--external-info-api-contract) in the getting-started guide.
 
 **Frontend** (separate terminal): from `frontend/`, run `npm run dev:minikube` after port-forward — see [../frontend/README.md](../frontend/README.md).
 
@@ -56,7 +59,7 @@ SPRING_PROFILES_ACTIVE=local mvn -pl tripplanning-trip-service spring-boot:run
 
 ## Production-like / default profile
 
-Uses **`application.yml`**: **PostgreSQL** datasource (**`SPRING_DATASOURCE_*`**), **Flyway** on (`tripplanning-trip-service/src/main/resources/db/migration`), Hibernate **`ddl-auto: validate`**, Hibernate Search backend **Elasticsearch** (**`ELASTICSEARCH_HOSTS`**, optional auth/path).
+Uses **`application.yml`**: **PostgreSQL** datasource (**`SPRING_DATASOURCE_*`**), **Flyway** on (`tripplanning-trip-service/src/main/resources/db/migration`, including V10–V14 Google Places schema), Hibernate **`ddl-auto: validate`**, Hibernate Search backend **Elasticsearch** (**`ELASTICSEARCH_HOSTS`**, optional auth/path).
 
 Also configure:
 
@@ -88,7 +91,7 @@ Otherwise set `-o` to the path of `doc/swagger_v2.json` in your frontend checkou
 
 | Method | Endpoint | Notes |
 |--------|----------|--------|
-| Google | **`POST /api/v2/auth/google`** | Body: `{ "credential": "<Firebase ID token>" }` → `{ tokenType, accessToken, user }` |
+| Google | **`POST /api/v2/auth/firebase`** | Body: `{ "credential": "<Firebase ID token>" }` → `{ tokenType, accessToken, user }` (deprecated alias: `/auth/google`) |
 | Current user | **`GET /api/v2/auth/me`** | Requires `Authorization: Bearer <accessToken>` |
 | Dev only | **`POST /api/v2/auth/dev-login`** | **`local` profile only**; body `{ "email", "name?" }` |
 
@@ -100,18 +103,29 @@ Set **`TRIPPLANNING_AUTH_TEST_BEARER_TOKEN`** to a shared secret on `develop` (a
 
 ## Main HTTP surface
 
-- **Spring Data REST** collections and item resources under **`/api/v2`** on trip-service (users, trips, trip locations, etc.), plus repository **search** endpoints where defined.
+- **Spring Data REST** collections and item resources under **`/api/v2`** on trip-service (users, trips, trip locations, etc.), plus repository **search** endpoints where defined. Trips require **`destinationGooglePlaceId`**; trip stops use **`googlePlaceId`** (not `/api/v2/locations`, which was removed).
+- **Trip feed:** **`GET /api/v2/trips/feed`**, **`/feed/by-user`**, **`/feed/liked-by`**, **`/{id}/detail`** (see [`TripFeedController`](tripplanning-trip-service/src/main/java/com/tripplanning/trip/read/TripFeedController.java)).
+- **Accommodation / transport writes:** **`POST` / `PUT /api/v2/accommodations`** and **`/api/v2/transports`** (JWT required; SDR `save` disabled on those repositories). Bodies use Google place IDs — see [getting-started API contract](docs/gettingstarted/README.md#8-places--external-info-api-contract).
 - **Trip search:** **`GET /api/search/...`** (see [`TripSearchController`](tripplanning-trip-service/src/main/java/com/tripplanning/search/TripSearchController.java)).
 - **Social:** Firestore-backed **comments** and **likes** on social-service (`com.tripplanning.social`).
-- **External info:** weather, warnings, geocoding, tours on external-info-service; trip-service proxies some paths at **`/api/v2/external/**`**.
+- **External info** (external-info-service, routed at **`/api/v2/external/**`** via ingress): Google Places search (`/details/search`), stop details (`/stop-details`), accommodation tours (`/accommodation-details`), transport distance (`/transport/distance`), plus deprecated `/details` endpoints. Trip-service calls **`/internal/location-pack`** for place enrichment on writes.
 
 ## Firestore `likes` document IDs
 
 New like documents use a deterministic id **`{userId}_{tripId}`** so one read/delete can target the document without a field query. Older deployments may still hold legacy random ids; APIs that query by `userId` and `tripId` can still find those rows.
 
-## Seed example data
+## Seed data
 
-Realistic demo data (users, trips, locations, accommodations, transports, likes, comments) via the REST API:
+**Recommended (performance dataset):** after Minikube setup and GCS sample images:
+
+```bash
+./scripts/local-dev.sh sync-sample-images
+./scripts/local-dev.sh seed-job
+```
+
+See [`tripplanning-seed-job/README.md`](tripplanning-seed-job/README.md). Writes `performance/seeding_example/perf_seed_manifest.json` for Locust.
+
+**Small smoke dataset** via REST API (users, trips, stops with `googlePlaceId`, accommodations, transports, likes, comments). See [getting-started Places section](docs/gettingstarted/README.md#8-places--external-info-api-contract) for required write payloads:
 
 ```bash
 cd ../performance/seeding_example
@@ -126,9 +140,9 @@ With a local API and `local` profile, options such as **`--fetch-dev-login`** ca
 
 | Module | Packages (high level) |
 |--------|------------------------|
-| `tripplanning-trip-service` | `auth`, `user`, `trip`, `tripLocation`, `location`, `accommodation`, `transport`, `search`, `images`, `api.config`, `api.projections` |
+| `tripplanning-trip-service` | `auth`, `user`, `trip`, `tripLocation`, `place`, `accommodation`, `transport`, `search`, `images`, `api.config`, `api.projections` |
 | `tripplanning-social-service` | `social` (Firestore comments / likes) |
-| `tripplanning-external-info-service` | `externalinfo` (weather, warnings, geocoding, Viator) |
+| `tripplanning-external-info-service` | `externalinfo` (Google Places, weather, warnings, Viator, transport distance) |
 | `tripplanning-common` | shared HTTP clients, JWT decoder config |
 
 **Local JVM artifacts:** `./temp/db/` and `./temp/search/` hold H2 and Lucene data when running trip-service with `local` profile on the host (gitignored; safe to delete). Minikube uses in-pod storage instead.

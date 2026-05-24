@@ -1,0 +1,24 @@
+# Shared PostgreSQL for Minikube seed-job + trip-service (enable with profile `postgres`).
+spring:
+  config:
+    activate:
+      on-profile: postgres
+
+  flyway:
+    enabled: true
+
+  datasource:
+    url: jdbc:postgresql://${POSTGRES_HOST:postgres}:${POSTGRES_PORT:5432}/${POSTGRES_DB:tripplanning}
+    username: ${POSTGRES_USER:tripplanning}
+    password: ${POSTGRES_PASSWORD:tripplanning}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: false
