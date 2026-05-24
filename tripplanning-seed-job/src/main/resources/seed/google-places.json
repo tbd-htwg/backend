@@ -1,0 +1,6392 @@
+[
+  {
+    "googlePlaceId": "ChIJGaK-SZcLkEcRA9wf5_GNbuY",
+    "placeName": "Zürich",
+    "cityName": "Zürich",
+    "formattedAddress": "Zürich, Switzerland",
+    "latitude": 47.3768866,
+    "longitude": 8.541694,
+    "countryCode": "CH"
+  },
+  {
+    "googlePlaceId": "ChIJ6-LQkwZljEcRObwLezWVtqA",
+    "placeName": "Geneva",
+    "cityName": "Geneva",
+    "formattedAddress": "Geneva, Switzerland",
+    "latitude": 46.2043907,
+    "longitude": 6.1431577,
+    "countryCode": "CH"
+  },
+  {
+    "googlePlaceId": "ChIJdxs61MA5jkcRmmVXBP5fVcs",
+    "placeName": "Bern",
+    "cityName": "Bern",
+    "formattedAddress": "Bern, Switzerland",
+    "latitude": 46.9479739,
+    "longitude": 7.4474468,
+    "countryCode": "CH"
+  },
+  {
+    "googlePlaceId": "ChIJTzBpJ8dJkEcRkIpt83DrHDY",
+    "placeName": "Basel",
+    "cityName": "Basel",
+    "formattedAddress": "Basel, Switzerland",
+    "latitude": 47.5595986,
+    "longitude": 7.5885761,
+    "countryCode": "CH"
+  },
+  {
+    "googlePlaceId": "ChIJBRqSMWqZUxQRAL4CTPEaEZw",
+    "placeName": "Interlaken",
+    "cityName": "Interlaken",
+    "formattedAddress": "3800 Interlaken, Switzerland",
+    "latitude": 46.686348100000004,
+    "longitude": 7.8632048999999995,
+    "countryCode": "CH"
+  },
+  {
+    "googlePlaceId": "ChIJzeUuKaI1j0cRcG8ZQIj_AAQ",
+    "placeName": "Zermatt",
+    "cityName": "Zermatt",
+    "formattedAddress": "3920 Zermatt, Switzerland",
+    "latitude": 46.0207133,
+    "longitude": 7.749117000000001,
+    "countryCode": "CH"
+  },
+  {
+    "googlePlaceId": "ChIJ5aeJzT4pjEcRXu7iysk_F-s",
+    "placeName": "Lausanne",
+    "cityName": "Lausanne",
+    "formattedAddress": "Lausanne, Switzerland",
+    "latitude": 46.5196535,
+    "longitude": 6.6322734,
+    "countryCode": "CH"
+  },
+  {
+    "googlePlaceId": "ChIJ8RFCavcthEcR4PihLiEEjO8",
+    "placeName": "Lugano",
+    "cityName": "Lugano",
+    "formattedAddress": "Lugano, Switzerland",
+    "latitude": 46.0036778,
+    "longitude": 8.951051999999999,
+    "countryCode": "CH"
+  },
+  {
+    "googlePlaceId": "ChIJD7fiBh9u5kcRYJSMaMOCCwQ",
+    "placeName": "Paris",
+    "cityName": "Paris",
+    "formattedAddress": "Paris, France",
+    "latitude": 48.857547499999995,
+    "longitude": 2.3513764999999998,
+    "countryCode": "FR"
+  },
+  {
+    "googlePlaceId": "ChIJl4foalHq9EcR8CG75CqrCAQ",
+    "placeName": "Lyon",
+    "cityName": "Lyon",
+    "formattedAddress": "Lyon, France",
+    "latitude": 45.764043,
+    "longitude": 4.835659,
+    "countryCode": "FR"
+  },
+  {
+    "googlePlaceId": "ChIJM1PaREO_yRIRIAKX_aUZCAQ",
+    "placeName": "Marseille",
+    "cityName": "Marseille",
+    "formattedAddress": "Marseille, France",
+    "latitude": 43.302574199999995,
+    "longitude": 5.369074299999999,
+    "countryCode": "FR"
+  },
+  {
+    "googlePlaceId": "ChIJdd4hrwug2EcRmSrV3Vo6llI",
+    "placeName": "London",
+    "cityName": "London",
+    "formattedAddress": "London, UK",
+    "latitude": 51.5072178,
+    "longitude": -0.12758619999999998,
+    "countryCode": "GB"
+  },
+  {
+    "googlePlaceId": "ChIJIyaYpQC4h0gRJxfnfHsU8mQ",
+    "placeName": "Edinburgh",
+    "cityName": "Edinburgh",
+    "formattedAddress": "Edinburgh, UK",
+    "latitude": 55.953252,
+    "longitude": -3.1882669999999997,
+    "countryCode": "GB"
+  },
+  {
+    "googlePlaceId": "ChIJAVkDPzdOqEcRcDteW0YgIQQ",
+    "placeName": "Berlin",
+    "cityName": "Berlin",
+    "formattedAddress": "Berlin, Germany",
+    "latitude": 52.520006599999995,
+    "longitude": 13.404954,
+    "countryCode": "DE"
+  },
+  {
+    "googlePlaceId": "ChIJ2V-Mo_l1nkcRfZixfUq4DAE",
+    "placeName": "Munich",
+    "cityName": "Munich",
+    "formattedAddress": "Munich, Germany",
+    "latitude": 48.1351253,
+    "longitude": 11.5819806,
+    "countryCode": "DE"
+  },
+  {
+    "googlePlaceId": "ChIJuRMYfoNhsUcRoDrWe_I9JgQ",
+    "placeName": "Hamburg",
+    "cityName": "Hamburg",
+    "formattedAddress": "Hamburg, Germany",
+    "latitude": 53.548828199999996,
+    "longitude": 9.987170299999999,
+    "countryCode": "DE"
+  },
+  {
+    "googlePlaceId": "ChIJn8o2UZ4HbUcRRluiUYrlwv0",
+    "placeName": "Vienna",
+    "cityName": "Vienna",
+    "formattedAddress": "Vienna, Austria",
+    "latitude": 48.208069599999995,
+    "longitude": 16.3713095,
+    "countryCode": "AT"
+  },
+  {
+    "googlePlaceId": "ChIJi3lwCZyTC0cRkEAWZg-vAAQ",
+    "placeName": "Prague",
+    "cityName": "Prague",
+    "formattedAddress": "Prague, Czechia",
+    "latitude": 50.075538099999996,
+    "longitude": 14.437800500000002,
+    "countryCode": "CZ"
+  },
+  {
+    "googlePlaceId": "ChIJu46S-ZZhLxMROG5lkwZ3D7k",
+    "placeName": "Rome",
+    "cityName": "Rome",
+    "formattedAddress": "Rome, Metropolitan City of Rome Capital, Italy",
+    "latitude": 41.8967068,
+    "longitude": 12.4822025,
+    "countryCode": "IT"
+  },
+  {
+    "googlePlaceId": "ChIJ53USP0nBhkcRjQ50xhPN_zw",
+    "placeName": "Milan",
+    "cityName": "Milan",
+    "formattedAddress": "Milan, Metropolitan City of Milan, Italy",
+    "latitude": 45.468503,
+    "longitude": 9.182402699999999,
+    "countryCode": "IT"
+  },
+  {
+    "googlePlaceId": "ChIJiT3W8dqxfkcRLxCSvfDGo3s",
+    "placeName": "Venice",
+    "cityName": "Venice",
+    "formattedAddress": "Venice, Metropolitan City of Venice, Italy",
+    "latitude": 45.440379,
+    "longitude": 12.315954699999999,
+    "countryCode": "IT"
+  },
+  {
+    "googlePlaceId": "ChIJ5TCOcRaYpBIRCmZHTz37sEQ",
+    "placeName": "Barcelona",
+    "cityName": "Barcelona",
+    "formattedAddress": "Barcelona, Spain",
+    "latitude": 41.387437399999996,
+    "longitude": 2.1686495999999997,
+    "countryCode": "ES"
+  },
+  {
+    "googlePlaceId": "ChIJgTwKgJcpQg0RaSKMYcHeNsQ",
+    "placeName": "Madrid",
+    "cityName": "Madrid",
+    "formattedAddress": "Madrid, Spain",
+    "latitude": 40.416727900000005,
+    "longitude": -3.7032905,
+    "countryCode": "ES"
+  },
+  {
+    "googlePlaceId": "ChIJO_PkYRozGQ0R0DaQ5L3rAAQ",
+    "placeName": "Lisbon",
+    "cityName": "Lisbon",
+    "formattedAddress": "Lisbon, Portugal",
+    "latitude": 38.722252399999995,
+    "longitude": -9.1393366,
+    "countryCode": "PT"
+  },
+  {
+    "googlePlaceId": "ChIJwVPhxKtlJA0RvBSxQFbZSKY",
+    "placeName": "Porto",
+    "cityName": "Porto",
+    "formattedAddress": "Porto, Portugal",
+    "latitude": 41.1579438,
+    "longitude": -8.629105299999999,
+    "countryCode": "PT"
+  },
+  {
+    "googlePlaceId": "ChIJVXealLU_xkcRja_At0z9AGY",
+    "placeName": "Amsterdam",
+    "cityName": "Amsterdam",
+    "formattedAddress": "Amsterdam, Netherlands",
+    "latitude": 52.3675734,
+    "longitude": 4.9041388999999995,
+    "countryCode": "NL"
+  },
+  {
+    "googlePlaceId": "ChIJZ2jHc-2kw0cRpwJzeGY6i8E",
+    "placeName": "Brussels",
+    "cityName": "Brussels",
+    "formattedAddress": "Brussels, Belgium",
+    "latitude": 50.847702899999994,
+    "longitude": 4.357200100000001,
+    "countryCode": "BE"
+  },
+  {
+    "googlePlaceId": "ChIJIz2AXDxTUkYRuGeU5t1-3QQ",
+    "placeName": "Copenhagen",
+    "cityName": "Copenhagen",
+    "formattedAddress": "Copenhagen, Denmark",
+    "latitude": 55.676096799999996,
+    "longitude": 12.568337099999999,
+    "countryCode": "DK"
+  },
+  {
+    "googlePlaceId": "ChIJywtkGTF2X0YRZnedZ9MnDag",
+    "placeName": "Stockholm",
+    "cityName": "Stockholm",
+    "formattedAddress": "Stockholm, Sweden",
+    "latitude": 59.3327036,
+    "longitude": 18.0656255,
+    "countryCode": "SE"
+  },
+  {
+    "googlePlaceId": "ChIJOfBn8mFuQUYRmh4j019gkn4",
+    "placeName": "Oslo",
+    "cityName": "Oslo",
+    "formattedAddress": "Oslo, Norway",
+    "latitude": 59.9121746,
+    "longitude": 10.7312704,
+    "countryCode": "NO"
+  },
+  {
+    "googlePlaceId": "ChIJkQYhlscLkkYRY_fiO4S9Ts0",
+    "placeName": "Helsinki",
+    "cityName": "HKI",
+    "formattedAddress": "Helsinki, Finland",
+    "latitude": 60.16985569999999,
+    "longitude": 24.938378999999998,
+    "countryCode": "FI"
+  },
+  {
+    "googlePlaceId": "ChIJL6wn6oAOZ0gRoHExl6nHAAo",
+    "placeName": "Dublin",
+    "cityName": "Dublin",
+    "formattedAddress": "Dublin, Ireland",
+    "latitude": 53.3498053,
+    "longitude": -6.2603097,
+    "countryCode": "IE"
+  },
+  {
+    "googlePlaceId": "ChIJ8UNwBh-9oRQR3Y1mdkU1Nic",
+    "placeName": "Athens",
+    "cityName": "Athens",
+    "formattedAddress": "Athens, Greece",
+    "latitude": 37.9838096,
+    "longitude": 23.727538799999998,
+    "countryCode": "GR"
+  },
+  {
+    "googlePlaceId": "ChIJawhoAASnyhQR0LABvJj-zOE",
+    "placeName": "Istanbul",
+    "cityName": "Istanbul",
+    "formattedAddress": "Istanbul, İstanbul, Türkiye",
+    "latitude": 41.0082376,
+    "longitude": 28.9783589,
+    "countryCode": "TR"
+  },
+  {
+    "googlePlaceId": "ChIJ51cu8IcbXWARiRtXIothAS4",
+    "placeName": "Tokyo",
+    "cityName": "Tokyo",
+    "formattedAddress": "Tokyo, Japan",
+    "latitude": 35.6764225,
+    "longitude": 139.650027,
+    "countryCode": "JP"
+  },
+  {
+    "googlePlaceId": "ChIJ8cM8zdaoAWARPR27azYdlsA",
+    "placeName": "Kyoto",
+    "cityName": "Kyoto",
+    "formattedAddress": "Kyoto, Japan",
+    "latitude": 35.011564,
+    "longitude": 135.7681489,
+    "countryCode": "JP"
+  },
+  {
+    "googlePlaceId": "ChIJzzlcLQGifDURm_JbQKHsEX4",
+    "placeName": "Seoul",
+    "cityName": "Seoul",
+    "formattedAddress": "Seoul, South Korea",
+    "latitude": 37.550263,
+    "longitude": 126.9970831,
+    "countryCode": "KR"
+  },
+  {
+    "googlePlaceId": "ChIJ82ENKDJgHTERIEjiXbIAAQE",
+    "placeName": "Bangkok",
+    "cityName": "กทม",
+    "formattedAddress": "Bangkok, Thailand",
+    "latitude": 13.7563309,
+    "longitude": 100.5017651,
+    "countryCode": "TH"
+  },
+  {
+    "googlePlaceId": "ChIJdZOLiiMR2jERxPWrUs9peIg",
+    "placeName": "Singapore",
+    "cityName": "Singapore",
+    "formattedAddress": "Singapore",
+    "latitude": 1.352083,
+    "longitude": 103.819836,
+    "countryCode": "SG"
+  },
+  {
+    "googlePlaceId": "ChIJP3Sa8ziYEmsRUKgyFmh9AQM",
+    "placeName": "Sydney",
+    "cityName": "Sydney",
+    "formattedAddress": "Sydney NSW, Australia",
+    "latitude": -33.8622503,
+    "longitude": 151.207684,
+    "countryCode": "AU"
+  },
+  {
+    "googlePlaceId": "ChIJ90260rVG1moRkM2MIXVWBAQ",
+    "placeName": "Melbourne",
+    "cityName": "Melbourne",
+    "formattedAddress": "Melbourne VIC, Australia",
+    "latitude": -37.8136276,
+    "longitude": 144.96305759999998,
+    "countryCode": "AU"
+  },
+  {
+    "googlePlaceId": "ChIJOwg_06VPwokRYv534QaPC8g",
+    "placeName": "New York",
+    "cityName": "New York",
+    "formattedAddress": "New York, NY, USA",
+    "latitude": 40.7127753,
+    "longitude": -74.0059728,
+    "countryCode": "US"
+  },
+  {
+    "googlePlaceId": "ChIJIQBpAG2ahYAR_6128GcTUEo",
+    "placeName": "San Francisco",
+    "cityName": "SF",
+    "formattedAddress": "San Francisco, CA, USA",
+    "latitude": 37.7749295,
+    "longitude": -122.41941550000001,
+    "countryCode": "US"
+  },
+  {
+    "googlePlaceId": "ChIJE9on3F3HwoAR9AhGJW_fL-I",
+    "placeName": "Los Angeles",
+    "cityName": "Los Angeles",
+    "formattedAddress": "Los Angeles, CA, USA",
+    "latitude": 34.0549076,
+    "longitude": -118.24264299999999,
+    "countryCode": "US"
+  },
+  {
+    "googlePlaceId": "ChIJ7cv00DwsDogRAMDACa2m4K8",
+    "placeName": "Chicago",
+    "cityName": "Chicago",
+    "formattedAddress": "Chicago, IL, USA",
+    "latitude": 41.88325,
+    "longitude": -87.6323879,
+    "countryCode": "US"
+  },
+  {
+    "googlePlaceId": "ChIJpTvG15DL1IkRd8S0KlBVNTI",
+    "placeName": "Toronto",
+    "cityName": "Toronto",
+    "formattedAddress": "Toronto, ON, Canada",
+    "latitude": 43.6548253,
+    "longitude": -79.388447,
+    "countryCode": "CA"
+  },
+  {
+    "googlePlaceId": "ChIJs0-pQ_FzhlQRi_OBm-qWkbs",
+    "placeName": "Vancouver",
+    "cityName": "Vancouver",
+    "formattedAddress": "Vancouver, BC, Canada",
+    "latitude": 49.2827291,
+    "longitude": -123.1207375,
+    "countryCode": "CA"
+  },
+  {
+    "googlePlaceId": "ChIJB3UJ2yYAzoURQeheJnYQBlQ",
+    "placeName": "Mexico City",
+    "cityName": "México D.F.",
+    "formattedAddress": "Mexico City, CDMX, Mexico",
+    "latitude": 19.4326077,
+    "longitude": -99.133208,
+    "countryCode": "MX"
+  },
+  {
+    "googlePlaceId": "ChIJvQz5TjvKvJURh47oiC6Bs6A",
+    "placeName": "Buenos Aires",
+    "cityName": "CABA",
+    "formattedAddress": "Buenos Aires, Argentina",
+    "latitude": -34.6036739,
+    "longitude": -58.3821215,
+    "countryCode": "AR"
+  },
+  {
+    "googlePlaceId": "ChIJW6AIkVXemwARTtIvZ2xC3FA",
+    "placeName": "Rio de Janeiro",
+    "cityName": "Rio de Janeiro",
+    "formattedAddress": "Rio de Janeiro, State of Rio de Janeiro, Brazil",
+    "latitude": -22.9068467,
+    "longitude": -43.1728965,
+    "countryCode": "BR"
+  },
+  {
+    "googlePlaceId": "ChIJ1-4miA9QzB0Rh6ooKPzhf2g",
+    "placeName": "Cape Town",
+    "cityName": "Cape Town",
+    "formattedAddress": "Cape Town, South Africa",
+    "latitude": -33.922087,
+    "longitude": 18.4231418,
+    "countryCode": "ZA"
+  },
+  {
+    "googlePlaceId": "ChIJUZ4Xlo3urw0RuK2HT1O2UFk",
+    "placeName": "Marrakesh",
+    "cityName": "Marrakesh",
+    "formattedAddress": "Marrakesh, Morocco",
+    "latitude": 31.6225224,
+    "longitude": -7.989825799999999,
+    "countryCode": "MA"
+  },
+  {
+    "googlePlaceId": "ChIJRcbZaklDXz4RYlEphFBu5r0",
+    "placeName": "Dubai",
+    "cityName": "Dubai",
+    "formattedAddress": "Dubai - United Arab Emirates",
+    "latitude": 25.2048493,
+    "longitude": 55.2707828,
+    "countryCode": "AE"
+  },
+  {
+    "googlePlaceId": "ChIJD5gyo-3iAzQRfMnq27qzivA",
+    "placeName": "Hong Kong",
+    "cityName": "Hong Kong",
+    "formattedAddress": "Hong Kong",
+    "latitude": 22.3193039,
+    "longitude": 114.16936109999999,
+    "countryCode": "HK"
+  },
+  {
+    "googlePlaceId": "ChIJi73bYWusQjQRgqQGXK260bw",
+    "placeName": "Taipei City",
+    "cityName": "Taipei City",
+    "formattedAddress": "Taipei City, Taiwan",
+    "latitude": 25.0329636,
+    "longitude": 121.56542680000001,
+    "countryCode": "TW"
+  },
+  {
+    "googlePlaceId": "ChIJoQ8Q6NNB0S0RkOYkS7EPkSQ",
+    "placeName": "Bali",
+    "cityName": "Bali",
+    "formattedAddress": "Bali, Indonesia",
+    "latitude": -8.4095178,
+    "longitude": 115.18891599999999,
+    "countryCode": "ID"
+  },
+  {
+    "googlePlaceId": "ChIJw-3c7rl01kgRcWDSMKIskew",
+    "placeName": "Reykjavík",
+    "cityName": "RVK",
+    "formattedAddress": "Reykjavík, Iceland",
+    "latitude": 64.1469868,
+    "longitude": -21.940755199999998,
+    "countryCode": "IS"
+  },
+  {
+    "googlePlaceId": "ChIJyc_U0TTDQUcRYBEeDCnEAAQ",
+    "placeName": "Budapest",
+    "cityName": "Budapest",
+    "formattedAddress": "Budapest, Hungary",
+    "latitude": 47.497912,
+    "longitude": 19.040235,
+    "countryCode": "HU"
+  },
+  {
+    "googlePlaceId": "ChIJAZ-GmmbMHkcR_NPqiCq-8HI",
+    "placeName": "Warsaw",
+    "cityName": "Warsaw",
+    "formattedAddress": "Warsaw, Poland",
+    "latitude": 52.2296756,
+    "longitude": 21.012228699999998,
+    "countryCode": "PL"
+  },
+  {
+    "googlePlaceId": "ChIJ0RhONcBEFkcRv4pHdrW2a7Q",
+    "placeName": "Kraków",
+    "cityName": "Kraków",
+    "formattedAddress": "Kraków, Poland",
+    "latitude": 50.064650099999994,
+    "longitude": 19.9449799,
+    "countryCode": "PL"
+  },
+  {
+    "googlePlaceId": "ChIJOcwCyZLWZUcRisL7KJYkRTo",
+    "placeName": "Zagreb",
+    "cityName": "Zagreb",
+    "formattedAddress": "Zagreb, Croatia",
+    "latitude": 45.815010799999996,
+    "longitude": 15.981919000000001,
+    "countryCode": "HR"
+  },
+  {
+    "googlePlaceId": "ChIJfeg1CKKLSxMRANUrhlCtAAQ",
+    "placeName": "Dubrovnik",
+    "cityName": "Dubrovnik",
+    "formattedAddress": "Dubrovnik, Croatia",
+    "latitude": 42.650660599999995,
+    "longitude": 18.094423799999998,
+    "countryCode": "HR"
+  },
+  {
+    "googlePlaceId": "ChIJxUeGHShFDhMRF8lC4o7TWnQ",
+    "placeName": "Valletta",
+    "cityName": "Valletta",
+    "formattedAddress": "Valletta, Malta",
+    "latitude": 35.8992375,
+    "longitude": 14.5140996,
+    "countryCode": "MT"
+  },
+  {
+    "googlePlaceId": "ChIJVyzznc1IlUcREG0F0dbRAAQ",
+    "placeName": "Luxembourg",
+    "cityName": "Luxembourg",
+    "formattedAddress": "Luxembourg",
+    "latitude": 49.612332699999996,
+    "longitude": 6.125843199999999,
+    "countryCode": "LU"
+  },
+  {
+    "googlePlaceId": "ChIJMYU_e2_CzRIR_JzEOkx493Q",
+    "placeName": "Monaco",
+    "cityName": "Monaco",
+    "formattedAddress": "Monaco",
+    "latitude": 43.738417600000005,
+    "longitude": 7.424615799999999,
+    "countryCode": "MC"
+  },
+  {
+    "googlePlaceId": "ChIJC_slSiv1pRIRgHKZkXCUAAo",
+    "placeName": "Andorra la Vella",
+    "cityName": "Andorra la Vella",
+    "formattedAddress": "AD500 Andorra la Vella, Andorra",
+    "latitude": 42.50631740000001,
+    "longitude": 1.5218355000000001,
+    "countryCode": "AD"
+  },
+  {
+    "googlePlaceId": "ChIJvxZW35mUkkYRcGL8GG2zAAQ",
+    "placeName": "Tallinn",
+    "cityName": "Tallinn",
+    "formattedAddress": "Tallinn, Estonia",
+    "latitude": 59.43696079999999,
+    "longitude": 24.7535746,
+    "countryCode": "EE"
+  },
+  {
+    "googlePlaceId": "ChIJ7T0H5bDP7kYRMP7yaM3PAAQ",
+    "placeName": "Riga",
+    "cityName": "Riga",
+    "formattedAddress": "Riga, Latvia",
+    "latitude": 56.967694099999996,
+    "longitude": 24.105622099999998,
+    "countryCode": "LV"
+  },
+  {
+    "googlePlaceId": "ChIJ9QhkXPuT3UYRQNzpcIzRAAQ",
+    "placeName": "Vilnius",
+    "cityName": "Vilnius",
+    "formattedAddress": "Vilnius, Vilnius City Municipality, Lithuania",
+    "latitude": 54.687155499999996,
+    "longitude": 25.2796514,
+    "countryCode": "LT"
+  },
+  {
+    "googlePlaceId": "ChIJl2HKCjaJbEcRaEOI_YKbH2M",
+    "placeName": "Bratislava",
+    "cityName": "Bratislava",
+    "formattedAddress": "Bratislava, Slovakia",
+    "latitude": 48.1477745,
+    "longitude": 17.1071553,
+    "countryCode": "SK"
+  },
+  {
+    "googlePlaceId": "ChIJ0YaYlvUxZUcRIOw_ghz4AAQ",
+    "placeName": "Ljubljana",
+    "cityName": "Ljubljana",
+    "formattedAddress": "Ljubljana, Slovenia",
+    "latitude": 46.056946499999995,
+    "longitude": 14.505751499999999,
+    "countryCode": "SI"
+  },
+  {
+    "googlePlaceId": "ChIJ0Ztx7bHLWEcRPrOH3qbNLlY",
+    "placeName": "Sarajevo",
+    "cityName": "Sarajevo",
+    "formattedAddress": "Sarajevo, Bosnia and Herzegovina",
+    "latitude": 43.856258600000004,
+    "longitude": 18.4130763,
+    "countryCode": "BA"
+  },
+  {
+    "googlePlaceId": "ChIJvT-116N6WkcR5H4X8lxkuB0",
+    "placeName": "Belgrade",
+    "cityName": "BG",
+    "formattedAddress": "Belgrade, Serbia",
+    "latitude": 44.8125449,
+    "longitude": 20.46123,
+    "countryCode": "RS"
+  },
+  {
+    "googlePlaceId": "ChIJT608vzr5sUARKKacfOMyBqw",
+    "placeName": "Bucharest",
+    "cityName": "Bucharest",
+    "formattedAddress": "Bucharest, Romania",
+    "latitude": 44.426767399999996,
+    "longitude": 26.1025384,
+    "countryCode": "RO"
+  },
+  {
+    "googlePlaceId": "ChIJ9Xsxy4KGqkARYF6_aRKgAAQ",
+    "placeName": "Sofia",
+    "cityName": "Sofia",
+    "formattedAddress": "Sofia, Bulgaria",
+    "latitude": 42.6977082,
+    "longitude": 23.3218675,
+    "countryCode": "BG"
+  },
+  {
+    "googlePlaceId": "ChIJa2JP5tcMREARo25X4u2E0GE",
+    "placeName": "Tbilisi",
+    "cityName": "Tbilisi",
+    "formattedAddress": "Tbilisi, Georgia",
+    "latitude": 41.6938026,
+    "longitude": 44.801516799999995,
+    "countryCode": "GE"
+  },
+  {
+    "googlePlaceId": "ChIJW4v8uNqiakARalLah655FD0",
+    "placeName": "Yerevan",
+    "cityName": "Yerevan",
+    "formattedAddress": "Yerevan, Armenia",
+    "latitude": 40.187202299999996,
+    "longitude": 44.515209,
+    "countryCode": "AM"
+  },
+  {
+    "googlePlaceId": "ChIJ-Rwh1mt9MEARa2zlel5rPzQ",
+    "placeName": "Baku",
+    "cityName": "Baku",
+    "formattedAddress": "Baku, Azerbaijan",
+    "latitude": 40.409261699999995,
+    "longitude": 49.8670924,
+    "countryCode": "AZ"
+  },
+  {
+    "googlePlaceId": "ChIJq8vFFn1ugzgRdm2YrY9mRD0",
+    "placeName": "Almaty",
+    "cityName": "Almaty",
+    "formattedAddress": "Almaty, Kazakhstan",
+    "latitude": 43.2379761,
+    "longitude": 76.8828618,
+    "countryCode": "KZ"
+  },
+  {
+    "googlePlaceId": "ChIJq4qx4luSll0Rf4ShZHiSBuY",
+    "placeName": "Ulaanbaatar",
+    "cityName": "Ulaanbaatar",
+    "formattedAddress": "Ulaanbaatar, Mongolia",
+    "latitude": 47.922050899999995,
+    "longitude": 106.9155007,
+    "countryCode": "MN"
+  },
+  {
+    "googlePlaceId": "ChIJv6p7MIoZ6zkR6rGN8Rt8E7U",
+    "placeName": "Kathmandu",
+    "cityName": "Kathmandu",
+    "formattedAddress": "Kathmandu 44600, Nepal",
+    "latitude": 27.7103145,
+    "longitude": 85.3221634,
+    "countryCode": "NP"
+  },
+  {
+    "googlePlaceId": "ChIJA3B6D9FT4joRjYPTMk0uCzI",
+    "placeName": "Colombo",
+    "cityName": "Colombo",
+    "formattedAddress": "Colombo, Sri Lanka",
+    "latitude": 6.9270786,
+    "longitude": 79.861243,
+    "countryCode": "LK"
+  },
+  {
+    "googlePlaceId": "ChIJERe-Vup4SjsR-Yu3O7lshqw",
+    "placeName": "The Residence Maldives at Falhumaafushi",
+    "cityName": "Falhumaafushi",
+    "formattedAddress": "Falhumaafushi, Maldives",
+    "latitude": 0.6714528,
+    "longitude": 73.43835539999999,
+    "countryCode": "MV"
+  },
+  {
+    "googlePlaceId": "ChIJT1JixOIxUDARIbo9BoWayuk",
+    "placeName": "Phuket",
+    "cityName": "Phuket",
+    "formattedAddress": "Phuket, Thailand",
+    "latitude": 7.9843109,
+    "longitude": 98.3307468,
+    "countryCode": "TH"
+  },
+  {
+    "googlePlaceId": "ChIJoRyG2ZurNTERqRfKcnt_iOc",
+    "placeName": "Hanoi",
+    "cityName": "Hanoi",
+    "formattedAddress": "Hanoi, Ha Noi, Vietnam",
+    "latitude": 21.0277644,
+    "longitude": 105.8341598,
+    "countryCode": "VN"
+  },
+  {
+    "googlePlaceId": "ChIJ0T2NLikpdTERKxE8d61aX_E",
+    "placeName": "Ho Chi Minh City",
+    "cityName": "Ho Chi Minh City",
+    "formattedAddress": "Ho Chi Minh City, Ho Chi Minh, Vietnam",
+    "latitude": 10.8230989,
+    "longitude": 106.62966379999999,
+    "countryCode": "VN"
+  },
+  {
+    "googlePlaceId": "ChIJ0-cIvSo2zDERmWzYQPUfLiM",
+    "placeName": "Federal Territory of Kuala Lumpur",
+    "cityName": "Kuala Lumpur",
+    "formattedAddress": "Kuala Lumpur, Federal Territory of Kuala Lumpur, Malaysia",
+    "latitude": 3.1319196999999996,
+    "longitude": 101.6840589,
+    "countryCode": "MY"
+  },
+  {
+    "googlePlaceId": "ChIJnUvjRenzaS4RoobX2g-_cVM",
+    "placeName": "Jakarta",
+    "cityName": "Jakarta",
+    "formattedAddress": "Jakarta, Indonesia",
+    "latitude": -6.1944491,
+    "longitude": 106.8229198,
+    "countryCode": "ID"
+  },
+  {
+    "googlePlaceId": "ChIJi8MeVwPKlzMRH8FpEHXV0Wk",
+    "placeName": "Manila",
+    "cityName": "Manila",
+    "formattedAddress": "Manila, Metro Manila, Philippines",
+    "latitude": 14.5995133,
+    "longitude": 120.984234,
+    "countryCode": "PH"
+  },
+  {
+    "googlePlaceId": "ChIJ--acWvtHDW0RF5miQ2HvAAU",
+    "placeName": "Auckland",
+    "cityName": "Auckland",
+    "formattedAddress": "Auckland, New Zealand",
+    "latitude": -36.85088270000001,
+    "longitude": 174.7644881,
+    "countryCode": "NZ"
+  },
+  {
+    "googlePlaceId": "ChIJX96o1_Ed1akRAKZ5hIbvAAU",
+    "placeName": "Queenstown",
+    "cityName": "Queenstown",
+    "formattedAddress": "Queenstown, New Zealand",
+    "latitude": -45.030151100000005,
+    "longitude": 168.6615141,
+    "countryCode": "NZ"
+  },
+  {
+    "googlePlaceId": "ChIJUQgUUYtaF24RKNOlslOphx0",
+    "placeName": "Nadi",
+    "cityName": "Nadi",
+    "formattedAddress": "Nadi, Fiji",
+    "latitude": -17.780625699999998,
+    "longitude": 177.42989609999998,
+    "countryCode": "FJ"
+  },
+  {
+    "googlePlaceId": "ChIJTUbDjDsYAHwRbJen81_1KEs",
+    "placeName": "Honolulu",
+    "cityName": "Honolulu",
+    "formattedAddress": "Honolulu, HI, USA",
+    "latitude": 21.3098845,
+    "longitude": -157.85814009999999,
+    "countryCode": "US"
+  },
+  {
+    "googlePlaceId": "ChIJ0X31pIK3voARo3mz1ebVzDo",
+    "placeName": "Las Vegas",
+    "cityName": "Las Vegas",
+    "formattedAddress": "Las Vegas, NV, USA",
+    "latitude": 36.171563,
+    "longitude": -115.1391009,
+    "countryCode": "US"
+  },
+  {
+    "googlePlaceId": "ChIJEcHIDqKw2YgRZU-t3XHylv8",
+    "placeName": "Miami",
+    "cityName": "Miami",
+    "formattedAddress": "Miami, FL, USA",
+    "latitude": 25.7616798,
+    "longitude": -80.1917902,
+    "countryCode": "US"
+  },
+  {
+    "googlePlaceId": "ChIJGzE9DS1l44kRoOhiASS_fHg",
+    "placeName": "Boston",
+    "cityName": "Boston",
+    "formattedAddress": "Boston, MA, USA",
+    "latitude": 42.355507599999996,
+    "longitude": -71.0565364,
+    "countryCode": "US"
+  },
+  {
+    "googlePlaceId": "ChIJW-T2Wt7Gt4kRKl2I1CJFUsI",
+    "placeName": "Washington",
+    "cityName": "Washington",
+    "formattedAddress": "Washington, DC, USA",
+    "latitude": 38.9072873,
+    "longitude": -77.0369274,
+    "countryCode": "US"
+  },
+  {
+    "googlePlaceId": "ChIJVTPokywQkFQRmtVEaUZlJRA",
+    "placeName": "Seattle",
+    "cityName": "Seattle",
+    "formattedAddress": "Seattle, WA, USA",
+    "latitude": 47.6061389,
+    "longitude": -122.33284809999999,
+    "countryCode": "US"
+  },
+  {
+    "googlePlaceId": "ChIJzxcfI6qAa4cR1jaKJ_j0jhE",
+    "placeName": "Denver",
+    "cityName": "Denver",
+    "formattedAddress": "Denver, CO, USA",
+    "latitude": 39.739235799999996,
+    "longitude": -104.99025100000001,
+    "countryCode": "US"
+  },
+  {
+    "googlePlaceId": "ChIJLwPMoJm1RIYRetVp1EtGm10",
+    "placeName": "Austin",
+    "cityName": "Austin",
+    "formattedAddress": "Austin, TX, USA",
+    "latitude": 30.267152999999997,
+    "longitude": -97.7430608,
+    "countryCode": "US"
+  },
+  {
+    "googlePlaceId": "ChIJPZDrEzLsZIgRoNrpodC5P30",
+    "placeName": "Nashville",
+    "cityName": "Nashville",
+    "formattedAddress": "Nashville, TN, USA",
+    "latitude": 36.1626638,
+    "longitude": -86.7816016,
+    "countryCode": "US"
+  },
+  {
+    "googlePlaceId": "ChIJZYIRslSkIIYRtNMiXuhbBts",
+    "placeName": "New Orleans",
+    "cityName": "New Orleans",
+    "formattedAddress": "New Orleans, LA, USA",
+    "latitude": 29.950894099999996,
+    "longitude": -90.07583559999999,
+    "countryCode": "US"
+  },
+  {
+    "googlePlaceId": "ChIJDbdkHFQayUwR7-8fITgxTmU",
+    "placeName": "Montreal",
+    "cityName": "Montreal",
+    "formattedAddress": "Montreal, QC, Canada",
+    "latitude": 45.501886899999995,
+    "longitude": -73.56739189999999,
+    "countryCode": "CA"
+  },
+  {
+    "googlePlaceId": "ChIJk4jbBYqWuEwRAzro8GMtxY8",
+    "placeName": "Québec City",
+    "cityName": "Québec City",
+    "formattedAddress": "Québec City, QC, Canada",
+    "latitude": 46.8130816,
+    "longitude": -71.20745959999999,
+    "countryCode": "CA"
+  },
+  {
+    "googlePlaceId": "ChIJUROdrucl9o4RyiY_Ay45YbE",
+    "placeName": "Cartagena",
+    "cityName": "Cartagena",
+    "formattedAddress": "Cartagena, Bolivar, Colombia",
+    "latitude": 10.393227699999999,
+    "longitude": -75.4832311,
+    "countryCode": "CO"
+  },
+  {
+    "googlePlaceId": "ChIJxz7uGfbFBZERSi5FzLlsIBQ",
+    "placeName": "Lima",
+    "cityName": "Lima",
+    "formattedAddress": "Lima, Peru",
+    "latitude": -12.0466888,
+    "longitude": -77.04308859999999,
+    "countryCode": "PE"
+  },
+  {
+    "googlePlaceId": "ChIJMYRZJtjVbZERXTEYI8yWqSo",
+    "placeName": "Cusco",
+    "cityName": "Cusco",
+    "formattedAddress": "Cusco, Peru",
+    "latitude": -13.53195,
+    "longitude": -71.96746259999999,
+    "countryCode": "PE"
+  },
+  {
+    "googlePlaceId": "ChIJL68lBEHFYpYRMQkPQDzVdYQ",
+    "placeName": "Santiago",
+    "cityName": "Santiago",
+    "formattedAddress": "Santiago, Santiago Metropolitan Region, Chile",
+    "latitude": -33.448889699999995,
+    "longitude": -70.6692655,
+    "countryCode": "CL"
+  },
+  {
+    "googlePlaceId": "ChIJswo0Eqyt770RGONnA4g9gPU",
+    "placeName": "Patagonia",
+    "cityName": "Patagonia",
+    "formattedAddress": "Patagonia",
+    "latitude": -41.810147199999996,
+    "longitude": -68.9062689,
+    "countryCode": "UNKNOWN"
+  },
+  {
+    "googlePlaceId": "ChIJzQfsO7TZIZARI65d8P5oPvs",
+    "placeName": "Galápagos Islands",
+    "cityName": "Galápagos Islands",
+    "formattedAddress": "Galápagos Islands, Ecuador",
+    "latitude": -0.38310591679147066,
+    "longitude": -90.42333442620028,
+    "countryCode": "EC"
+  },
+  {
+    "googlePlaceId": "ChIJy0zDvcx01kgRdwrutNd8nJs",
+    "placeName": "Hotel Leifur Eiríksson",
+    "cityName": "RVK",
+    "formattedAddress": "Skólavörðustígur 45, 101 Reykjavík, Iceland",
+    "latitude": 64.1427583,
+    "longitude": -21.9275944,
+    "countryCode": "IS"
+  },
+  {
+    "googlePlaceId": "ChIJA3rwat1xhUcRKZxeGFYI5Ek",
+    "placeName": "The Chedi Andermatt",
+    "cityName": "Andermatt",
+    "formattedAddress": "Gotthardstrasse 4, 6490 Andermatt, Switzerland",
+    "latitude": 46.6363524,
+    "longitude": 8.594439099999999,
+    "countryCode": "CH"
+  },
+  {
+    "googlePlaceId": "ChIJ27mmCP5t5kcRLoqkLKdN3Jw",
+    "placeName": "Les Jardins du Marais",
+    "cityName": "Paris",
+    "formattedAddress": "74 Rue Amelot, 75011 Paris, France",
+    "latitude": 48.860521899999995,
+    "longitude": 2.3680239,
+    "countryCode": "FR"
+  },
+  {
+    "googlePlaceId": "ChIJTe2V2NIEdkgRWxYeR5EpPVY",
+    "placeName": "Mimi's Hotel Soho",
+    "cityName": "London",
+    "formattedAddress": "56, 57 Frith St, London W1D 3JG, UK",
+    "latitude": 51.514071099999995,
+    "longitude": -0.13199829999999999,
+    "countryCode": "GB"
+  },
+  {
+    "googlePlaceId": "ChIJywcn0AqMGGARUlUzdWX_byI",
+    "placeName": "Hotel Rose Garden Shinjuku",
+    "cityName": "Shinjuku City",
+    "formattedAddress": "8-chōme-1-3 Nishishinjuku, Shinjuku City, Tokyo 160-0023, Japan",
+    "latitude": 35.69445160000001,
+    "longitude": 139.69370590000003,
+    "countryCode": "JP"
+  },
+  {
+    "googlePlaceId": "ChIJsQcVk1WipBIR5bqvII0Gqqg",
+    "placeName": "Hotel Duquesa de Cardona Barcelona",
+    "cityName": "Barcelona",
+    "formattedAddress": "Pg. de Colom, 12, Ciutat Vella, 08002 Barcelona, Spain",
+    "latitude": 41.3798075,
+    "longitude": 2.1804625,
+    "countryCode": "ES"
+  },
+  {
+    "googlePlaceId": "ChIJWV1f22hgLxMRX3CfDwV8yLk",
+    "placeName": "Hotel Emmaus Rome",
+    "cityName": "Roma",
+    "formattedAddress": "Via delle Fornaci, 23/25, 00165 Roma RM, Italy",
+    "latitude": 41.8992728,
+    "longitude": 12.456388800000001,
+    "countryCode": "IT"
+  },
+  {
+    "googlePlaceId": "ChIJnVNVDpMJxkcRDjKQprON-hk",
+    "placeName": "Amsterdam Canal Hotel",
+    "cityName": "Amsterdam",
+    "formattedAddress": "Weteringschans 253, 1017 XJ Amsterdam, Netherlands",
+    "latitude": 52.359524300000004,
+    "longitude": 4.8959645,
+    "countryCode": "NL"
+  },
+  {
+    "googlePlaceId": "ChIJi2Rd9uRRqEcRifAY0qTtxi8",
+    "placeName": "ibis Styles Hotel Berlin Mitte",
+    "cityName": "Berlin",
+    "formattedAddress": "Brunnenstraße 1-2, 10119 Berlin, Germany",
+    "latitude": 52.5301828,
+    "longitude": 13.4012616,
+    "countryCode": "DE"
+  },
+  {
+    "googlePlaceId": "ChIJlU4DHG4HbUcRocvGLzHlLzU",
+    "placeName": "The Amauris Vienna - Relais & Châteaux",
+    "cityName": "Wien",
+    "formattedAddress": "Kärntner Ring 8, 1010 Wien, Austria",
+    "latitude": 48.201709,
+    "longitude": 16.3710315,
+    "countryCode": "AT"
+  },
+  {
+    "googlePlaceId": "ChIJZaFNaMCUC0cRY-jhSQaTjJE",
+    "placeName": "Hotel Caruso Prague",
+    "cityName": "Hotel Caruso Prague",
+    "formattedAddress": "U Milosrdných 867/2, Staré Město, 110 00 Praha-Praha 1, Czechia",
+    "latitude": 50.0917187,
+    "longitude": 14.4205876,
+    "countryCode": "CZ"
+  },
+  {
+    "googlePlaceId": "ChIJXcqEqxvcQUcRvXfMjhz3ZGQ",
+    "placeName": "Novotel Budapest Danube",
+    "cityName": "Budapest",
+    "formattedAddress": "Budapest, Ntak: Sz19000074, Bem rkp. 33-34, 1027 Hungary",
+    "latitude": 47.5084187,
+    "longitude": 19.0389789,
+    "countryCode": "HU"
+  },
+  {
+    "googlePlaceId": "ChIJh_wV6nY0GQ0R4zelsyqGUxc",
+    "placeName": "Memmo Alfama Hotel Lisboa",
+    "cityName": "Lisboa",
+    "formattedAddress": "Tv. das Merceeiras 27, 1100-348 Lisboa, Portugal",
+    "latitude": 38.7102204,
+    "longitude": -9.1305785,
+    "countryCode": "PT"
+  },
+  {
+    "googlePlaceId": "ChIJrXoIkq9lJA0RIdn9h3OaEGA",
+    "placeName": "OCA Ribeira do Porto Hotel",
+    "cityName": "Porto",
+    "formattedAddress": "Praça Ribeira 5, 4050-513 Porto, Portugal",
+    "latitude": 41.1406637,
+    "longitude": -8.6132201,
+    "countryCode": "PT"
+  },
+  {
+    "googlePlaceId": "ChIJq8uCroQOZ0gR5XinKDy_qOo",
+    "placeName": "Temple Bar Hotel Dublin by The Unlimited Collection",
+    "cityName": "Dublin",
+    "formattedAddress": "13-17 Fleet St, Temple Bar, Dublin, D02 WD51, Ireland",
+    "latitude": 53.345897199999996,
+    "longitude": -6.2603319,
+    "countryCode": "IE"
+  },
+  {
+    "googlePlaceId": "ChIJ84yKm4jHh0gRpVYcj0V3zQM",
+    "placeName": "Aparthotel Adagio Edinburgh Royal Mile",
+    "cityName": "Edinburgh",
+    "formattedAddress": "231 Canongate, Edinburgh EH8 8BJ, UK",
+    "latitude": 55.9511353,
+    "longitude": -3.1820725,
+    "countryCode": "GB"
+  },
+  {
+    "googlePlaceId": "ChIJu5LayzxTUkYRCuFiXzqqlFk",
+    "placeName": "71 Nyhavn Hotel",
+    "cityName": "København",
+    "formattedAddress": "Nyhavn 71, 1051 København, Denmark",
+    "latitude": 55.679355,
+    "longitude": 12.593586,
+    "countryCode": "DK"
+  },
+  {
+    "googlePlaceId": "ChIJUXt3suJ3X0YRvJdx0P6hd94",
+    "placeName": "Hotel Gamla Stan, BW Signature Collection",
+    "cityName": "Stockholm",
+    "formattedAddress": "Skeppsbron 22, 111 30 Stockholm, Sweden",
+    "latitude": 59.3246815,
+    "longitude": 18.0752351,
+    "countryCode": "SE"
+  },
+  {
+    "googlePlaceId": "ChIJ8RnOOc8LkkYRtiWlf4Y8iXQ",
+    "placeName": "Hotel Haven",
+    "cityName": "HKI",
+    "formattedAddress": "Unioninkatu 17, 00130 Helsinki, Finland",
+    "latitude": 60.166567199999996,
+    "longitude": 24.951433899999998,
+    "countryCode": "FI"
+  },
+  {
+    "googlePlaceId": "ChIJ1RaslmS5RkYRui4np1IRcHQ",
+    "placeName": "Oslofjord Hotel",
+    "cityName": "Melsomvik",
+    "formattedAddress": "Oslofjordveien 8, 3159 Melsomvik, Norway",
+    "latitude": 59.23131780000001,
+    "longitude": 10.3601812,
+    "countryCode": "NO"
+  },
+  {
+    "googlePlaceId": "ChIJd312ZkkNOUYRCAretD6gQp4",
+    "placeName": "Bergen",
+    "cityName": "Bergen",
+    "formattedAddress": "Bergen, Norway",
+    "latitude": 60.39126279999999,
+    "longitude": 5.3220544,
+    "countryCode": "NO"
+  },
+  {
+    "googlePlaceId": "ChIJw1fDz88TPkYRxRDVqvZvKDM",
+    "placeName": "Flåm",
+    "cityName": "Flåm",
+    "formattedAddress": "Flåm, Norway",
+    "latitude": 60.8607716,
+    "longitude": 7.1117849,
+    "countryCode": "NO"
+  },
+  {
+    "googlePlaceId": "ChIJ5y7-LQZMiUcRgKO65CqrCAQ",
+    "placeName": "Chamonix",
+    "cityName": "Chamonix",
+    "formattedAddress": "Chamonix, France",
+    "latitude": 45.923697,
+    "longitude": 6.869433,
+    "countryCode": "FR"
+  },
+  {
+    "googlePlaceId": "ChIJMS2FahDQzRIRcJqX_aUZCAQ",
+    "placeName": "Nice",
+    "cityName": "Nice",
+    "formattedAddress": "Nice, France",
+    "latitude": 43.710172799999995,
+    "longitude": 7.261953200000001,
+    "countryCode": "FR"
+  },
+  {
+    "googlePlaceId": "ChIJ__8MU4CBzhIRIJ6X_aUZCAQ",
+    "placeName": "Cannes",
+    "cityName": "Cannes",
+    "formattedAddress": "Cannes, France",
+    "latitude": 43.5539499,
+    "longitude": 7.0170217,
+    "countryCode": "FR"
+  },
+  {
+    "googlePlaceId": "ChIJrfXgyd9_9EcRLfa1mDr77kQ",
+    "placeName": "Provence",
+    "cityName": "Provence",
+    "formattedAddress": "Provence, France",
+    "latitude": 44.0144936,
+    "longitude": 6.2116438,
+    "countryCode": "FR"
+  },
+  {
+    "googlePlaceId": "ChIJezSAEFMr1BIRq1kgW7rDxro",
+    "placeName": "Tuscany",
+    "cityName": "Tuscany",
+    "formattedAddress": "Tuscany, Italy",
+    "latitude": 43.5671153,
+    "longitude": 10.980700299999999,
+    "countryCode": "IT"
+  },
+  {
+    "googlePlaceId": "ChIJoXFMw62VOxMR3ExPyRTP6Ew",
+    "placeName": "Amalfi Coast",
+    "cityName": "Amalfi",
+    "formattedAddress": "84011 Amalfi, SA, Italy",
+    "latitude": 40.6333389,
+    "longitude": 14.6028963,
+    "countryCode": "IT"
+  },
+  {
+    "googlePlaceId": "ChIJ95_9rYbOmRQR_IrWQPdhp7I",
+    "placeName": "Santorini",
+    "cityName": "Santorini",
+    "formattedAddress": "Santorini, Greece",
+    "latitude": 36.3931562,
+    "longitude": 25.4615092,
+    "countryCode": "GR"
+  },
+  {
+    "googlePlaceId": "ChIJkZs88LS4ohQRobR5Hkdk0Xg",
+    "placeName": "Mykonos",
+    "cityName": "Mykonos",
+    "formattedAddress": "Mykonos, Mikonos 846 00, Greece",
+    "latitude": 37.4414601,
+    "longitude": 25.3667218,
+    "countryCode": "GR"
+  },
+  {
+    "googlePlaceId": "ChIJoZh9gi_-mhQRMMa54iy9AAE",
+    "placeName": "Crete",
+    "cityName": "Crete",
+    "formattedAddress": "Crete, Greece",
+    "latitude": 35.240117,
+    "longitude": 24.809269099999998,
+    "countryCode": "GR"
+  },
+  {
+    "googlePlaceId": "ChIJYf8K4ZNhlRQRk4i_vYjQE2k",
+    "placeName": "Rhodes",
+    "cityName": "Rhodes",
+    "formattedAddress": "Rhodes, Greece",
+    "latitude": 36.4359325,
+    "longitude": 28.217267600000003,
+    "countryCode": "GR"
+  },
+  {
+    "googlePlaceId": "ChIJLSHbT8RZcg0RzzLKyZLcJWA",
+    "placeName": "Málaga",
+    "cityName": "Málaga",
+    "formattedAddress": "Málaga, Spain",
+    "latitude": 36.7178196,
+    "longitude": -4.4255569999999995,
+    "countryCode": "ES"
+  },
+  {
+    "googlePlaceId": "ChIJkWK-FBFsEg0RSFb-HGIY8DQ",
+    "placeName": "Seville",
+    "cityName": "Seville",
+    "formattedAddress": "Seville, Spain",
+    "latitude": 37.389092399999996,
+    "longitude": -5.9844589,
+    "countryCode": "ES"
+  },
+  {
+    "googlePlaceId": "ChIJfcIyLeb8cQ0Rcg1g0533WJI",
+    "placeName": "Granada",
+    "cityName": "Granada",
+    "formattedAddress": "Granada, Spain",
+    "latitude": 37.1824607,
+    "longitude": -3.6011675999999992,
+    "countryCode": "ES"
+  },
+  {
+    "googlePlaceId": "ChIJuYlLZidOTg0RRaaVHsSsNGU",
+    "placeName": "Bilbao",
+    "cityName": "Bilbao",
+    "formattedAddress": "Bilbao, Biscay, Spain",
+    "latitude": 43.2633799,
+    "longitude": -2.9348121,
+    "countryCode": "ES"
+  },
+  {
+    "googlePlaceId": "ChIJFf5oO_6vUQ0RSUaGlFnFPuQ",
+    "placeName": "Donostia / San Sebastián",
+    "cityName": "Donostia / San Sebastián",
+    "formattedAddress": "Donostia / San Sebastián, Gipuzkoa, Spain",
+    "latitude": 43.318236999999996,
+    "longitude": -1.9817050999999999,
+    "countryCode": "ES"
+  },
+  {
+    "googlePlaceId": "ChIJB6LcfufyJA0Rh5H7a4-F3ro",
+    "placeName": "Douro Valley Wine Tours | Transfers",
+    "cityName": "Porto",
+    "formattedAddress": "Rua de Vilar, 4050-626 Porto, Portugal",
+    "latitude": 41.1501362,
+    "longitude": -8.6274429,
+    "countryCode": "PT"
+  },
+  {
+    "googlePlaceId": "ChIJDUIewdBQw0cR902DyFrzoho",
+    "placeName": "Bruges",
+    "cityName": "Bruges",
+    "formattedAddress": "Bruges, Belgium",
+    "latitude": 51.208450799999994,
+    "longitude": 3.2250585999999997,
+    "countryCode": "BE"
+  },
+  {
+    "googlePlaceId": "ChIJrUOUM-Fww0cRQFFNL6uZAAQ",
+    "placeName": "Ghent",
+    "cityName": "Ghent",
+    "formattedAddress": "Ghent, Belgium",
+    "latitude": 51.0499922,
+    "longitude": 3.7303853000000005,
+    "countryCode": "BE"
+  },
+  {
+    "googlePlaceId": "ChIJwbIYXknIlkcRHyTnGDFIGpc",
+    "placeName": "Strasbourg",
+    "cityName": "Strasbourg",
+    "formattedAddress": "Strasbourg, France",
+    "latitude": 48.5734053,
+    "longitude": 7.752111299999999,
+    "countryCode": "FR"
+  },
+  {
+    "googlePlaceId": "ChIJz8Fw9t9lkUcRZulsYT5-XeM",
+    "placeName": "Colmar",
+    "cityName": "Colmar",
+    "formattedAddress": "68000 Colmar, France",
+    "latitude": 48.080318299999995,
+    "longitude": 7.354605200000001,
+    "countryCode": "FR"
+  },
+  {
+    "googlePlaceId": "ChIJsdQIqd2adkcRPfcqQaGD4cE",
+    "placeName": "Salzburg",
+    "cityName": "Salzburg",
+    "formattedAddress": "Salzburg, Austria",
+    "latitude": 47.801415399999996,
+    "longitude": 13.044844099999999,
+    "countryCode": "AT"
+  },
+  {
+    "googlePlaceId": "ChIJc8r44c9unUcRDZsdKH0cIJ0",
+    "placeName": "Innsbruck",
+    "cityName": "Innsbruck",
+    "formattedAddress": "Innsbruck, Austria",
+    "latitude": 47.2675322,
+    "longitude": 11.3910349,
+    "countryCode": "AT"
+  },
+  {
+    "googlePlaceId": "ChIJY0ZBbm82cUcRrcEmalllwRY",
+    "placeName": "Hallstatt",
+    "cityName": "Hallstatt",
+    "formattedAddress": "Hallstatt, Austria",
+    "latitude": 47.5622342,
+    "longitude": 13.649261699999998,
+    "countryCode": "AT"
+  },
+  {
+    "googlePlaceId": "ChIJ92ILgjI9hEcR4OGY6OrEQD4",
+    "placeName": "Lake Como",
+    "cityName": "Lake Como",
+    "formattedAddress": "Lake Como, Italy",
+    "latitude": 46.0160486,
+    "longitude": 9.257167599999999,
+    "countryCode": "IT"
+  },
+  {
+    "googlePlaceId": "ChIJF3b5UICvfkcRe7qaDLPi_MA",
+    "placeName": "Lido di Venezia",
+    "cityName": "Lido di Venezia",
+    "formattedAddress": "Lido di Venezia, Italy",
+    "latitude": 45.3893139,
+    "longitude": 12.353088099999999,
+    "countryCode": "IT"
+  },
+  {
+    "googlePlaceId": "ChIJrdbSgKZWKhMRAyrH7xd51ZM",
+    "placeName": "Florence",
+    "cityName": "Florence",
+    "formattedAddress": "Florence, Metropolitan City of Florence, Italy",
+    "latitude": 43.7699685,
+    "longitude": 11.257670599999999,
+    "countryCode": "IT"
+  },
+  {
+    "googlePlaceId": "ChIJmX5sak8IOxMRHRl4O8Es9T0",
+    "placeName": "Naples",
+    "cityName": "Naples",
+    "formattedAddress": "Naples, Metropolitan City of Naples, Italy",
+    "latitude": 40.8517983,
+    "longitude": 14.26812,
+    "countryCode": "IT"
+  },
+  {
+    "googlePlaceId": "ChIJmdBOgcnoGRMRgNg7IywECwo",
+    "placeName": "Palermo",
+    "cityName": "Palermo",
+    "formattedAddress": "Palermo, PA, Italy",
+    "latitude": 38.1156864,
+    "longitude": 13.3614635,
+    "countryCode": "IT"
+  },
+  {
+    "googlePlaceId": "ChIJtSUVdt3iExMR8DzIUWGH_lg",
+    "placeName": "Catania",
+    "cityName": "Catania",
+    "formattedAddress": "Catania, Metropolitan city of Catania, Italy",
+    "latitude": 37.5078836,
+    "longitude": 15.0830032,
+    "countryCode": "IT"
+  },
+  {
+    "googlePlaceId": "ChIJuaXq7ua0DxMRriC34Q8vpL8",
+    "placeName": "Gozo",
+    "cityName": "Gozo",
+    "formattedAddress": "Gozo, Malta",
+    "latitude": 36.0442999,
+    "longitude": 14.2512221,
+    "countryCode": "MT"
+  },
+  {
+    "googlePlaceId": "ChIJnfQCrBYz5xQRErAlcJV_qdo",
+    "placeName": "Limassol",
+    "cityName": "Limassol",
+    "formattedAddress": "Limassol, Cyprus",
+    "latitude": 34.6786322,
+    "longitude": 33.0413055,
+    "countryCode": "CY"
+  },
+  {
+    "googlePlaceId": "ChIJH3w7GaZMHRURkD-WwKJy-8E",
+    "placeName": "Tel Aviv-Yafo",
+    "cityName": "Tel Aviv-Yafo",
+    "formattedAddress": "Tel Aviv-Yafo, Israel",
+    "latitude": 32.085299899999995,
+    "longitude": 34.781767599999995,
+    "countryCode": "IL"
+  },
+  {
+    "googlePlaceId": "ChIJS_zBNNbXAhURy-FuRT5ib9k",
+    "placeName": "Jerusalem",
+    "cityName": "Jerusalem",
+    "formattedAddress": "Jerusalem, Israel",
+    "latitude": 31.776883100000003,
+    "longitude": 35.22243460000001,
+    "countryCode": "IL"
+  },
+  {
+    "googlePlaceId": "ChIJcWA7cPFuARURkSKaZwj5mxk",
+    "placeName": "Petra",
+    "cityName": "Petra",
+    "formattedAddress": "Jordan",
+    "latitude": 30.328454400000002,
+    "longitude": 35.4443622,
+    "countryCode": "JO"
+  },
+  {
+    "googlePlaceId": "ChIJyx6ijl7urw0RJmV3ZuinO5o",
+    "placeName": "Royal Mansour Marrakech",
+    "cityName": "Marrakech",
+    "formattedAddress": "Rue Abou Abbas El Sebti، Marrakech 40000, Morocco",
+    "latitude": 31.6251861,
+    "longitude": -7.998378300000001,
+    "countryCode": "MA"
+  },
+  {
+    "googlePlaceId": "ChIJd1dETUiLnw0R7wLY7a6q5hA",
+    "placeName": "Fes",
+    "cityName": "Fes",
+    "formattedAddress": "Fes, Morocco",
+    "latitude": 34.0181246,
+    "longitude": -5.0078451,
+    "countryCode": "MA"
+  },
+  {
+    "googlePlaceId": "ChIJ674hC6Y_WBQRujtC6Jay33k",
+    "placeName": "Cairo",
+    "cityName": "Cairo",
+    "formattedAddress": "Cairo, Cairo Governorate, Egypt",
+    "latitude": 30.0444196,
+    "longitude": 31.2357116,
+    "countryCode": "EG"
+  },
+  {
+    "googlePlaceId": "ChIJzZXNUs8VSRQRlg4ciyvd9eA",
+    "placeName": "Luxor",
+    "cityName": "Luxor",
+    "formattedAddress": "Luxor, Luxor City, Luxor, Luxor Governorate, Egypt",
+    "latitude": 25.6872431,
+    "longitude": 32.6396357,
+    "countryCode": "EG"
+  },
+  {
+    "googlePlaceId": "ChIJp0lN2HIRLxgRTJKXslQCz_c",
+    "placeName": "Nairobi",
+    "cityName": "Nairobi",
+    "formattedAddress": "Nairobi, Kenya",
+    "latitude": -1.2920658999999999,
+    "longitude": 36.8219462,
+    "countryCode": "KE"
+  },
+  {
+    "googlePlaceId": "ChIJUV3SGQ88LRgRdXHAEqAeILE",
+    "placeName": "Serengeti",
+    "cityName": "Serengeti",
+    "formattedAddress": "Serengeti, Tanzania",
+    "latitude": -1.8936005,
+    "longitude": 34.6856509,
+    "countryCode": "TZ"
+  },
+  {
+    "googlePlaceId": "ChIJ-fIL2vnvTxkRaNUY32NGBYs",
+    "placeName": "Victoria Falls",
+    "cityName": "Victoria Falls",
+    "formattedAddress": "Victoria Falls",
+    "latitude": -17.9255206,
+    "longitude": 25.858533599999998,
+    "countryCode": "UNKNOWN"
+  },
+  {
+    "googlePlaceId": "ChIJcX1ZMGjwfCERVcBh7THSenk",
+    "placeName": "Four Seasons Resort Mauritius at Anahita",
+    "cityName": "Beau Champ",
+    "formattedAddress": "MU, Coastal Road, Beau Champ 71501, Mauritius",
+    "latitude": -20.284347399999998,
+    "longitude": 57.790414399999996,
+    "countryCode": "MU"
+  },
+  {
+    "googlePlaceId": "ChIJQfjWgc8qHiMRCXE-3btJOOQ",
+    "placeName": "Anse Royale Beach",
+    "cityName": "Anse Royale",
+    "formattedAddress": "Anse Royale Beach, E Coast Rd, Anse Royale, Seychelles",
+    "latitude": -4.7370681,
+    "longitude": 55.5219683,
+    "countryCode": "SC"
+  },
+  {
+    "googlePlaceId": "ChIJwe1EZjDG5zsRaYxkjY_tpF0",
+    "placeName": "Mumbai",
+    "cityName": "Mumbai",
+    "formattedAddress": "Mumbai, Maharashtra, India",
+    "latitude": 18.9582347,
+    "longitude": 72.8319514,
+    "countryCode": "IN"
+  },
+  {
+    "googlePlaceId": "ChIJLbZ-NFv9DDkRQJY4FbcFcgM",
+    "placeName": "Delhi",
+    "cityName": "Delhi",
+    "formattedAddress": "Delhi, India",
+    "latitude": 28.7040592,
+    "longitude": 77.10249019999999,
+    "countryCode": "IN"
+  },
+  {
+    "googlePlaceId": "ChIJgeJXTN9KbDkRCS7yDDrG4Qw",
+    "placeName": "Jaipur",
+    "cityName": "Jaipur",
+    "formattedAddress": "Jaipur, Rajasthan, India",
+    "latitude": 26.9124336,
+    "longitude": 75.7872709,
+    "countryCode": "IN"
+  },
+  {
+    "googlePlaceId": "ChIJQbc2YxC6vzsRkkDzYv-H-Oo",
+    "placeName": "Goa",
+    "cityName": "Goa",
+    "formattedAddress": "Goa, India",
+    "latitude": 15.299326499999998,
+    "longitude": 74.12399599999999,
+    "countryCode": "IN"
+  },
+  {
+    "googlePlaceId": "ChIJuSwU55ZS8DURiqkPryBWYrk",
+    "placeName": "Beijing",
+    "cityName": "Beijing",
+    "formattedAddress": "Beijing, China",
+    "latitude": 39.904211,
+    "longitude": 116.407395,
+    "countryCode": "CN"
+  },
+  {
+    "googlePlaceId": "ChIJMzz1sUBwsjURoWTDI5QSlQI",
+    "placeName": "Shanghai",
+    "cityName": "Shanghai",
+    "formattedAddress": "Shanghai, China",
+    "latitude": 31.230416,
+    "longitude": 121.473701,
+    "countryCode": "CN"
+  },
+  {
+    "googlePlaceId": "ChIJxytco5X4AjQRFeTqrXXgWQ4",
+    "placeName": "Guangzhou",
+    "cityName": "Guangzhou",
+    "formattedAddress": "Guangzhou, Guangdong Province, China",
+    "latitude": 23.1290799,
+    "longitude": 113.26436000000001,
+    "countryCode": "CN"
+  },
+  {
+    "googlePlaceId": "ChIJkVLh0Aj0AzQRyYCStw1V7v0",
+    "placeName": "Shenzhen",
+    "cityName": "Shenzhen",
+    "formattedAddress": "Shenzhen, Guangdong Province, China",
+    "latitude": 22.5428599,
+    "longitude": 114.05955999999999,
+    "countryCode": "CN"
+  },
+  {
+    "googlePlaceId": "ChIJ4eIGNFXmAGAR5y9q5G7BW8U",
+    "placeName": "Osaka",
+    "cityName": "Osaka",
+    "formattedAddress": "Osaka, Japan",
+    "latitude": 34.6937249,
+    "longitude": 135.5022535,
+    "countryCode": "JP"
+  },
+  {
+    "googlePlaceId": "ChIJu0_z7giZWjURcvfBz1DO5Ac",
+    "placeName": "Hiroshima",
+    "cityName": "Hiroshima",
+    "formattedAddress": "Hiroshima, Japan",
+    "latitude": 34.3852894,
+    "longitude": 132.45530549999998,
+    "countryCode": "JP"
+  },
+  {
+    "googlePlaceId": "ChIJMzaXWnXUCl8R1bqHRp1-kzM",
+    "placeName": "Sapporo",
+    "cityName": "Sapporo",
+    "formattedAddress": "Sapporo, Hokkaido, Japan",
+    "latitude": 43.0617713,
+    "longitude": 141.3544506,
+    "countryCode": "JP"
+  },
+  {
+    "googlePlaceId": "ChIJNc0j6G3raDURpwhxJHTL2DU",
+    "placeName": "Busan",
+    "cityName": "Busan",
+    "formattedAddress": "Busan, South Korea",
+    "latitude": 35.173112100000004,
+    "longitude": 129.0714122,
+    "countryCode": "KR"
+  },
+  {
+    "googlePlaceId": "ChIJ_XltioXgDDUR4pyR4WmImks",
+    "placeName": "Jeju-si",
+    "cityName": "Jeju-si",
+    "formattedAddress": "Jeju-si, Jeju-do, South Korea",
+    "latitude": 33.5042779,
+    "longitude": 126.519838,
+    "countryCode": "KR"
+  },
+  {
+    "googlePlaceId": "ChIJH56c2rarQjQRphD9gvC8BhI",
+    "placeName": "Taipei 101",
+    "cityName": "Taipei 101",
+    "formattedAddress": "Taipei 101, No. 7, Section 5, Xinyi Rd, Xicun Village, Xinyi District, Taipei City, Taiwan 110",
+    "latitude": 25.033976,
+    "longitude": 121.56453889999999,
+    "countryCode": "TW"
+  },
+  {
+    "googlePlaceId": "ChIJ88g14uB6ATQR9qyFtCzje8Y",
+    "placeName": "Macao",
+    "cityName": "Macao",
+    "formattedAddress": "Macao",
+    "latitude": 22.198745,
+    "longitude": 113.54387299999999,
+    "countryCode": "MO"
+  },
+  {
+    "googlePlaceId": "ChIJ42tqxz1RCTERuyW1WugOAZw",
+    "placeName": "Phnom Penh",
+    "cityName": "PP",
+    "formattedAddress": "Phnom Penh, Cambodia",
+    "latitude": 11.5563738,
+    "longitude": 104.9282099,
+    "countryCode": "KH"
+  },
+  {
+    "googlePlaceId": "ChIJeaiRjJoWEDER-rvlPvmqQKk",
+    "placeName": "Krong Siem Reap",
+    "cityName": "Krong Siem Reap",
+    "formattedAddress": "Krong Siem Reap, Cambodia",
+    "latitude": 13.3632533,
+    "longitude": 103.856403,
+    "countryCode": "KH"
+  },
+  {
+    "googlePlaceId": "ChIJoxs9QT8qLzERVmqOYKlJl6w",
+    "placeName": "Luang Prabang",
+    "cityName": "Luang Prabang",
+    "formattedAddress": "Luang Prabang, Laos",
+    "latitude": 19.883285,
+    "longitude": 102.1387166,
+    "countryCode": "LA"
+  },
+  {
+    "googlePlaceId": "ChIJIXvtBoZoJDER3-7BGIaxkx8",
+    "placeName": "Vientiane",
+    "cityName": "Vientiane",
+    "formattedAddress": "Vientiane, Laos",
+    "latitude": 17.9757058,
+    "longitude": 102.63310349999999,
+    "countryCode": "LA"
+  },
+  {
+    "googlePlaceId": "ChIJaxk-Ip6UwTARtAsI-HHS-1Y",
+    "placeName": "Yangon",
+    "cityName": "Yangon",
+    "formattedAddress": "Yangon, Myanmar (Burma)",
+    "latitude": 16.840939,
+    "longitude": 96.173526,
+    "countryCode": "MM"
+  },
+  {
+    "googlePlaceId": "ChIJgWsCh7C4VTcRwgRZ3btjpY8",
+    "placeName": "Dhaka",
+    "cityName": "Dhaka",
+    "formattedAddress": "Dhaka, Bangladesh",
+    "latitude": 23.804092999999998,
+    "longitude": 90.4152376,
+    "countryCode": "BD"
+  },
+  {
+    "googlePlaceId": "ChIJL3KReNC_3zgRtgLbO1xRWWA",
+    "placeName": "Islamabad",
+    "cityName": "Islamabad",
+    "formattedAddress": "Islamabad, Pakistan",
+    "latitude": 33.699619,
+    "longitude": 73.036187,
+    "countryCode": "PK"
+  },
+  {
+    "googlePlaceId": "ChIJ2QeB5YMEGTkRYiR-zGy-OsI",
+    "placeName": "Lahore",
+    "cityName": "Lahore",
+    "formattedAddress": "Lahore, Pakistan",
+    "latitude": 31.520369600000002,
+    "longitude": 74.35874729999999,
+    "countryCode": "PK"
+  },
+  {
+    "googlePlaceId": "ChIJw-l5wwyLrjgRmMulSjsyqaU",
+    "placeName": "Tashkent",
+    "cityName": "Tashkent",
+    "formattedAddress": "Tashkent, Uzbekistan",
+    "latitude": 41.2982211,
+    "longitude": 69.2385223,
+    "countryCode": "UZ"
+  },
+  {
+    "googlePlaceId": "ChIJ930HYBkZTT8RVy8_0dk2dkg",
+    "placeName": "Samarkand",
+    "cityName": "Samarkand",
+    "formattedAddress": "Samarkand, Samarqand Region, Uzbekistan",
+    "latitude": 39.650796299999996,
+    "longitude": 66.9653502,
+    "countryCode": "UZ"
+  },
+  {
+    "googlePlaceId": "ChIJ2dzzH0kAjj8RvCRwVnxps_A",
+    "placeName": "Tehran",
+    "cityName": "Tehran",
+    "formattedAddress": "Tehran, Tehran Province, Iran",
+    "latitude": 35.7218583,
+    "longitude": 51.3346954,
+    "countryCode": "IR"
+  },
+  {
+    "googlePlaceId": "ChIJya-ah6j_kT4RLKd5DW2HU9s",
+    "placeName": "Muscat",
+    "cityName": "Muscat",
+    "formattedAddress": "Muscat, Oman",
+    "latitude": 23.588030699999997,
+    "longitude": 58.382871699999995,
+    "countryCode": "OM"
+  },
+  {
+    "googlePlaceId": "ChIJf-jc_zTFRT4RsdTPeJ8x2UQ",
+    "placeName": "Doha",
+    "cityName": "Doha",
+    "formattedAddress": "Doha, Qatar",
+    "latitude": 25.285447299999998,
+    "longitude": 51.531039799999995,
+    "countryCode": "QA"
+  },
+  {
+    "googlePlaceId": "ChIJufI-cg9EXj4RCBGXQZMuzMc",
+    "placeName": "Abu Dhabi",
+    "cityName": "Abu Dhabi",
+    "formattedAddress": "Abu Dhabi - United Arab Emirates",
+    "latitude": 24.453884,
+    "longitude": 54.3773438,
+    "countryCode": "AE"
+  },
+  {
+    "googlePlaceId": "ChIJmZNIDYkDLz4R1Z_nmBxNl7o",
+    "placeName": "Riyadh",
+    "cityName": "Riyadh",
+    "formattedAddress": "Riyadh Saudi Arabia",
+    "latitude": 24.7135517,
+    "longitude": 46.6752957,
+    "countryCode": "SA"
+  },
+  {
+    "googlePlaceId": "ChIJWX4TsR_QwxUR2xixN5dXWeA",
+    "placeName": "Jeddah",
+    "cityName": "Jeddah",
+    "formattedAddress": "Jeddah Saudi Arabia",
+    "latitude": 21.5291545,
+    "longitude": 39.1610863,
+    "countryCode": "SA"
+  },
+  {
+    "googlePlaceId": "ChIJLUCr9c6FSxYRSU2iN7C2Z4Q",
+    "placeName": "Addis Ababa",
+    "cityName": "Addis Ababa",
+    "formattedAddress": "Addis Ababa, Ethiopia",
+    "latitude": 9.0191936,
+    "longitude": 38.7524635,
+    "countryCode": "ET"
+  },
+  {
+    "googlePlaceId": "ChIJwYCC5iqLOxARy9nDZ6OHntw",
+    "placeName": "Lagos",
+    "cityName": "Lagos",
+    "formattedAddress": "Lagos, Nigeria",
+    "latitude": 6.613739499999999,
+    "longitude": 3.3552568,
+    "countryCode": "NG"
+  },
+  {
+    "googlePlaceId": "ChIJc6e3soSQ3w8R0y0OZdhO0b4",
+    "placeName": "Accra",
+    "cityName": "Accra",
+    "formattedAddress": "Accra, Ghana",
+    "latitude": 5.559284600000001,
+    "longitude": -0.19743059999999998,
+    "countryCode": "GH"
+  },
+  {
+    "googlePlaceId": "ChIJOxGqeEfNpw0R0w8xT9jBBgs",
+    "placeName": "Casablanca",
+    "cityName": "Casablanca",
+    "formattedAddress": "Casablanca, Morocco",
+    "latitude": 33.5731104,
+    "longitude": -7.589843399999999,
+    "countryCode": "MA"
+  },
+  {
+    "googlePlaceId": "ChIJQ_V-Xn8z_RIRdQJKcU6ScdY",
+    "placeName": "Tunis",
+    "cityName": "Tunis",
+    "formattedAddress": "Tunis, Tunisia",
+    "latitude": 36.806494799999996,
+    "longitude": 10.181531600000001,
+    "countryCode": "TN"
+  },
+  {
+    "googlePlaceId": "ChIJn2Xqd2myjxIRSW-jOC0QMUI",
+    "placeName": "Algiers",
+    "cityName": "Algiers",
+    "formattedAddress": "Algiers, Algeria",
+    "latitude": 36.753768,
+    "longitude": 3.0587561,
+    "countryCode": "DZ"
+  },
+  {
+    "googlePlaceId": "ChIJO-S4EIF3eCER-erb7ImOf0o",
+    "placeName": "Réunion",
+    "cityName": "Réunion",
+    "formattedAddress": "Réunion",
+    "latitude": -21.115140999999998,
+    "longitude": 55.536384,
+    "countryCode": "RE"
+  },
+  {
+    "googlePlaceId": "ChIJs04fT-N98CER-YLAvAgGEd8",
+    "placeName": "Antananarivo",
+    "cityName": "Antananarivo",
+    "formattedAddress": "Antananarivo, Madagascar",
+    "latitude": -18.9184607,
+    "longitude": 47.5211293,
+    "countryCode": "MG"
+  },
+  {
+    "googlePlaceId": "ChIJ5QkpKmApXRgRX32brUqvNaA",
+    "placeName": "Unguja",
+    "cityName": "Unguja",
+    "formattedAddress": "Unguja, Tanzania",
+    "latitude": -6.135729500000001,
+    "longitude": 39.3621196,
+    "countryCode": "TZ"
+  },
+  {
+    "googlePlaceId": "ChIJl-fYjiWk3BkRyAsdQaU2K_M",
+    "placeName": "Kigali",
+    "cityName": "Kigali",
+    "formattedAddress": "Kigali, Rwanda",
+    "latitude": -1.9440727000000002,
+    "longitude": 30.061885099999998,
+    "countryCode": "RW"
+  },
+  {
+    "googlePlaceId": "ChIJ7QEMs1wbCxwRO11EzEBJuOQ",
+    "placeName": "Windhoek",
+    "cityName": "Windhoek",
+    "formattedAddress": "Windhoek, Namibia",
+    "latitude": -22.5649344,
+    "longitude": 17.0842147,
+    "countryCode": "NA"
+  },
+  {
+    "googlePlaceId": "ChIJv6nuLDxbux4RoRGul5N2oUk",
+    "placeName": "Gaborone",
+    "cityName": "Gaborone",
+    "formattedAddress": "Gaborone, Botswana",
+    "latitude": -24.658000299999998,
+    "longitude": 25.9077037,
+    "countryCode": "BW"
+  },
+  {
+    "googlePlaceId": "ChIJVdpmtiOX5h4RQrRrmld_SUI",
+    "placeName": "Maputo",
+    "cityName": "Maputo",
+    "formattedAddress": "Maputo, Mozambique",
+    "latitude": -25.969248,
+    "longitude": 32.5731746,
+    "countryCode": "MZ"
+  },
+  {
+    "googlePlaceId": "ChIJSaq8PH3zQBkR6xMgRsGT0NA",
+    "placeName": "Lusaka",
+    "cityName": "Lusaka",
+    "formattedAddress": "Lusaka, Zambia",
+    "latitude": -15.415467699999997,
+    "longitude": 28.2773267,
+    "countryCode": "ZM"
+  },
+  {
+    "googlePlaceId": "ChIJNdvdG-6kMRkRL08T5Zs7FKU",
+    "placeName": "Harare",
+    "cityName": "Harare",
+    "formattedAddress": "Harare, Zimbabwe",
+    "latitude": -17.8262928,
+    "longitude": 31.050372299999996,
+    "countryCode": "ZW"
+  },
+  {
+    "googlePlaceId": "ChIJm7N0nQ-8fRcR7G9r2T2QOEU",
+    "placeName": "Kampala",
+    "cityName": "Kampala",
+    "formattedAddress": "Kampala, Uganda",
+    "latitude": 0.3151692,
+    "longitude": 32.5816313,
+    "countryCode": "UG"
+  },
+  {
+    "googlePlaceId": "ChIJcbvFs_VywQ4RH7JdLdkXfLE",
+    "placeName": "Dakar",
+    "cityName": "Dakar",
+    "formattedAddress": "Dakar, Senegal",
+    "latitude": 14.716677,
+    "longitude": -17.467686099999998,
+    "countryCode": "SN"
+  },
+  {
+    "googlePlaceId": "ChIJIZGVEVPqwQ8RpiGS4dwN5z8",
+    "placeName": "Abidjan",
+    "cityName": "Abidjan",
+    "formattedAddress": "Abidjan, Côte d'Ivoire",
+    "latitude": 5.3252258,
+    "longitude": -4.019603,
+    "countryCode": "CI"
+  },
+  {
+    "googlePlaceId": "ChIJ7fM4VIo7fxARwivSfPLiwns",
+    "placeName": "Libreville",
+    "cityName": "Libreville",
+    "formattedAddress": "Libreville, Gabon",
+    "latitude": 0.40779719999999997,
+    "longitude": 9.440283299999999,
+    "countryCode": "GA"
+  },
+  {
+    "googlePlaceId": "ChIJbf7h4osSYRARi8SBR0Sh2pI",
+    "placeName": "Douala",
+    "cityName": "Douala",
+    "formattedAddress": "Douala, Cameroon",
+    "latitude": 4.0510564,
+    "longitude": 9.7678687,
+    "countryCode": "CM"
+  },
+  {
+    "googlePlaceId": "ChIJi2oG_jAxahoRjTdSH05-ixY",
+    "placeName": "Kinshasa",
+    "cityName": "Kinshasa",
+    "formattedAddress": "Kinshasa, Democratic Republic of the Congo",
+    "latitude": -4.3032527,
+    "longitude": 15.310528,
+    "countryCode": "CD"
+  },
+  {
+    "googlePlaceId": "ChIJfSyN3FzxURoRklrMXlwcDIU",
+    "placeName": "Luanda",
+    "cityName": "Luanda",
+    "formattedAddress": "Luanda, Angola",
+    "latitude": -8.8146556,
+    "longitude": 13.230175599999999,
+    "countryCode": "AO"
+  },
+  {
+    "googlePlaceId": "ChIJ7WVKx4w3lkYR_46Eqz9nx20",
+    "placeName": "Saint Petersburg",
+    "cityName": "СПБ",
+    "formattedAddress": "St Petersburg, Russia",
+    "latitude": 59.931058400000005,
+    "longitude": 30.360909699999997,
+    "countryCode": "RU"
+  },
+  {
+    "googlePlaceId": "ChIJybDUc_xKtUYRTM9XV8zWRD0",
+    "placeName": "Moscow",
+    "cityName": "Moscow",
+    "formattedAddress": "Moscow, Russia",
+    "latitude": 55.756872099999995,
+    "longitude": 37.6150527,
+    "countryCode": "RU"
+  },
+  {
+    "googlePlaceId": "ChIJmc2sfCutXkERZYyttbl3y38",
+    "placeName": "Kazan",
+    "cityName": "Kazan",
+    "formattedAddress": "Kazan, Republic of Tatarstan, Russia",
+    "latitude": 55.7878944,
+    "longitude": 49.123329299999995,
+    "countryCode": "RU"
+  },
+  {
+    "googlePlaceId": "ChIJS8_mfGSTkkYRtDYylxVCzHc",
+    "placeName": "Rija Old Town Hotel",
+    "cityName": "Tallinn",
+    "formattedAddress": "Lai 49, 10133 Tallinn, Estonia",
+    "latitude": 59.44224239999999,
+    "longitude": 24.747485899999997,
+    "countryCode": "EE"
+  },
+  {
+    "googlePlaceId": "ChIJmx59usXP7kYR-GmhGihukkg",
+    "placeName": "Riga Art Nouveau Center",
+    "cityName": "Rīga",
+    "formattedAddress": "Alberta iela 12, Centra rajons, Rīga, LV-1010, Latvia",
+    "latitude": 56.95955790000001,
+    "longitude": 24.1084449,
+    "countryCode": "LV"
+  },
+  {
+    "googlePlaceId": "ChIJsWf-5MgLkkYRTb0WgSrsLTE",
+    "placeName": "Hotel Lilla Roberts",
+    "cityName": "HKI",
+    "formattedAddress": "Pieni Roobertinkatu 1-3, 00130 Helsinki, Finland",
+    "latitude": 60.164589500000005,
+    "longitude": 24.947162,
+    "countryCode": "FI"
+  },
+  {
+    "googlePlaceId": "ChIJYXAm56f-PEYROC3eIbJkUso",
+    "placeName": "Fishmarket in Bergen",
+    "cityName": "Bergen",
+    "formattedAddress": "Torget 5, 5014 Bergen, Norway",
+    "latitude": 60.3947383,
+    "longitude": 5.325177,
+    "countryCode": "NO"
+  },
+  {
+    "googlePlaceId": "ChIJyXwxDm0mFEYRE3M_nZFAW-4",
+    "placeName": "Geiranger",
+    "cityName": "Geiranger",
+    "formattedAddress": "Geiranger, Norway",
+    "latitude": 62.100844099999996,
+    "longitude": 7.205894099999999,
+    "countryCode": "NO"
+  },
+  {
+    "googlePlaceId": "ChIJKejz42o_3kURXTz8S2eRnGE",
+    "placeName": "Lofoten",
+    "cityName": "Lofoten",
+    "formattedAddress": "Lofoten, Norway",
+    "latitude": 68.20860685,
+    "longitude": 13.915736949999998,
+    "countryCode": "NO"
+  },
+  {
+    "googlePlaceId": "ChIJ6_ktdpMVvEgRJBv3ZEgxsD8",
+    "placeName": "Faroe Islands",
+    "cityName": "Faroe Islands",
+    "formattedAddress": "Faroe Islands",
+    "latitude": 61.892635000000006,
+    "longitude": -6.9118059999999995,
+    "countryCode": "FO"
+  },
+  {
+    "googlePlaceId": "ChIJJSezGs4Nok4RBiNpTfsl5D0",
+    "placeName": "Nuuk",
+    "cityName": "Nuuk",
+    "formattedAddress": "Nuuk, Greenland",
+    "latitude": 64.17432339999999,
+    "longitude": -51.7372787,
+    "countryCode": "GL"
+  },
+  {
+    "googlePlaceId": "ChIJDd_3r2Yd1kgRbvAWRIl6dPM",
+    "placeName": "Blue Lagoon",
+    "cityName": "Grindavík",
+    "formattedAddress": "Norðurljósavegur 9, 240 Grindavík, Iceland",
+    "latitude": 63.8807176,
+    "longitude": -22.447296299999998,
+    "countryCode": "IS"
+  },
+  {
+    "googlePlaceId": "ChIJkXynszghj0gRhkgKycP2GB4",
+    "placeName": "Scottish Highlands",
+    "cityName": "Fort Augustus",
+    "formattedAddress": "Scottish Highlands, Fort Augustus PH32 4BY, UK",
+    "latitude": 57.12,
+    "longitude": -4.710000000000001,
+    "countryCode": "GB"
+  },
+  {
+    "googlePlaceId": "ChIJ_8G9YSIxjEgRGGLI6W81XFg",
+    "placeName": "Skye",
+    "cityName": "Skye",
+    "formattedAddress": "Skye, United Kingdom",
+    "latitude": 57.2736278,
+    "longitude": -6.2155021999999995,
+    "countryCode": "GB"
+  },
+  {
+    "googlePlaceId": "ChIJF3A1IGLBfEgRhnpq6t17tRc",
+    "placeName": "Lake District National Park",
+    "cityName": "Lake District National Park",
+    "formattedAddress": "United Kingdom",
+    "latitude": 54.4678688,
+    "longitude": -3.0704249,
+    "countryCode": "GB"
+  },
+  {
+    "googlePlaceId": "ChIJBQY_ov88cUgRKv8JQ7qJjBY",
+    "placeName": "Cotswolds",
+    "cityName": "Cotswolds",
+    "formattedAddress": "Cotswolds, UK",
+    "latitude": 51.794951999999995,
+    "longitude": -1.8838872,
+    "countryCode": "GB"
+  },
+  {
+    "googlePlaceId": "ChIJyQ4nv_C3akgRcUVL2YU8Qm4",
+    "placeName": "Cornwall",
+    "cityName": "Cornwall",
+    "formattedAddress": "Cornwall, UK",
+    "latitude": 50.5036299,
+    "longitude": -4.6524982,
+    "countryCode": "GB"
+  },
+  {
+    "googlePlaceId": "ChIJh8D4I2y94UcRAuJIEVbx8iY",
+    "placeName": "Normandy",
+    "cityName": "Normandy",
+    "formattedAddress": "Normandy, France",
+    "latitude": 48.879870399999994,
+    "longitude": 0.17125289999999999,
+    "countryCode": "FR"
+  },
+  {
+    "googlePlaceId": "ChIJr45-rmHKEUgRsCTfNs2lDAE",
+    "placeName": "Brittany",
+    "cityName": "Brittany",
+    "formattedAddress": "Brittany, France",
+    "latitude": 48.2020471,
+    "longitude": -2.9326434999999997,
+    "countryCode": "FR"
+  },
+  {
+    "googlePlaceId": "ChIJiajaDcQx_UcRQuhJuL-Jl9Q",
+    "placeName": "Loire Valley",
+    "cityName": "Loire Valley",
+    "formattedAddress": "Loire Valley, France",
+    "latitude": 47.5532402,
+    "longitude": 1.0105289,
+    "countryCode": "FR"
+  },
+  {
+    "googlePlaceId": "ChIJgcpR9-gnVQ0RiXo5ewOGY3k",
+    "placeName": "Bordeaux",
+    "cityName": "Bordeaux",
+    "formattedAddress": "Bordeaux, France",
+    "latitude": 44.841610599999996,
+    "longitude": -0.5810938000000001,
+    "countryCode": "FR"
+  },
+  {
+    "googlePlaceId": "ChIJczdxcvvq9EcRF6hF_LmY8-U",
+    "placeName": "La Mère Brazier",
+    "cityName": "Lyon",
+    "formattedAddress": "12 Rue Royale, 69001 Lyon, France",
+    "latitude": 45.7714429,
+    "longitude": 4.8372133999999996,
+    "countryCode": "FR"
+  },
+  {
+    "googlePlaceId": "ChIJdZb974yd8kcR0FgUszTOCQQ",
+    "placeName": "Dijon",
+    "cityName": "Dijon",
+    "formattedAddress": "21000 Dijon, France",
+    "latitude": 47.330133599999996,
+    "longitude": 5.0480484,
+    "countryCode": "FR"
+  },
+  {
+    "googlePlaceId": "ChIJyVEFHPqPi0cRujQFYoEWeEI",
+    "placeName": "Annecy",
+    "cityName": "Annecy",
+    "formattedAddress": "Annecy, France",
+    "latitude": 45.899246999999995,
+    "longitude": 6.129384,
+    "countryCode": "FR"
+  },
+  {
+    "googlePlaceId": "ChIJb76J1ov0ikcRmFOZbs0QjGE",
+    "placeName": "Grenoble",
+    "cityName": "Grenoble",
+    "formattedAddress": "Grenoble, France",
+    "latitude": 45.188528999999996,
+    "longitude": 5.724524,
+    "countryCode": "FR"
+  },
+  {
+    "googlePlaceId": "ChIJ_1J17G-7rhIRMBBBL5z2BgQ",
+    "placeName": "Toulouse",
+    "cityName": "Toulouse",
+    "formattedAddress": "Toulouse, France",
+    "latitude": 43.6048462,
+    "longitude": 1.442848,
+    "countryCode": "FR"
+  },
+  {
+    "googlePlaceId": "ChIJMx7zCisVUQ0RMKgTSBdlBgQ",
+    "placeName": "Biarritz",
+    "cityName": "Biarritz",
+    "formattedAddress": "64200 Biarritz, France",
+    "latitude": 43.483151899999996,
+    "longitude": -1.558626,
+    "countryCode": "FR"
+  },
+  {
+    "googlePlaceId": "ChIJeT_m9V_rLBMRECA0gpnzAAA",
+    "placeName": "San Marino",
+    "cityName": "San Marino",
+    "formattedAddress": "San Marino",
+    "latitude": 43.9352313,
+    "longitude": 12.4467607,
+    "countryCode": "SM"
+  },
+  {
+    "googlePlaceId": "ChIJPS3UVwqJJRMRsH46sppPCQA",
+    "placeName": "Vatican City",
+    "cityName": "Vatican City",
+    "formattedAddress": "00120, Vatican City",
+    "latitude": 41.902916,
+    "longitude": 12.453389000000001,
+    "countryCode": "VA"
+  },
+  {
+    "googlePlaceId": "ChIJ76RLkZW8OxMRpBS0rnKK0dI",
+    "placeName": "Pompei",
+    "cityName": "Pompei",
+    "formattedAddress": "80045 Pompei, Metropolitan City of Naples, Italy",
+    "latitude": 40.7496576,
+    "longitude": 14.505311899999999,
+    "countryCode": "IT"
+  },
+  {
+    "googlePlaceId": "ChIJe7qrmhvu1BIRrPRwGvHOlf8",
+    "placeName": "Cinque Terre",
+    "cityName": "Cinque Terre",
+    "formattedAddress": "Cinque Terre, SP, Italy",
+    "latitude": 44.1460939,
+    "longitude": 9.6438793,
+    "countryCode": "IT"
+  },
+  {
+    "googlePlaceId": "ChIJMRTS-V9DeEcRu9n4gwcnT2c",
+    "placeName": "Dolomites",
+    "cityName": "Dolomites",
+    "formattedAddress": "Dolomites, 32023 Rocca Pietore, Province of Belluno, Italy",
+    "latitude": 46.4102117,
+    "longitude": 11.8440351,
+    "countryCode": "IT"
+  },
+  {
+    "googlePlaceId": "ChIJ66CnFDeqFhMRcCrFpSoECx0",
+    "placeName": "Mount Etna",
+    "cityName": "Mount Etna",
+    "formattedAddress": "Mt Etna, 95012 Castiglione di Sicilia, Metropolitan city of Catania, Italy",
+    "latitude": 37.751841299999995,
+    "longitude": 14.994712,
+    "countryCode": "IT"
+  },
+  {
+    "googlePlaceId": "ChIJkTWNRI3E3RIRMWar5LZ0ljM",
+    "placeName": "Sardinia",
+    "cityName": "Sardinia",
+    "formattedAddress": "Sardinia, Italy",
+    "latitude": 40.1208752,
+    "longitude": 9.012892599999999,
+    "countryCode": "IT"
+  },
+  {
+    "googlePlaceId": "ChIJUcXoBNMA2hIRA2HpAeqSbtk",
+    "placeName": "Corsica",
+    "cityName": "Corsica",
+    "formattedAddress": "Corsica, France",
+    "latitude": 42.0396042,
+    "longitude": 9.012892599999999,
+    "countryCode": "FR"
+  },
+  {
+    "googlePlaceId": "ChIJQzkJhWNHmRIR1iaEzSVHBgk",
+    "placeName": "Ibiza",
+    "cityName": "Ibiza",
+    "formattedAddress": "Ibiza, Balearic Islands, Spain",
+    "latitude": 39.0200099,
+    "longitude": 1.4821482,
+    "countryCode": "ES"
+  },
+  {
+    "googlePlaceId": "ChIJKcEGZna4lxIRwOzSAv-b67c",
+    "placeName": "Majorca",
+    "cityName": "Majorca",
+    "formattedAddress": "Majorca, Balearic Islands, Spain",
+    "latitude": 39.695262899999996,
+    "longitude": 3.0175712,
+    "countryCode": "ES"
+  },
+  {
+    "googlePlaceId": "ChIJ7YKG_u8pQAwRPK9LyPFLGrA",
+    "placeName": "Tenerife",
+    "cityName": "Tenerife",
+    "formattedAddress": "Tenerife, Santa Cruz de Tenerife, Spain",
+    "latitude": 28.291563699999998,
+    "longitude": -16.629130399999998,
+    "countryCode": "ES"
+  },
+  {
+    "googlePlaceId": "ChIJ7y75-KDpXwwRb166dGfldww",
+    "placeName": "Madeira",
+    "cityName": "Madeira",
+    "formattedAddress": "Madeira, Portugal",
+    "latitude": 32.76070740000001,
+    "longitude": -16.959472299999998,
+    "countryCode": "PT"
+  },
+  {
+    "googlePlaceId": "ChIJBTvkER5_RgsRHQzOS2cbkeI",
+    "placeName": "Azores",
+    "cityName": "Azores",
+    "formattedAddress": "Azores, Portugal",
+    "latitude": 37.7412488,
+    "longitude": -25.675594399999998,
+    "countryCode": "PT"
+  },
+  {
+    "googlePlaceId": "ChIJNb4UJ3a_DA0RD4cANiYlTjg",
+    "placeName": "Gibraltar",
+    "cityName": "Gibraltar",
+    "formattedAddress": "Gibraltar",
+    "latitude": 36.140751,
+    "longitude": -5.353585,
+    "countryCode": "GI"
+  },
+  {
+    "googlePlaceId": "ChIJM3WSjKRSDEgRw2waCqMjnFE",
+    "placeName": "Jersey",
+    "cityName": "Jersey",
+    "formattedAddress": "Jersey",
+    "latitude": 49.213771099999995,
+    "longitude": -2.1357662,
+    "countryCode": "JE"
+  },
+  {
+    "googlePlaceId": "ChIJ1YEuRDCFY0gRDeDw8bxbAuo",
+    "placeName": "Isle of Man",
+    "cityName": "Isle of Man",
+    "formattedAddress": "Isle of Man",
+    "latitude": 54.236107,
+    "longitude": -4.548056,
+    "countryCode": "IM"
+  },
+  {
+    "googlePlaceId": "ChIJ33aRLjJyDUgRy2rAnmNjANE",
+    "placeName": "Guernsey",
+    "cityName": "Guernsey",
+    "formattedAddress": "Guernsey",
+    "latitude": 49.4481982,
+    "longitude": -2.58949,
+    "countryCode": "GG"
+  },
+  {
+    "googlePlaceId": "ChIJ835RXGYxm0cRgnsbyn3ZQ1E",
+    "placeName": "Vaduz",
+    "cityName": "Vaduz",
+    "formattedAddress": "9490 Vaduz, Liechtenstein",
+    "latitude": 47.141084299999996,
+    "longitude": 9.5210732,
+    "countryCode": "LI"
+  },
+  {
+    "googlePlaceId": "ChIJrdbkC34hm0cR72ra0-Xy0xM",
+    "placeName": "Appenzell",
+    "cityName": "Appenzell",
+    "formattedAddress": "Appenzell, Switzerland",
+    "latitude": 47.334931999999995,
+    "longitude": 9.406594,
+    "countryCode": "CH"
+  },
+  {
+    "googlePlaceId": "ChIJF5LHGKuej0cRZS-XQg9cqr8",
+    "placeName": "Grindelwald",
+    "cityName": "Grindelwald",
+    "formattedAddress": "Grindelwald, Switzerland",
+    "latitude": 46.624164,
+    "longitude": 8.0413962,
+    "countryCode": "CH"
+  },
+  {
+    "googlePlaceId": "ChIJexrAbQeChEcRJXjJPr3bnyc",
+    "placeName": "Saint Moritz",
+    "cityName": "St Moritz",
+    "formattedAddress": "7500 St Moritz, Switzerland",
+    "latitude": 46.4907973,
+    "longitude": 9.8355079,
+    "countryCode": "CH"
+  },
+  {
+    "googlePlaceId": "ChIJnaVk3xChhEcR2JYt34kGM9A",
+    "placeName": "Davos",
+    "cityName": "Davos",
+    "formattedAddress": "Davos, Switzerland",
+    "latitude": 46.8027453,
+    "longitude": 9.835970099999999,
+    "countryCode": "CH"
+  },
+  {
+    "googlePlaceId": "ChIJeXNUeSr6j0cRr1KZQNEq8K4",
+    "placeName": "Lucerne",
+    "cityName": "Lucerne",
+    "formattedAddress": "Lucerne, Switzerland",
+    "latitude": 47.050168199999995,
+    "longitude": 8.3093072,
+    "countryCode": "CH"
+  },
+  {
+    "googlePlaceId": "ChIJ1cnDekx_kEcRJ4mRcPw4XXo",
+    "placeName": "Rhine Falls",
+    "cityName": "Neuhausen am Rheinfall",
+    "formattedAddress": "8212 Neuhausen am Rheinfall, Switzerland",
+    "latitude": 47.6780897,
+    "longitude": 8.6154486,
+    "countryCode": "CH"
+  },
+  {
+    "googlePlaceId": "ChIJvZEXLyPskEcR8e2Hrsi-4ts",
+    "placeName": "Black Forest",
+    "cityName": "Black Forest",
+    "formattedAddress": "Black Forest, Germany",
+    "latitude": 48.2774862,
+    "longitude": 8.185997,
+    "countryCode": "DE"
+  },
+  {
+    "googlePlaceId": "ChIJN_9t8P2OmEcRwPW1vjLaHgQ",
+    "placeName": "Rothenburg ob der Tauber",
+    "cityName": "Rothenburg ob der Tauber",
+    "formattedAddress": "91541 Rothenburg ob der Tauber, Germany",
+    "latitude": 49.3801834,
+    "longitude": 10.186738799999999,
+    "countryCode": "DE"
+  },
+  {
+    "googlePlaceId": "ChIJXaNOxMr3nEcRo7ud02uGpsg",
+    "placeName": "Neuschwanstein Castle",
+    "cityName": "Schwangau",
+    "formattedAddress": "Neuschwansteinstraße 20, 87645 Schwangau, Germany",
+    "latitude": 47.557573999999995,
+    "longitude": 10.7498004,
+    "countryCode": "DE"
+  },
+  {
+    "googlePlaceId": "ChIJ5S-raZElv0cR8HcqSvxgJwQ",
+    "placeName": "Cologne",
+    "cityName": "Cologne",
+    "formattedAddress": "Cologne, Germany",
+    "latitude": 50.937531,
+    "longitude": 6.9602786,
+    "countryCode": "DE"
+  },
+  {
+    "googlePlaceId": "ChIJxZZwR28JvUcRAMawKVBDIgQ",
+    "placeName": "Frankfurt am Main",
+    "cityName": "Frankfurt am Main",
+    "formattedAddress": "Frankfurt am Main, Germany",
+    "latitude": 50.110922099999996,
+    "longitude": 8.6821267,
+    "countryCode": "DE"
+  },
+  {
+    "googlePlaceId": "ChIJcywPIBj4pkcRUvW0udKA35M",
+    "placeName": "Leipzig",
+    "cityName": "Leipzig",
+    "formattedAddress": "04 Leipzig, Germany",
+    "latitude": 51.3396955,
+    "longitude": 12.3730747,
+    "countryCode": "DE"
+  },
+  {
+    "googlePlaceId": "ChIJqdYaECnPCUcRsP6IQsuxIQQ",
+    "placeName": "Dresden",
+    "cityName": "Dresden",
+    "formattedAddress": "01 Dresden, Germany",
+    "latitude": 51.0504088,
+    "longitude": 13.737262099999999,
+    "countryCode": "DE"
+  },
+  {
+    "googlePlaceId": "ChIJ0xy2ta5Xn0cRtyGMqYWvXd0",
+    "placeName": "Nuremberg",
+    "cityName": "Nuremberg",
+    "formattedAddress": "90 Nuremberg, Germany",
+    "latitude": 49.45428810000001,
+    "longitude": 11.0745641,
+    "countryCode": "DE"
+  },
+  {
+    "googlePlaceId": "ChIJzdzMDgXBl0cR1zokRADq5u8",
+    "placeName": "Heidelberg",
+    "cityName": "Heidelberg",
+    "formattedAddress": "69 Heidelberg, Germany",
+    "latitude": 49.3987524,
+    "longitude": 8.6724335,
+    "countryCode": "DE"
+  },
+  {
+    "googlePlaceId": "ChIJEVE_wDqUEkcRsLEUZg-vAAQ",
+    "placeName": "Brno",
+    "cityName": "Brno",
+    "formattedAddress": "Brno, Czechia",
+    "latitude": 49.1950602,
+    "longitude": 16.6068371,
+    "countryCode": "CZ"
+  },
+  {
+    "googlePlaceId": "ChIJeRhuM5xdc0cRIN8UZg-vAAQ",
+    "placeName": "Český Krumlov",
+    "cityName": "Český Krumlov",
+    "formattedAddress": "381 01 Český Krumlov-Český Krumlov 1, Czechia",
+    "latitude": 48.8127354,
+    "longitude": 14.3174657,
+    "countryCode": "CZ"
+  },
+  {
+    "googlePlaceId": "ChIJF_W8a_xdNRMRmJ-0MfaPeaE",
+    "placeName": "Split",
+    "cityName": "Split",
+    "formattedAddress": "Split, Croatia",
+    "latitude": 43.5147118,
+    "longitude": 16.4435148,
+    "countryCode": "HR"
+  },
+  {
+    "googlePlaceId": "ChIJ5_8jTRSBNRMRoM8rhlCtAAQ",
+    "placeName": "Hvar",
+    "cityName": "Hvar",
+    "formattedAddress": "Hvar, Croatia",
+    "latitude": 43.1726228,
+    "longitude": 16.4445931,
+    "countryCode": "HR"
+  },
+  {
+    "googlePlaceId": "ChIJPQ_Z_mxeYUcRcF6aN_iPGgU",
+    "placeName": "Plitvice Lakes National Park",
+    "cityName": "Plitvice Lakes National Park",
+    "formattedAddress": "Croatia",
+    "latitude": 44.8653966,
+    "longitude": 15.582011900000001,
+    "countryCode": "HR"
+  },
+  {
+    "googlePlaceId": "ChIJG8lwPQYzTBMRBpMuIV7xc3o",
+    "placeName": "Kotor",
+    "cityName": "Kotor",
+    "formattedAddress": "Kotor, Montenegro",
+    "latitude": 42.424662,
+    "longitude": 18.771234,
+    "countryCode": "ME"
+  },
+  {
+    "googlePlaceId": "ChIJqUBjO6RDSxMRWnzj1LIyTwE",
+    "placeName": "Mostar",
+    "cityName": "Mostar",
+    "formattedAddress": "88000 Mostar, Bosnia and Herzegovina",
+    "latitude": 43.343774800000006,
+    "longitude": 17.8077578,
+    "countryCode": "BA"
+  },
+  {
+    "googlePlaceId": "ChIJpaKajKUVVBMRICCHYMKI7bI",
+    "placeName": "Skopje",
+    "cityName": "Skopje",
+    "formattedAddress": "Skopje, North Macedonia",
+    "latitude": 41.998129399999996,
+    "longitude": 21.4254355,
+    "countryCode": "MK"
+  },
+  {
+    "googlePlaceId": "ChIJ7eAoFPQ4qBQRqXTVuBXnugk",
+    "placeName": "Thessaloniki",
+    "cityName": "Thessaloniki",
+    "formattedAddress": "Thessaloniki, Greece",
+    "latitude": 40.6400629,
+    "longitude": 22.944419099999998,
+    "countryCode": "GR"
+  },
+  {
+    "googlePlaceId": "ChIJOX8y6K4PWRMR_zK82NStJ3E",
+    "placeName": "Meteora",
+    "cityName": "Meteora",
+    "formattedAddress": "Kalabaka 422 00, Greece",
+    "latitude": 39.7217044,
+    "longitude": 21.6305896,
+    "countryCode": "GR"
+  },
+  {
+    "googlePlaceId": "ChIJR60Ec-okTBMROHL_nrwjnBc",
+    "placeName": "Bay of Kotor",
+    "cityName": "Bay of Kotor",
+    "formattedAddress": "Bay of Kotor",
+    "latitude": 42.4297332,
+    "longitude": 18.6531909,
+    "countryCode": "UNKNOWN"
+  },
+  {
+    "googlePlaceId": "ChIJIeTZuTmRekcRrAcB3TGDzYM",
+    "placeName": "Lake Bled",
+    "cityName": "Bled",
+    "formattedAddress": "Lake Bled, 4260 Bled, Slovenia",
+    "latitude": 46.363597999999996,
+    "longitude": 14.093805300000001,
+    "countryCode": "SI"
+  },
+  {
+    "googlePlaceId": "ChIJcV8rasF6e0cRuolMVzOIZpQ",
+    "placeName": "Piran",
+    "cityName": "Piran",
+    "formattedAddress": "Piran, Slovenia",
+    "latitude": 45.528318999999996,
+    "longitude": 13.568289499999999,
+    "countryCode": "SI"
+  },
+  {
+    "googlePlaceId": "ChIJPdbwRbSmTkcRHJjLPcm-FF0",
+    "placeName": "Transylvania",
+    "cityName": "Transylvania",
+    "formattedAddress": "Transylvania, Romania",
+    "latitude": 46.1840561,
+    "longitude": 25.2223974,
+    "countryCode": "RO"
+  },
+  {
+    "googlePlaceId": "ChIJMd4VpOVHs0ARf6sh2ZInks8",
+    "placeName": "Bran Castle",
+    "cityName": "Bran",
+    "formattedAddress": "Strada General Traian Moșoiu 24, 507025 Bran, Romania",
+    "latitude": 45.514902199999995,
+    "longitude": 25.3671637,
+    "countryCode": "RO"
+  },
+  {
+    "googlePlaceId": "ChIJgbRUvwzF1EAROfhHSE0WRNg",
+    "placeName": "Tours of Chernobyl and Pripyat",
+    "cityName": "Kyiv",
+    "formattedAddress": "Anny Akhmatovoi St, 5, Kyiv, Ukraine, 02000",
+    "latitude": 50.411347,
+    "longitude": 30.6409935,
+    "countryCode": "UA"
+  },
+  {
+    "googlePlaceId": "ChIJV5oQCXzdOkcR4ngjARfFI0I",
+    "placeName": "Lviv",
+    "cityName": "Lviv",
+    "formattedAddress": "Lviv, Lviv Oblast, Ukraine, 79000",
+    "latitude": 49.839683,
+    "longitude": 24.029716999999998,
+    "countryCode": "UA"
+  },
+  {
+    "googlePlaceId": "ChIJQ0yGC4oxxkARbBfyjOKPnxI",
+    "placeName": "Odesa",
+    "cityName": "Odesa",
+    "formattedAddress": "Odesa, Odesa Oblast, Ukraine, 65000",
+    "latitude": 46.4845702,
+    "longitude": 30.7326047,
+    "countryCode": "UA"
+  },
+  {
+    "googlePlaceId": "ChIJ02oeW9PP20YR2XC13VO4YQs",
+    "placeName": "Minsk",
+    "cityName": "Minsk",
+    "formattedAddress": "Minsk, Minsk Region, Belarus",
+    "latitude": 53.900601099999996,
+    "longitude": 27.558971999999997,
+    "countryCode": "BY"
+  },
+  {
+    "googlePlaceId": "ChIJ28X6cAQxUBMRIDdlEK-SAAQ",
+    "placeName": "Tiranë",
+    "cityName": "Tiranë",
+    "formattedAddress": "Tiranë, Albania",
+    "latitude": 41.3275459,
+    "longitude": 19.8186982,
+    "countryCode": "AL"
+  },
+  {
+    "googlePlaceId": "ChIJce5riq5JSQ0RlrqCFoDcfNI",
+    "placeName": "Santander",
+    "cityName": "Santander",
+    "formattedAddress": "Santander, Cantabria, Spain",
+    "latitude": 43.4636346,
+    "longitude": -3.8226402,
+    "countryCode": "ES"
+  },
+  {
+    "googlePlaceId": "ChIJq_3ImCfnuhIRb2oppbZFOK8",
+    "placeName": "Girona",
+    "cityName": "Girona",
+    "formattedAddress": "Girona, Spain",
+    "latitude": 41.9832846,
+    "longitude": 2.8247119,
+    "countryCode": "ES"
+  },
+  {
+    "googlePlaceId": "ChIJkwyrlqwLag0RiQIn2fdIshM",
+    "placeName": "Toledo",
+    "cityName": "Toledo",
+    "formattedAddress": "Toledo, Spain",
+    "latitude": 39.8628296,
+    "longitude": -4.0273067,
+    "countryCode": "ES"
+  },
+  {
+    "googlePlaceId": "ChIJ7wpe-SbfbA0Rw1aEEOjS8U0",
+    "placeName": "Córdoba",
+    "cityName": "Córdoba",
+    "formattedAddress": "Córdoba, Spain",
+    "latitude": 37.8893025,
+    "longitude": -4.779275300000001,
+    "countryCode": "ES"
+  },
+  {
+    "googlePlaceId": "ChIJeaJY4kMxDQ0RoluaNCGANZQ",
+    "placeName": "Ronda",
+    "cityName": "Ronda",
+    "formattedAddress": "29400 Ronda, Málaga, Spain",
+    "latitude": 36.746209,
+    "longitude": -5.161225099999999,
+    "countryCode": "ES"
+  },
+  {
+    "googlePlaceId": "ChIJDyTsJFfSDQ0RADugjP1jBAQ",
+    "placeName": "Cádiz",
+    "cityName": "Cádiz",
+    "formattedAddress": "Cádiz, Spain",
+    "latitude": 36.521014199999996,
+    "longitude": -6.2804565,
+    "countryCode": "ES"
+  },
+  {
+    "googlePlaceId": "ChIJnRODON_kGQ0RbO-9wzGKraY",
+    "placeName": "Evora",
+    "cityName": "Evora",
+    "formattedAddress": "Evora, Portugal",
+    "latitude": 38.571431,
+    "longitude": -7.913501999999999,
+    "countryCode": "PT"
+  },
+  {
+    "googlePlaceId": "ChIJIzPS5ZvQHg0RIDeQ5L3rAAQ",
+    "placeName": "Sintra",
+    "cityName": "Sintra",
+    "formattedAddress": "Sintra, Portugal",
+    "latitude": 38.8233416,
+    "longitude": -9.322921299999999,
+    "countryCode": "PT"
+  },
+  {
+    "googlePlaceId": "ChIJbdGsShT5Ig0RuaZCe0dkRWM",
+    "placeName": "Coimbra",
+    "cityName": "Coimbra",
+    "formattedAddress": "Coimbra, Portugal",
+    "latitude": 40.2033145,
+    "longitude": -8.4102573,
+    "countryCode": "PT"
+  },
+  {
+    "googlePlaceId": "ChIJZ9j1bLz-JA0RGOLRYkEFXbw",
+    "placeName": "Braga",
+    "cityName": "Braga",
+    "formattedAddress": "Braga, Portugal",
+    "latitude": 41.5454486,
+    "longitude": -8.426506999999999,
+    "countryCode": "PT"
+  },
+  {
+    "googlePlaceId": "ChIJp_qQIudSBQ0RWv9KSdTCc40",
+    "placeName": "Faro",
+    "cityName": "Faro",
+    "formattedAddress": "Faro, Portugal",
+    "latitude": 37.0164626,
+    "longitude": -7.9351983,
+    "countryCode": "PT"
+  },
+  {
+    "googlePlaceId": "ChIJjU0jUEkwGw0RV_waR6OqEFQ",
+    "placeName": "Lagos",
+    "cityName": "Lagos",
+    "formattedAddress": "8600 Lagos, Portugal",
+    "latitude": 37.1027881,
+    "longitude": -8.6730275,
+    "countryCode": "PT"
+  },
+  {
+    "googlePlaceId": "ChIJ0yi9gy5rUQ0RQ9DwOru1IH4",
+    "placeName": "Surf In Biarritz",
+    "cityName": "Biarritz",
+    "formattedAddress": "32 Bd du Prince de Galles, 64200 Biarritz, France",
+    "latitude": 43.477526499999996,
+    "longitude": -1.5668015,
+    "countryCode": "FR"
+  },
+  {
+    "googlePlaceId": "ChIJd4zZ48Pii0cRv0rwnrxzjBM",
+    "placeName": "Domaine Skiable Megève",
+    "cityName": "Megève",
+    "formattedAddress": "220 Rte du Téléphérique, 74120 Megève, France",
+    "latitude": 45.8498497,
+    "longitude": 6.614984,
+    "countryCode": "FR"
+  },
+  {
+    "googlePlaceId": "ChIJz9SdLUvOjkcRzNwYKvZhdgg",
+    "placeName": "Verbier",
+    "cityName": "Val de Bagnes",
+    "formattedAddress": "Rte de Verbier Station 61, 1936 Verbier, Switzerland",
+    "latitude": 46.0964119,
+    "longitude": 7.2272647999999995,
+    "countryCode": "CH"
+  },
+  {
+    "googlePlaceId": "ChIJ2ey5y2gzj0cRSVjlrIxFJpg",
+    "placeName": "Matterhorn",
+    "cityName": "Matterhorn",
+    "formattedAddress": "Matterhorn",
+    "latitude": 45.9765738,
+    "longitude": 7.6584519,
+    "countryCode": "UNKNOWN"
+  },
+  {
+    "googlePlaceId": "ChIJ90A6aWCjj0cRpo52OpWTsZI",
+    "placeName": "Jungfrau Region Tourism",
+    "cityName": "Interlaken",
+    "formattedAddress": "Kammistrasse 13, 3800 Interlaken, Switzerland",
+    "latitude": 46.69197,
+    "longitude": 7.87303,
+    "countryCode": "CH"
+  },
+  {
+    "googlePlaceId": "ChIJ3T5UiFW8hEcRKMrhXh0MT1I",
+    "placeName": "Arosa",
+    "cityName": "Arosa",
+    "formattedAddress": "Arosa, Switzerland",
+    "latitude": 46.7823704,
+    "longitude": 9.6799111,
+    "countryCode": "CH"
+  },
+  {
+    "googlePlaceId": "ChIJHwwhveivnEcRT4s7YcApt1k",
+    "placeName": "Ski Arlberg (St. Anton, St. Christoph, Stuben)",
+    "cityName": "St. Anton am Arlberg",
+    "formattedAddress": "Kandaharweg 9, 6580 St. Anton am Arlberg, Austria",
+    "latitude": 47.129155499999996,
+    "longitude": 10.2639663,
+    "countryCode": "AT"
+  },
+  {
+    "googlePlaceId": "ChIJFV1O4HVNdkcRWkupS_2Xtv8",
+    "placeName": "Kitzbuhel",
+    "cityName": "Kitzbuhel",
+    "formattedAddress": "6370 Kitzbuhel, Austria",
+    "latitude": 47.449237499999995,
+    "longitude": 12.3925407,
+    "countryCode": "AT"
+  },
+  {
+    "googlePlaceId": "ChIJldPH8BpsnUcR_R_RtNWRXxk",
+    "placeName": "Innsbruck - Nordkette",
+    "cityName": "Innsbruck",
+    "formattedAddress": "Rennweg 3, 6020 Innsbruck, Austria",
+    "latitude": 47.270454699999995,
+    "longitude": 11.3950369,
+    "countryCode": "AT"
+  },
+  {
+    "googlePlaceId": "ChIJD4QhQJ2uqxQRrTZqYE-74iA",
+    "placeName": "Winter Ski Sport Bansko | Ски училище Банско | Апартаменти под наем Банско | Екипировка под наем Банско | Ски магазин Банско",
+    "cityName": "Bansko",
+    "formattedAddress": "кв. Грамадето, \"Pirin\" Str. 92А, 2770 Bansko, Bulgaria",
+    "latitude": 41.827632699999995,
+    "longitude": 23.479058499999997,
+    "countryCode": "BG"
+  },
+  {
+    "googlePlaceId": "ChIJ9TJdP1PExEURlW_9qk9_0IE",
+    "placeName": "Aurora Tour",
+    "cityName": "Tromsø",
+    "formattedAddress": "Sjøgata, 9006 Tromsø, Norway",
+    "latitude": 69.6498355,
+    "longitude": 18.9581074,
+    "countryCode": "NO"
+  },
+  {
+    "googlePlaceId": "ChIJRaFMJTYA00URoayRDbNO3M4",
+    "placeName": "Lapland",
+    "cityName": "Lapland",
+    "formattedAddress": "Lapland, Finland",
+    "latitude": 67.9222304,
+    "longitude": 26.5046438,
+    "countryCode": "FI"
+  },
+  {
+    "googlePlaceId": "ChIJUyV3dr1LK0QRxEGItK2IgBU",
+    "placeName": "Rovaniemi",
+    "cityName": "Rovaniemi",
+    "formattedAddress": "Rovaniemi, Finland",
+    "latitude": 66.50394779999999,
+    "longitude": 25.729390499999997,
+    "countryCode": "FI"
+  },
+  {
+    "googlePlaceId": "ChIJK3wl5CqO0EURYIaM3gZFAwQ",
+    "placeName": "Kiruna",
+    "cityName": "Kiruna",
+    "formattedAddress": "Kiruna, Sweden",
+    "latitude": 67.8482231,
+    "longitude": 20.2975445,
+    "countryCode": "SE"
+  },
+  {
+    "googlePlaceId": "ChIJQeg5wrVF2kURRiO9l1ivFUw",
+    "placeName": "Abisko",
+    "cityName": "Abisko",
+    "formattedAddress": "981 07 Abisko, Sweden",
+    "latitude": 68.3495413,
+    "longitude": 18.8312408,
+    "countryCode": "SE"
+  },
+  {
+    "googlePlaceId": "ChIJlTAzxisL1kgRadAfmiNzg5c",
+    "placeName": "Aurora Reykjavík - The Northern Lights Center",
+    "cityName": "RVK",
+    "formattedAddress": "Fiskislóð 53, 101 Reykjavík, Iceland",
+    "latitude": 64.1563568,
+    "longitude": -21.9446635,
+    "countryCode": "IS"
+  },
+  {
+    "googlePlaceId": "ChIJlUCZXxwuvEgRqSUCjJgJrt0",
+    "placeName": "Tórshavn",
+    "cityName": "Tórshavn",
+    "formattedAddress": "Tórshavn, Faroe Islands",
+    "latitude": 62.01072479999999,
+    "longitude": -6.7740852,
+    "countryCode": "FO"
+  },
+  {
+    "googlePlaceId": "ChIJ31dFT9hSnEUR7JVkocqyhto",
+    "placeName": "Longyearbyen",
+    "cityName": "Longyearbyen",
+    "formattedAddress": "Longyearbyen 9170, Svalbard and Jan Mayen",
+    "latitude": 78.2253231,
+    "longitude": 15.625636499999999,
+    "countryCode": "SJ"
+  },
+  {
+    "googlePlaceId": "ChIJQT-zBHaRyFYR42iEp1q6fSU",
+    "placeName": "Anchorage",
+    "cityName": "Anchorage",
+    "formattedAddress": "Anchorage, AK, USA",
+    "latitude": 61.2175758,
+    "longitude": -149.8996785,
+    "countryCode": "US"
+  },
+  {
+    "googlePlaceId": "ChIJjzpqb2zeAFQREfNprlryXgY",
+    "placeName": "Juneau",
+    "cityName": "Juneau",
+    "formattedAddress": "Juneau, AK, USA",
+    "latitude": 58.30049329999999,
+    "longitude": -134.4201306,
+    "countryCode": "US"
+  },
+  {
+    "googlePlaceId": "ChIJ56B9zC7x0VMRjQDuP04TnoQ",
+    "placeName": "Northern Lights Tours",
+    "cityName": "Yellowknife",
+    "formattedAddress": "99 Enterprise Dr, Yellowknife, NT X1A 2P8, Canada",
+    "latitude": 62.425408700000006,
+    "longitude": -114.4222712,
+    "countryCode": "CA"
+  },
+  {
+    "googlePlaceId": "ChIJ_eQLIjbZb1IRCVKF7djLO-g",
+    "placeName": "Great White Bear Tours Inc.",
+    "cityName": "Churchill",
+    "formattedAddress": "174 Kelsey Blvd, Churchill, MB R0B 0E0, Canada",
+    "latitude": 58.769215200000005,
+    "longitude": -94.1740727,
+    "countryCode": "CA"
+  },
+  {
+    "googlePlaceId": "ChIJ_UoMkUXKcFMRY5Ss2r6ur8o",
+    "placeName": "Banff",
+    "cityName": "Banff",
+    "formattedAddress": "Banff, AB, Canada",
+    "latitude": 51.178430399999996,
+    "longitude": -115.5707903,
+    "countryCode": "CA"
+  },
+  {
+    "googlePlaceId": "ChIJKT5VaAgrg1MRgigZC70CIB8",
+    "placeName": "Jasper",
+    "cityName": "Jasper",
+    "formattedAddress": "Jasper, AB T0E 0A8, Canada",
+    "latitude": 52.873289899999996,
+    "longitude": -118.08228380000001,
+    "countryCode": "CA"
+  },
+  {
+    "googlePlaceId": "ChIJh3uVA7I8h1QR9s_1dehBt0o",
+    "placeName": "Whistler",
+    "cityName": "Whistler",
+    "formattedAddress": "Whistler, BC V8E, Canada",
+    "latitude": 50.116168599999995,
+    "longitude": -122.95351169999999,
+    "countryCode": "CA"
+  },
+  {
+    "googlePlaceId": "ChIJQzgJsMyQiVQRNRp0WmmVEDM",
+    "placeName": "Tofino",
+    "cityName": "Tofino",
+    "formattedAddress": "Tofino, BC V0R 3A0, Canada",
+    "latitude": 49.1529842,
+    "longitude": -125.90661840000001,
+    "countryCode": "CA"
+  },
+  {
+    "googlePlaceId": "ChIJuU2C7F5E04kRiKK9VmHF0kY",
+    "placeName": "Niagara Falls",
+    "cityName": "Niagara Falls",
+    "formattedAddress": "Niagara Falls, ON, Canada",
+    "latitude": 43.0895577,
+    "longitude": -79.0849436,
+    "countryCode": "CA"
+  },
+  {
+    "googlePlaceId": "ChIJLYfDPqeXuEwRAYJzFy3KrpQ",
+    "placeName": "Carnaval de Québec",
+    "cityName": "Québec",
+    "formattedAddress": "205 Bd des Cèdres, Québec, QC G1L 1N8, Canada",
+    "latitude": 46.8314375,
+    "longitude": -71.2521332,
+    "countryCode": "CA"
+  },
+  {
+    "googlePlaceId": "ChIJxesm0LsTRUsRW2dKWg1nkM0",
+    "placeName": "Halifax Regional Municipality",
+    "cityName": "Halifax Regional Municipality",
+    "formattedAddress": "Halifax Regional Municipality, NS, Canada",
+    "latitude": 44.8857087,
+    "longitude": -63.100527299999996,
+    "countryCode": "CA"
+  },
+  {
+    "googlePlaceId": "ChIJYaIKa46jDEsRHyYSHwDUH54",
+    "placeName": "St. John's",
+    "cityName": "St. John's",
+    "formattedAddress": "St. John's, NL, Canada",
+    "latitude": 47.5556097,
+    "longitude": -52.7452511,
+    "countryCode": "CA"
+  },
+  {
+    "googlePlaceId": "ChIJWQbyePx1-4gRvCBgA1FnDE4",
+    "placeName": "Savannah",
+    "cityName": "Savannah",
+    "formattedAddress": "Savannah, GA, USA",
+    "latitude": 32.0808989,
+    "longitude": -81.091203,
+    "countryCode": "US"
+  },
+  {
+    "googlePlaceId": "ChIJdySo3EJ6_ogRa-zhruD3-jU",
+    "placeName": "Charleston",
+    "cityName": "Charleston",
+    "formattedAddress": "Charleston, SC, USA",
+    "latitude": 32.783316299999996,
+    "longitude": -79.9319664,
+    "countryCode": "US"
+  },
+  {
+    "googlePlaceId": "ChIJCW8PPKmMWYgRXTo0BsEx75Q",
+    "placeName": "Asheville",
+    "cityName": "Asheville",
+    "formattedAddress": "Asheville, NC, USA",
+    "latitude": 35.5975104,
+    "longitude": -82.54605629999999,
+    "countryCode": "US"
+  },
+  {
+    "googlePlaceId": "ChIJqVKY50NQGIcRQN-I_XMjkIw",
+    "placeName": "Santa Fe",
+    "cityName": "Santa Fe",
+    "formattedAddress": "Santa Fe, NM, USA",
+    "latitude": 35.689430699999996,
+    "longitude": -105.9381944,
+    "countryCode": "US"
+  },
+  {
+    "googlePlaceId": "ChIJDbBC-TKhLYcR_Y5s-iPFSFU",
+    "placeName": "Sedona",
+    "cityName": "Sedona",
+    "formattedAddress": "Sedona, AZ 86336, USA",
+    "latitude": 34.862614,
+    "longitude": -111.8137258,
+    "countryCode": "US"
+  },
+  {
+    "googlePlaceId": "ChIJFU2bda4SM4cRKSCRyb6pOB8",
+    "placeName": "Grand Canyon National Park",
+    "cityName": "Grand Canyon National Park",
+    "formattedAddress": "Arizona, USA",
+    "latitude": 36.2678855,
+    "longitude": -112.35352530000002,
+    "countryCode": "US"
+  },
+  {
+    "googlePlaceId": "ChIJVVVVVVXlUVMRu-GPNDD5qKw",
+    "placeName": "Yellowstone National Park",
+    "cityName": "Yellowstone National Park",
+    "formattedAddress": "United States",
+    "latitude": 44.597918199999995,
+    "longitude": -110.56124899999999,
+    "countryCode": "US"
+  },
+  {
+    "googlePlaceId": "ChIJxeyK9Z3wloAR_gOA7SycJC0",
+    "placeName": "Yosemite National Park",
+    "cityName": "Yosemite National Park",
+    "formattedAddress": "California, USA",
+    "latitude": 37.8651011,
+    "longitude": -119.5383294,
+    "countryCode": "US"
+  },
+  {
+    "googlePlaceId": "ChIJUREfuaF4mYARILWv7q8fP4w",
+    "placeName": "Lake Tahoe",
+    "cityName": "Lake Tahoe",
+    "formattedAddress": "Lake Tahoe, United States",
+    "latitude": 39.096849299999995,
+    "longitude": -120.03235070000001,
+    "countryCode": "US"
+  },
+  {
+    "googlePlaceId": "ChIJMU8qI_lPhIARfMUQoxvSFP4",
+    "placeName": "Napa County",
+    "cityName": "Napa County",
+    "formattedAddress": "Napa County, CA, USA",
+    "latitude": 38.5024689,
+    "longitude": -122.26538869999999,
+    "countryCode": "US"
+  },
+  {
+    "googlePlaceId": "ChIJJ3SpfQsLlVQRkYXR9ua5Nhw",
+    "placeName": "Portland",
+    "cityName": "Portland",
+    "formattedAddress": "Portland, OR, USA",
+    "latitude": 45.515232,
+    "longitude": -122.6783853,
+    "countryCode": "US"
+  },
+  {
+    "googlePlaceId": "ChIJ7THRiJQ9UocRyjFNSKC3U1s",
+    "placeName": "Salt Lake City",
+    "cityName": "Salt Lake City",
+    "formattedAddress": "Salt Lake City, UT, USA",
+    "latitude": 40.7605601,
+    "longitude": -111.88813970000001,
+    "countryCode": "US"
+  },
+  {
+    "googlePlaceId": "ChIJ1YMtb8cU6YARSHa612Q60cg",
+    "placeName": "Santa Barbara",
+    "cityName": "Santa Barbara",
+    "formattedAddress": "Santa Barbara, CA, USA",
+    "latitude": 34.420285,
+    "longitude": -119.69893499999999,
+    "countryCode": "US"
+  },
+  {
+    "googlePlaceId": "ChIJdyOVrTSx0YgRXjtGdy_pzj8",
+    "placeName": "Key West",
+    "cityName": "Key West",
+    "formattedAddress": "Key West, FL 33040, USA",
+    "latitude": 24.5550593,
+    "longitude": -81.7799871,
+    "countryCode": "US"
+  },
+  {
+    "googlePlaceId": "ChIJRZdD6h5-1YcR_rYaYBXzk9E",
+    "placeName": "Memphis",
+    "cityName": "Memphis",
+    "formattedAddress": "Memphis, TN, USA",
+    "latitude": 35.148581199999995,
+    "longitude": -90.0518955,
+    "countryCode": "US"
+  },
+  {
+    "googlePlaceId": "ChIJSdU2fBtEjoARhfnXKksQylI",
+    "placeName": "Santa Cruz",
+    "cityName": "Santa Cruz",
+    "formattedAddress": "Santa Cruz, CA, USA",
+    "latitude": 36.9741275,
+    "longitude": -122.028807,
+    "countryCode": "US"
+  },
+  {
+    "googlePlaceId": "ChIJs-Xb_9Qa24ARfHntwodp5aE",
+    "placeName": "Palm Springs",
+    "cityName": "Palm Springs",
+    "formattedAddress": "Palm Springs, CA, USA",
+    "latitude": 33.8232286,
+    "longitude": -116.51061910000001,
+    "countryCode": "US"
+  },
+  {
+    "googlePlaceId": "ChIJe6hluYWP2oAR4p3rOqftdxk",
+    "placeName": "Joshua Tree National Park",
+    "cityName": "Joshua Tree National Park",
+    "formattedAddress": "California, USA",
+    "latitude": 33.873415,
+    "longitude": -115.90099229999998,
+    "countryCode": "US"
+  },
+  {
+    "googlePlaceId": "ChIJsf-PHqI5x4ARJd0j14NziRw",
+    "placeName": "Death Valley",
+    "cityName": "Death Valley",
+    "formattedAddress": "Death Valley, CA, USA",
+    "latitude": 36.5322649,
+    "longitude": -116.9325408,
+    "countryCode": "US"
+  },
+  {
+    "googlePlaceId": "ChIJkfu1cFLkjYARXj1K2AlJSO4",
+    "placeName": "Monterey",
+    "cityName": "Monterey",
+    "formattedAddress": "Monterey, CA, USA",
+    "latitude": 36.5972925,
+    "longitude": -121.89776879999998,
+    "countryCode": "US"
+  },
+  {
+    "googlePlaceId": "ChIJU-wXtxXmjYARHFRRyqYrwtI",
+    "placeName": "Carmel-by-the-Sea",
+    "cityName": "Carmel-By-The-Sea",
+    "formattedAddress": "Carmel-By-The-Sea, CA 93921, USA",
+    "latitude": 36.555238599999996,
+    "longitude": -121.9232879,
+    "countryCode": "US"
+  },
+  {
+    "googlePlaceId": "ChIJd00OeKfojYARYazvylnY6Dc",
+    "placeName": "Big Sur",
+    "cityName": "Big Sur",
+    "formattedAddress": "Big Sur, CA, USA",
+    "latitude": 36.2704233,
+    "longitude": -121.80805559999999,
+    "countryCode": "US"
+  },
+  {
+    "googlePlaceId": "ChIJAwFSQR0jNIcRCCuiwrrBOHc",
+    "placeName": "Lake Powell",
+    "cityName": "Lake Powell",
+    "formattedAddress": "Lake Powell, United States",
+    "latitude": 37.068261899999996,
+    "longitude": -111.24331079999999,
+    "countryCode": "US"
+  },
+  {
+    "googlePlaceId": "ChIJCw6gm_QRNIcRm6dqrQgWNpg",
+    "placeName": "Antelope Canyon",
+    "cityName": "Antelope Canyon",
+    "formattedAddress": "Antelope Canyon, Arizona 86040, USA",
+    "latitude": 36.8619103,
+    "longitude": -111.37433019999999,
+    "countryCode": "US"
+  },
+  {
+    "googlePlaceId": "ChIJ2fhEiNDqyoAR9VY2qhU6Lnw",
+    "placeName": "Zion National Park",
+    "cityName": "Zion National Park",
+    "formattedAddress": "Utah, USA",
+    "latitude": 37.2982022,
+    "longitude": -113.02630049999999,
+    "countryCode": "US"
+  },
+  {
+    "googlePlaceId": "ChIJLevDAsZrNYcRBm2svvvY6Ws",
+    "placeName": "Bryce Canyon National Park",
+    "cityName": "Bryce Canyon National Park",
+    "formattedAddress": "Utah, USA",
+    "latitude": 37.5930377,
+    "longitude": -112.1870895,
+    "countryCode": "US"
+  },
+  {
+    "googlePlaceId": "ChIJUaoNhhr2yoARlcQo0WnqQk8",
+    "placeName": "Arches National Park",
+    "cityName": "Arches National Park",
+    "formattedAddress": "Utah, USA",
+    "latitude": 38.7328166,
+    "longitude": -109.5746222,
+    "countryCode": "US"
+  },
+  {
+    "googlePlaceId": "ChIJjS24muXhR4cRLcTV8XqxMgs",
+    "placeName": "Moab",
+    "cityName": "Moab",
+    "formattedAddress": "Moab, UT 84532, USA",
+    "latitude": 38.5732935,
+    "longitude": -109.550772,
+    "countryCode": "US"
+  },
+  {
+    "googlePlaceId": "ChIJc_TmcHvYPocR4eO6cSF37jg",
+    "placeName": "Telluride",
+    "cityName": "Telluride",
+    "formattedAddress": "Telluride, CO, USA",
+    "latitude": 37.9374939,
+    "longitude": -107.81228519999999,
+    "countryCode": "US"
+  },
+  {
+    "googlePlaceId": "ChIJfTxB93w5QIcRcvYseNxCK8E",
+    "placeName": "Aspen",
+    "cityName": "Aspen",
+    "formattedAddress": "Aspen, CO 81611, USA",
+    "latitude": 39.1910983,
+    "longitude": -106.8175387,
+    "countryCode": "US"
+  },
+  {
+    "googlePlaceId": "ChIJB89dUQVwaocRxKOafh_AzMk",
+    "placeName": "Vail",
+    "cityName": "Vail",
+    "formattedAddress": "Vail, CO 81657, USA",
+    "latitude": 39.643324299999996,
+    "longitude": -106.37808009999999,
+    "countryCode": "US"
+  },
+  {
+    "googlePlaceId": "ChIJ_QNjLGMPUocRlFc3Jd_Ecdg",
+    "placeName": "Park City",
+    "cityName": "Park City",
+    "formattedAddress": "Park City, UT, USA",
+    "latitude": 40.646062199999996,
+    "longitude": -111.4979729,
+    "countryCode": "US"
+  },
+  {
+    "googlePlaceId": "ChIJRT3qNeMPU1MRWpbGqtvJUjI",
+    "placeName": "Jackson Hole",
+    "cityName": "Jackson Hole",
+    "formattedAddress": "Jackson Hole, Wyoming 83001, USA",
+    "latitude": 43.612255,
+    "longitude": -110.7054295,
+    "countryCode": "US"
+  },
+  {
+    "googlePlaceId": "ChIJVVVVVRWQaFMR7F3FFSK8Fq8",
+    "placeName": "Glacier National Park",
+    "cityName": "Glacier National Park",
+    "formattedAddress": "Montana, USA",
+    "latitude": 48.756063,
+    "longitude": -113.77973159999999,
+    "countryCode": "US"
+  },
+  {
+    "googlePlaceId": "ChIJJSmiDrKjrkwRhFVV_A4i32I",
+    "placeName": "Acadia National Park",
+    "cityName": "Acadia National Park",
+    "formattedAddress": "Maine, USA",
+    "latitude": 44.338555899999996,
+    "longitude": -68.2733346,
+    "countryCode": "US"
+  },
+  {
+    "googlePlaceId": "ChIJcWxzpzxbpIkRszbSdWERdxs",
+    "placeName": "Outer Banks",
+    "cityName": "Outer Banks",
+    "formattedAddress": "Outer Banks, North Carolina, USA",
+    "latitude": 35.5584932,
+    "longitude": -75.4665158,
+    "countryCode": "US"
+  },
+  {
+    "googlePlaceId": "ChIJha7ZqonxNU0R98HWXJEUut8",
+    "placeName": "Mackinac Island",
+    "cityName": "Mackinac Island",
+    "formattedAddress": "Mackinac Island, MI 49757, USA",
+    "latitude": 45.8491796,
+    "longitude": -84.6189339,
+    "countryCode": "US"
+  },
+  {
+    "googlePlaceId": "ChIJ02GslY19HYgRHC2DTN_P07Q",
+    "placeName": "Door County",
+    "cityName": "Door County",
+    "formattedAddress": "Door County, WI, USA",
+    "latitude": 45.1113873,
+    "longitude": -87.04708839999999,
+    "countryCode": "US"
+  },
+  {
+    "googlePlaceId": "ChIJAQAgNbm5wokRTmJZGX--fwo",
+    "placeName": "Hudson Valley",
+    "cityName": "Hudson Valley",
+    "formattedAddress": "Hudson Valley, NY, USA",
+    "latitude": 41.920901799999996,
+    "longitude": -73.9612887,
+    "countryCode": "US"
+  },
+  {
+    "googlePlaceId": "ChIJG6mpkc6V6IkRUWCATXOJAbw",
+    "placeName": "The Hamptons",
+    "cityName": "The Hamptons",
+    "formattedAddress": "The Hamptons, NY, USA",
+    "latitude": 40.924616,
+    "longitude": -72.35479149999999,
+    "countryCode": "US"
+  },
+  {
+    "googlePlaceId": "ChIJTelJAUQV-4kRC7IcAPoOnB8",
+    "placeName": "Cape Cod",
+    "cityName": "Cape Cod",
+    "formattedAddress": "Cape Cod, Massachusetts, USA",
+    "latitude": 41.6687897,
+    "longitude": -70.29624079999999,
+    "countryCode": "US"
+  },
+  {
+    "googlePlaceId": "ChIJkyWAFUi-rkwRG9nKKGUa6Yg",
+    "placeName": "Bar Harbor",
+    "cityName": "Bar Harbor",
+    "formattedAddress": "Bar Harbor, ME, USA",
+    "latitude": 44.3875617,
+    "longitude": -68.2042989,
+    "countryCode": "US"
+  },
+  {
+    "googlePlaceId": "ChIJ5VWbtlV6ykwRjkkOchnlX8M",
+    "placeName": "Burlington",
+    "cityName": "Burlington",
+    "formattedAddress": "Burlington, VT, USA",
+    "latitude": 44.4758825,
+    "longitude": -73.21207199999999,
+    "countryCode": "US"
+  },
+  {
+    "googlePlaceId": "ChIJD8lAQm30s0wRrMglIp3Govw",
+    "placeName": "White Mountains",
+    "cityName": "Lincoln",
+    "formattedAddress": "White Mountains, Lincoln, NH 03251, USA",
+    "latitude": 44.164380400000006,
+    "longitude": -71.4325573,
+    "countryCode": "US"
+  },
+  {
+    "googlePlaceId": "ChIJU_pNppEzy0wR2ucpn7JLyGE",
+    "placeName": "Adirondack Mountains",
+    "cityName": "Adirondack Mountains",
+    "formattedAddress": "Adirondack Mountains",
+    "latitude": 44.1247154,
+    "longitude": -73.8693043,
+    "countryCode": "UNKNOWN"
+  },
+  {
+    "googlePlaceId": "ChIJF-IKCX_p0IkRO7yA5tLMpSA",
+    "placeName": "Finger Lakes",
+    "cityName": "Finger Lakes",
+    "formattedAddress": "Finger Lakes, NY, USA",
+    "latitude": 42.7238165,
+    "longitude": -76.9297247,
+    "countryCode": "US"
+  },
+  {
+    "googlePlaceId": "ChIJIyX1nZhd04kRpWlqWiQ04OQ",
+    "placeName": "Niagara River",
+    "cityName": "Niagara River",
+    "formattedAddress": "Niagara River",
+    "latitude": 43.0732196,
+    "longitude": -78.9780898,
+    "countryCode": "UNKNOWN"
+  },
+  {
+    "googlePlaceId": "ChIJbxlo4m9oA4wR3FqTXA9_a60",
+    "placeName": "San Juan",
+    "cityName": "San Juan",
+    "formattedAddress": "San Juan, Puerto Rico",
+    "latitude": 18.4153108,
+    "longitude": -66.0593509,
+    "countryCode": "PR"
+  },
+  {
+    "googlePlaceId": "ChIJ4QD2vUx3zYgRYA13Gn5NKU4",
+    "placeName": "Havana",
+    "cityName": "Havana",
+    "formattedAddress": "Havana, Cuba",
+    "latitude": 23.133865,
+    "longitude": -82.3585654,
+    "countryCode": "CU"
+  },
+  {
+    "googlePlaceId": "ChIJ21P2rgUrTI8Ris1fYjy3Ms4",
+    "placeName": "Cancún",
+    "cityName": "Cancún",
+    "formattedAddress": "Cancún, Quintana Roo, Mexico",
+    "latitude": 21.161908,
+    "longitude": -86.8515279,
+    "countryCode": "MX"
+  },
+  {
+    "googlePlaceId": "ChIJSyrkEAPUT48Rt5r_k9vA7Q4",
+    "placeName": "Tulum",
+    "cityName": "Tulum",
+    "formattedAddress": "Tulum, Quintana Roo, Mexico",
+    "latitude": 20.2114185,
+    "longitude": -87.46535019999999,
+    "countryCode": "MX"
+  },
+  {
+    "googlePlaceId": "ChIJsdkm30kix4URO_zfV3aniKw",
+    "placeName": "Oaxaca",
+    "cityName": "Oaxaca",
+    "formattedAddress": "Oaxaca, Mexico",
+    "latitude": 17.0731842,
+    "longitude": -96.7265889,
+    "countryCode": "MX"
+  },
+  {
+    "googlePlaceId": "ChIJm9MvtYyxKIQRUFeGvwKTPdY",
+    "placeName": "Guadalajara",
+    "cityName": "Guadalajara",
+    "formattedAddress": "Guadalajara, Jalisco, Mexico",
+    "latitude": 20.6751707,
+    "longitude": -103.34733849999999,
+    "countryCode": "MX"
+  },
+  {
+    "googlePlaceId": "ChIJD7xxmK9RK4QRpLAHHQMBMWU",
+    "placeName": "San Miguel de Allende",
+    "cityName": "San Miguel de Allende",
+    "formattedAddress": "San Miguel de Allende, Guanajuato, Mexico",
+    "latitude": 20.9144491,
+    "longitude": -100.745235,
+    "countryCode": "MX"
+  },
+  {
+    "googlePlaceId": "ChIJYU4t0iNDTo8R3EqrO3gLweg",
+    "placeName": "Playa del Carmen",
+    "cityName": "Playa del Carmen",
+    "formattedAddress": "Playa del Carmen, Quintana Roo, Mexico",
+    "latitude": 20.6295586,
+    "longitude": -87.0738851,
+    "countryCode": "MX"
+  },
+  {
+    "googlePlaceId": "ChIJoQjlifNKr4YRaLiiwWLfpEs",
+    "placeName": "Cabo San Lucas",
+    "cityName": "Cabo San Lucas",
+    "formattedAddress": "Cabo San Lucas, BCS, Mexico",
+    "latitude": 22.894812899999998,
+    "longitude": -109.9152149,
+    "countryCode": "MX"
+  },
+  {
+    "googlePlaceId": "ChIJYwPo2_GorI8RDsFC8PFdoqs",
+    "placeName": "Panama City",
+    "cityName": "Panama City",
+    "formattedAddress": "Panama City, Panamá Province, Panama",
+    "latitude": 8.9823792,
+    "longitude": -79.51986959999999,
+    "countryCode": "PA"
+  },
+  {
+    "googlePlaceId": "ChIJxRUNxULjoI8RgrgRn2pqdOY",
+    "placeName": "San José",
+    "cityName": "San José",
+    "formattedAddress": "San José Province, San José, Costa Rica",
+    "latitude": 9.9280694,
+    "longitude": -84.0907246,
+    "countryCode": "CR"
+  },
+  {
+    "googlePlaceId": "ChIJmelgBokMoI8R5ixX0nuo42k",
+    "placeName": "La Fortuna",
+    "cityName": "La Fortuna",
+    "formattedAddress": "Alajuela Province, La Fortuna, Costa Rica",
+    "latitude": 10.4711965,
+    "longitude": -84.645415,
+    "countryCode": "CR"
+  },
+  {
+    "googlePlaceId": "ChIJyd2-vgoZoI8RJ9g6Gz-pVWY",
+    "placeName": "Monteverde",
+    "cityName": "Monteverde",
+    "formattedAddress": "Puntarenas Province, Monteverde, Costa Rica",
+    "latitude": 10.2973324,
+    "longitude": -84.8255097,
+    "countryCode": "CR"
+  },
+  {
+    "googlePlaceId": "ChIJz3czSEtYXI8RIv8SkG7c2-E",
+    "placeName": "Belize City",
+    "cityName": "Belize City",
+    "formattedAddress": "Belize City, Belize",
+    "latitude": 17.504566099999998,
+    "longitude": -88.1962133,
+    "countryCode": "BZ"
+  },
+  {
+    "googlePlaceId": "ChIJFQslsHQOiYURPXIDKSu6hvc",
+    "placeName": "Antigua Guatemala",
+    "cityName": "Antigua Guatemala",
+    "formattedAddress": "Antigua Guatemala, Guatemala",
+    "latitude": 14.557296899999999,
+    "longitude": -90.73322329999999,
+    "countryCode": "GT"
+  },
+  {
+    "googlePlaceId": "ChIJed5o-Oj6aY8RgKDcxeooF54",
+    "placeName": "Roatán",
+    "cityName": "Roatán",
+    "formattedAddress": "Roatán, Bay Islands, Honduras",
+    "latitude": 16.3297608,
+    "longitude": -86.5299673,
+    "countryCode": "HN"
+  },
+  {
+    "googlePlaceId": "ChIJfx1lVqTCaY8RiPQhngE1LSA",
+    "placeName": "Sun Divers Roatan",
+    "cityName": "West End",
+    "formattedAddress": "West End Road, 34101 West End, Bay Islands, Honduras",
+    "latitude": 16.3063823,
+    "longitude": -86.59262860000001,
+    "countryCode": "HN"
+  },
+  {
+    "googlePlaceId": "ChIJe-TvtEO0dY8RGj4AiCjuMvM",
+    "placeName": "San Juan del Sur",
+    "cityName": "San Juan del Sur",
+    "formattedAddress": "San Juan del Sur, Nicaragua",
+    "latitude": 11.2573054,
+    "longitude": -85.86500149999999,
+    "countryCode": "NI"
+  },
+  {
+    "googlePlaceId": "ChIJNTe4I5Iepo8RcoYyA1--fYM",
+    "placeName": "Bocas del Toro",
+    "cityName": "Bocas del Toro",
+    "formattedAddress": "Bocas del Toro, Bocas del Toro Province, Panama",
+    "latitude": 9.3407804,
+    "longitude": -82.2408032,
+    "countryCode": "PA"
+  },
+  {
+    "googlePlaceId": "ChIJtTQhzBOa1ZERLbn8RJDq_to",
+    "placeName": "Galapagos Travel Center",
+    "cityName": "Quito",
+    "formattedAddress": "Leonidas Plaza Guitierrez, 170143 Quito, Ecuador",
+    "latitude": -0.20517249999999998,
+    "longitude": -78.4896935,
+    "countryCode": "EC"
+  },
+  {
+    "googlePlaceId": "ChIJK67UqBfwR5kRti0qwO2z5bs",
+    "placeName": "Easter Island",
+    "cityName": "Easter Island",
+    "formattedAddress": "Easter Island, Valparaíso, Chile",
+    "latitude": -27.112723,
+    "longitude": -109.34968649999999,
+    "countryCode": "CL"
+  },
+  {
+    "googlePlaceId": "ChIJwyPd5R-7_5MRP9Sgcd6ITAE",
+    "placeName": "Salt Flats",
+    "cityName": "Uyuni",
+    "formattedAddress": "Uyuni, Bolivia",
+    "latitude": -20.452136499999998,
+    "longitude": -66.85501169999999,
+    "countryCode": "BO"
+  },
+  {
+    "googlePlaceId": "ChIJVVVViV-abZERJxqgpA43EDo",
+    "placeName": "Historic Sanctuary of Machu Picchu",
+    "cityName": "Historic Sanctuary of Machu Picchu",
+    "formattedAddress": "08680, Peru",
+    "latitude": -13.1631988,
+    "longitude": -72.5452621,
+    "countryCode": "PE"
+  },
+  {
+    "googlePlaceId": "ChIJt0d2s8gbbJIRzKll959cSCs",
+    "placeName": "Manaus",
+    "cityName": "Manaus",
+    "formattedAddress": "Manaus, State of Amazonas, Brazil",
+    "latitude": -3.1190275,
+    "longitude": -60.0217314,
+    "countryCode": "BR"
+  },
+  {
+    "googlePlaceId": "ChIJbRuqowzq9pQRfphenBd1e5E",
+    "placeName": "Iguazu Falls",
+    "cityName": "Iguazu Falls",
+    "formattedAddress": "Misiones Province, Argentina",
+    "latitude": -25.695259,
+    "longitude": -54.4366662,
+    "countryCode": "AR"
+  },
+  {
+    "googlePlaceId": "ChIJvQvEyJ4FdZURk8_TwoMB3Zs",
+    "placeName": "Punta del Este",
+    "cityName": "Punta del Este",
+    "formattedAddress": "Punta del Este, Maldonado Department, Uruguay",
+    "latitude": -34.9360588,
+    "longitude": -54.9378104,
+    "countryCode": "UY"
+  },
+  {
+    "googlePlaceId": "ChIJ0_c7xv-An5URmexbNS4bMms",
+    "placeName": "Montevideo",
+    "cityName": "Montevideo",
+    "formattedAddress": "Montevideo, Montevideo Department, Uruguay",
+    "latitude": -34.9055016,
+    "longitude": -56.1851147,
+    "countryCode": "UY"
+  },
+  {
+    "googlePlaceId": "ChIJx84g3uPdiZYRdpvhv4w6Cus",
+    "placeName": "Valparaíso",
+    "cityName": "Valparaíso",
+    "formattedAddress": "Valparaíso, Chile",
+    "latitude": -33.0473128,
+    "longitude": -71.6127458,
+    "countryCode": "CL"
+  },
+  {
+    "googlePlaceId": "ChIJRxzvf1JGr5YR3COCqre7TQM",
+    "placeName": "Atacama Desert",
+    "cityName": "Atacama Desert",
+    "formattedAddress": "Atacama Desert, Antofagasta, Chile",
+    "latitude": -23.8634189,
+    "longitude": -69.1328491,
+    "countryCode": "CL"
+  },
+  {
+    "googlePlaceId": "ChIJ95zX7KX7R5kRocTMLBxcqZA",
+    "placeName": "Nayara Hangaroa",
+    "cityName": "Hanga Roa",
+    "formattedAddress": "Pont S/N, Hanga Roa, Isla de Pascua, Valparaíso, Chile",
+    "latitude": -27.150939899999997,
+    "longitude": -109.43900289999999,
+    "countryCode": "CL"
+  },
+  {
+    "googlePlaceId": "ChIJVwsx1j_eNQYRiXV4A-F2Gg4",
+    "placeName": "Fernando de Noronha",
+    "cityName": "Fernando de Noronha",
+    "formattedAddress": "Fernando de Noronha, State of Pernambuco, 53990-000, Brazil",
+    "latitude": -3.8447976154053105,
+    "longitude": -32.426891689917575,
+    "countryCode": "BR"
+  },
+  {
+    "googlePlaceId": "ChIJs6U8onwDFgcRmGYiLJHHnxs",
+    "placeName": "Salvador",
+    "cityName": "Salvador",
+    "formattedAddress": "Salvador - State of Bahia, Brazil",
+    "latitude": -12.9777334,
+    "longitude": -38.501648,
+    "countryCode": "BR"
+  },
+  {
+    "googlePlaceId": "ChIJi0DllG8ZqwcRpuO9gvcOgOU",
+    "placeName": "Recife",
+    "cityName": "Recife",
+    "formattedAddress": "Recife, State of Pernambuco, Brazil",
+    "latitude": -8.0578381,
+    "longitude": -34.8828969,
+    "countryCode": "BR"
+  },
+  {
+    "googlePlaceId": "ChIJP3hMRj9MxwcRyjdrDArGYUY",
+    "placeName": "Fortaleza",
+    "cityName": "Fortaleza",
+    "formattedAddress": "Fortaleza - Ceará, Brazil",
+    "latitude": -3.7327203,
+    "longitude": -38.5270134,
+    "countryCode": "BR"
+  },
+  {
+    "googlePlaceId": "ChIJdeKa3xg9WpMRJEp1aeRwhHM",
+    "placeName": "Brasília",
+    "cityName": "Brasília",
+    "formattedAddress": "Brasília - Brasilia, Brasília - Federal District, Brazil",
+    "latitude": -15.7975154,
+    "longitude": -47.891887399999995,
+    "countryCode": "BR"
+  },
+  {
+    "googlePlaceId": "ChIJ1zLGsk45J5URRscEagtVvIE",
+    "placeName": "Florianópolis",
+    "cityName": "Florianópolis",
+    "formattedAddress": "Florianópolis, State of Santa Catarina, Brazil",
+    "latitude": -27.5968578,
+    "longitude": -48.5468118,
+    "countryCode": "BR"
+  },
+  {
+    "googlePlaceId": "ChIJIcwJs1jKUrwRFmlFZYtqYfo",
+    "placeName": "Punta Arenas",
+    "cityName": "Punta Arenas",
+    "formattedAddress": "Punta Arenas, Magallanes and Chilean Antarctica, Chile",
+    "latitude": -53.1633778,
+    "longitude": -70.907705,
+    "countryCode": "CL"
+  },
+  {
+    "googlePlaceId": "ChIJmbm3Z8I3pb0RTTJY_vPk2QM",
+    "placeName": "Torres de Paine",
+    "cityName": "Torres de Paine",
+    "formattedAddress": "Torres de Paine, Magallanes y la Antártica Chilena, Chile",
+    "latitude": -51.253344299999995,
+    "longitude": -72.3516124,
+    "countryCode": "CL"
+  },
+  {
+    "googlePlaceId": "ChIJy2KPE8AMu70RadzkiF0D1DA",
+    "placeName": "El Calafate",
+    "cityName": "El Calafate",
+    "formattedAddress": "El Calafate, Santa Cruz Province, Argentina",
+    "latitude": -50.337969,
+    "longitude": -72.2647981,
+    "countryCode": "AR"
+  },
+  {
+    "googlePlaceId": "ChIJ5WDIIBV7GpYRZZp7y5euEII",
+    "placeName": "San Carlos de Bariloche",
+    "cityName": "San Carlos de Bariloche",
+    "formattedAddress": "San Carlos de Bariloche, Río Negro Province, Argentina",
+    "latitude": -41.1334722,
+    "longitude": -71.3102778,
+    "countryCode": "AR"
+  },
+  {
+    "googlePlaceId": "ChIJP7B2OhoJfpYRgNemhkw8pvc",
+    "placeName": "alpataco Wines & Leather",
+    "cityName": "alpataco Wines & Leather",
+    "formattedAddress": "Sarmiento 184, M5500 Mendoza, Argentina",
+    "latitude": -32.890415499999996,
+    "longitude": -68.84169849999999,
+    "countryCode": "AR"
+  },
+  {
+    "googlePlaceId": "ChIJvwnRurUiTLwR_OtDuj1HmFQ",
+    "placeName": "Ushuaia",
+    "cityName": "Ushuaia",
+    "formattedAddress": "V9410 Ushuaia, Tierra del Fuego Province, Argentina",
+    "latitude": -54.807611599999994,
+    "longitude": -68.30584089999999,
+    "countryCode": "AR"
+  },
+  {
+    "googlePlaceId": "ChIJ-Xg9-Py12YgRPaXyHxeM7BQ",
+    "placeName": "Antarctica Cruises",
+    "cityName": "Miami Beach",
+    "formattedAddress": "1680 Michigan Ave Suite 700, Miami Beach, FL 33139, USA",
+    "latitude": 25.7912286,
+    "longitude": -80.1387111,
+    "countryCode": "US"
+  },
+  {
+    "googlePlaceId": "ChIJo-ORRLmJKrwROsXZjf-qKjI",
+    "placeName": "Falkland Islands (Islas Malvinas)",
+    "cityName": "Falkland Islands (Islas Malvinas)",
+    "formattedAddress": "FIQQ 1ZZ, Falkland Islands (Islas Malvinas)",
+    "latitude": -51.796253,
+    "longitude": -59.523613,
+    "countryCode": "FK"
+  },
+  {
+    "googlePlaceId": "ChIJhWuWBeRky74Rh_f7Wbtb2DU",
+    "placeName": "South Georgia Museum",
+    "cityName": "Grytviken",
+    "formattedAddress": "PF9R+WXM, Grytviken SIQQ 1ZZ, South Georgia and the South Sandwich Islands",
+    "latitude": -54.280152699999995,
+    "longitude": -36.507582,
+    "countryCode": "GS"
+  },
+  {
+    "googlePlaceId": "ChIJiekh4HUC1kgRh6FIA0avJxo",
+    "placeName": "KONVIN Hotel - Keflavik Airport",
+    "cityName": "Keflavík",
+    "formattedAddress": "Keilisbraut 762, 235 Keflavík, Iceland",
+    "latitude": 63.9727292,
+    "longitude": -22.5763569,
+    "countryCode": "IS"
+  },
+  {
+    "googlePlaceId": "ChIJnc-pJx4C1kgRZ6CYJ68gW4A",
+    "placeName": "Keflavík",
+    "cityName": "Keflavík",
+    "formattedAddress": "230 Keflavík, Iceland",
+    "latitude": 63.9997549,
+    "longitude": -22.558271599999998,
+    "countryCode": "IS"
+  },
+  {
+    "googlePlaceId": "ChIJp7-wHAeP0kgR0f1xjHkytr0",
+    "placeName": "Akureyri",
+    "cityName": "Akureyri",
+    "formattedAddress": "Akureyri, Iceland",
+    "latitude": 65.6825509,
+    "longitude": -18.0906858,
+    "countryCode": "IS"
+  },
+  {
+    "googlePlaceId": "ChIJd5Fb_dsC1kgRb4sTba20Ye8",
+    "placeName": "Southern Peninsula Region",
+    "cityName": "Southern Peninsula Region",
+    "formattedAddress": "Southern Peninsula Region, Iceland",
+    "latitude": 63.915480300000006,
+    "longitude": -22.364966700000004,
+    "countryCode": "IS"
+  },
+  {
+    "googlePlaceId": "ChIJmeq20Lt11kgRog7p4aicEo4",
+    "placeName": "Golden Circle Day Tours",
+    "cityName": "RVK",
+    "formattedAddress": "Vatnsstígur, 101 Reykjavík, Iceland",
+    "latitude": 64.14761419999999,
+    "longitude": -21.9224794,
+    "countryCode": "IS"
+  },
+  {
+    "googlePlaceId": "ChIJqX0cGLAe10gR9GWnUfg6HaI",
+    "placeName": "Southcoast Adventure / Brú Base Camp, road 249",
+    "cityName": "Hvolsvöllur",
+    "formattedAddress": "861 Hvolsvöllur, Iceland",
+    "latitude": 63.654613399999995,
+    "longitude": -19.942796700000002,
+    "countryCode": "IS"
+  },
+  {
+    "googlePlaceId": "ChIJFU1Jdyk4K08RgG8Dkd7yyf4",
+    "placeName": "Westfjords Region",
+    "cityName": "Westfjords Region",
+    "formattedAddress": "Westfjords Region, Iceland",
+    "latitude": 65.91961500000001,
+    "longitude": -21.8811763,
+    "countryCode": "IS"
+  },
+  {
+    "googlePlaceId": "ChIJi5d1bsmTvkgR3e0z3WgfJTg",
+    "placeName": "Mykines",
+    "cityName": "Mykines",
+    "formattedAddress": "Mykines, Faroe Islands",
+    "latitude": 62.1070829,
+    "longitude": -7.597474499999999,
+    "countryCode": "FO"
+  },
+  {
+    "googlePlaceId": "ChIJz8MDaGgUnEgRf1XLFSWaY9M",
+    "placeName": "Shetland Islands",
+    "cityName": "Shetland Islands",
+    "formattedAddress": "Shetland Islands, UK",
+    "latitude": 60.3213009,
+    "longitude": -1.2219259999999998,
+    "countryCode": "GB"
+  },
+  {
+    "googlePlaceId": "ChIJG8AfMGIBm0gRqbB3ALi_z2s",
+    "placeName": "Orkney",
+    "cityName": "Orkney",
+    "formattedAddress": "Orkney, United Kingdom",
+    "latitude": 59.03629,
+    "longitude": -2.8970293000000003,
+    "countryCode": "GB"
+  },
+  {
+    "googlePlaceId": "ChIJK_d6M3sKjUgR92Vbc6_CToI",
+    "placeName": "Outer Hebrides",
+    "cityName": "Isle of Harris",
+    "formattedAddress": "Outer Hebrides, Isle of Harris HS5 3UD, UK",
+    "latitude": 57.759891800000005,
+    "longitude": -7.0194035,
+    "countryCode": "GB"
+  },
+  {
+    "googlePlaceId": "ChIJn7WCw-FoikgRYOiN_sxksZ4",
+    "placeName": "Laphroaig Distillery",
+    "cityName": "Laphroaig",
+    "formattedAddress": "Laphroaig, Isle of Islay PA42 7DU, UK",
+    "latitude": 55.6300569,
+    "longitude": -6.152204,
+    "countryCode": "GB"
+  },
+  {
+    "googlePlaceId": "ChIJ032lBuRaj0gR0gy0JDvihg0",
+    "placeName": "Speyside Distillery",
+    "cityName": "Kingussie",
+    "formattedAddress": "Tromie Mills, Kingussie PH21 1NS, UK",
+    "latitude": 57.07263270000001,
+    "longitude": -4.0020880000000005,
+    "countryCode": "GB"
+  },
+  {
+    "googlePlaceId": "ChIJkUmcJMf7T0gRAMwxl6nHAAo",
+    "placeName": "Dingle",
+    "cityName": "Dingle",
+    "formattedAddress": "Dingle, Co. Kerry, Ireland",
+    "latitude": 52.1408534,
+    "longitude": -10.2671142,
+    "countryCode": "IE"
+  },
+  {
+    "googlePlaceId": "ChIJ_1stWpWTW0gRgVJJCkQbKwM",
+    "placeName": "Galway",
+    "cityName": "Galway",
+    "formattedAddress": "Galway, Ireland",
+    "latitude": 53.274001,
+    "longitude": -9.051266199999999,
+    "countryCode": "IE"
+  },
+  {
+    "googlePlaceId": "ChIJYbm-kQiQREgR0MUxl6nHAAo",
+    "placeName": "Cork",
+    "cityName": "Cork",
+    "formattedAddress": "Cork, Ireland",
+    "latitude": 51.8985143,
+    "longitude": -8.4756035,
+    "countryCode": "IE"
+  },
+  {
+    "googlePlaceId": "ChIJ2W6XtAw8RUgRwHQxl6nHAAo",
+    "placeName": "Killarney",
+    "cityName": "Killarney",
+    "formattedAddress": "Killarney, Co. Kerry, Ireland",
+    "latitude": 52.0599609,
+    "longitude": -9.504537000000001,
+    "countryCode": "IE"
+  },
+  {
+    "googlePlaceId": "ChIJO4rQ1_3_YEgRMcXH7ywWVy4",
+    "placeName": "Belfast",
+    "cityName": "Belfast",
+    "formattedAddress": "Belfast, UK",
+    "latitude": 54.59728500000001,
+    "longitude": -5.93012,
+    "countryCode": "GB"
+  },
+  {
+    "googlePlaceId": "ChIJD48V9EQpYEgR0h_eGaCMIvM",
+    "placeName": "Giant's Causeway",
+    "cityName": "Bushmills",
+    "formattedAddress": "44 Causeway Rd, Bushmills BT57 8SU, UK",
+    "latitude": 55.2408073,
+    "longitude": -6.5115554,
+    "countryCode": "GB"
+  },
+  {
+    "googlePlaceId": "ChIJOVZa5YeHdEgRUXy-QlHOOXQ",
+    "placeName": "Isle of Wight",
+    "cityName": "Isle of Wight",
+    "formattedAddress": "Isle of Wight, United Kingdom",
+    "latitude": 50.693847899999994,
+    "longitude": -1.3047339999999998,
+    "countryCode": "GB"
+  },
+  {
+    "googlePlaceId": "ChIJQVrG-UZTDEgRdVJsto_vWFk",
+    "placeName": "Premier Inn Jersey St Helier (Bath Street) hotel",
+    "cityName": "St Helier",
+    "formattedAddress": "Merchants Square, Bath St, St Helier, Jersey JE2 4BF, Jersey",
+    "latitude": 49.187169999999995,
+    "longitude": -2.1026,
+    "countryCode": "JE"
+  },
+  {
+    "googlePlaceId": "ChIJe94INnNzDUgRoPKvfT-aCsQ",
+    "placeName": "Premier Inn Guernsey St Peter Port (Admiral Park) hotel",
+    "cityName": "Guernsey",
+    "formattedAddress": "Admiral Park, Guernsey GY1 2HU, Guernsey",
+    "latitude": 49.468122199999996,
+    "longitude": -2.5381003,
+    "countryCode": "GG"
+  },
+  {
+    "googlePlaceId": "ChIJs-6cfNaoDkgR_sMNfuRMg8U",
+    "placeName": "Mont Saint-Michel",
+    "cityName": "Mont Saint-Michel",
+    "formattedAddress": "50170 Mont Saint-Michel, France",
+    "latitude": 48.636063,
+    "longitude": -1.5114569999999998,
+    "countryCode": "FR"
+  },
+  {
+    "googlePlaceId": "ChIJi-HxJEQM5EcRKe3HU0iIY3g",
+    "placeName": "Chartres",
+    "cityName": "Chartres",
+    "formattedAddress": "28000 Chartres, France",
+    "latitude": 48.443853999999995,
+    "longitude": 1.489012,
+    "countryCode": "FR"
+  },
+  {
+    "googlePlaceId": "ChIJvSD0dbR95kcRukqEDa0AnoY",
+    "placeName": "Versailles",
+    "cityName": "Versailles",
+    "formattedAddress": "78000 Versailles, France",
+    "latitude": 48.80225850000001,
+    "longitude": 2.1297422,
+    "countryCode": "FR"
+  },
+  {
+    "googlePlaceId": "ChIJga269ovz5UcRkFqMaMOCCwQ",
+    "placeName": "Fontainebleau",
+    "cityName": "Fontainebleau",
+    "formattedAddress": "77300 Fontainebleau, France",
+    "latitude": 48.404675999999995,
+    "longitude": 2.7016199999999997,
+    "countryCode": "FR"
+  },
+  {
+    "googlePlaceId": "ChIJCTtTSjN06UcRwEU7mrlfCgQ",
+    "placeName": "Reims",
+    "cityName": "Reims",
+    "formattedAddress": "51100 Reims, France",
+    "latitude": 49.258328999999996,
+    "longitude": 4.031696,
+    "countryCode": "FR"
+  },
+  {
+    "googlePlaceId": "ChIJ9yEDwL4U6UcR4FI7mrlfCgQ",
+    "placeName": "Épernay",
+    "cityName": "Épernay",
+    "formattedAddress": "Épernay, France",
+    "latitude": 49.043411,
+    "longitude": 3.9562419999999996,
+    "countryCode": "FR"
+  },
+  {
+    "googlePlaceId": "ChIJv8BNdMRlkUcRka7wJ_ruHV4",
+    "placeName": "Colmar Hotel",
+    "cityName": "Colmar",
+    "formattedAddress": "14 Rte de Rouffach, 68000 Colmar, France",
+    "latitude": 48.0706667,
+    "longitude": 7.346269399999999,
+    "countryCode": "FR"
+  },
+  {
+    "googlePlaceId": "ChIJZdYLViYbkUcRsFffpbdrHwQ",
+    "placeName": "Freiburg im Breisgau",
+    "cityName": "Freiburg im Breisgau",
+    "formattedAddress": "79 Freiburg im Breisgau, Germany",
+    "latitude": 47.9990077,
+    "longitude": 7.842104299999999,
+    "countryCode": "DE"
+  },
+  {
+    "googlePlaceId": "ChIJBQ07-vf7mkcRKxqfnGm-7KY",
+    "placeName": "Lake Constance",
+    "cityName": "Lake Constance",
+    "formattedAddress": "Lake Constance",
+    "latitude": 47.6363377,
+    "longitude": 9.3892445,
+    "countryCode": "UNKNOWN"
+  },
+  {
+    "googlePlaceId": "ChIJg8wkusNGcUcRocGm324Kj5g",
+    "placeName": "Salzkammergut",
+    "cityName": "Salzkammergut",
+    "formattedAddress": "Salzkammergut, Austria",
+    "latitude": 47.879409599999995,
+    "longitude": 13.5183185,
+    "countryCode": "AT"
+  },
+  {
+    "googlePlaceId": "ChIJz8N3iOKFckcR22bg5m2sRPw",
+    "placeName": "Domäne Wachau",
+    "cityName": "Dürnstein",
+    "formattedAddress": "Dürnstein 107, 3601 Dürnstein, Austria",
+    "latitude": 48.392065599999995,
+    "longitude": 15.527311099999999,
+    "countryCode": "AT"
+  },
+  {
+    "googlePlaceId": "ChIJu2UwF4c1bkcRm93f0tGKjv4",
+    "placeName": "Graz",
+    "cityName": "Graz",
+    "formattedAddress": "Graz, Austria",
+    "latitude": 47.0678961,
+    "longitude": 15.441730499999998,
+    "countryCode": "AT"
+  },
+  {
+    "googlePlaceId": "ChIJTYWZ-pWVc0cRxHV5VywpU3w",
+    "placeName": "Linz",
+    "cityName": "Linz",
+    "formattedAddress": "Linz, Austria",
+    "latitude": 48.3069096,
+    "longitude": 14.285917999999999,
+    "countryCode": "AT"
+  },
+  {
+    "googlePlaceId": "ChIJQ9oQtVyJbEcRK_lU89eyLpk",
+    "placeName": "Hotel Arcadia",
+    "cityName": "Bratislava",
+    "formattedAddress": "Františkánska 424/424/3, 811 01 Bratislava-Staré Mesto, Slovakia",
+    "latitude": 48.1450938,
+    "longitude": 17.1081844,
+    "countryCode": "SK"
+  },
+  {
+    "googlePlaceId": "ChIJd1VnBYbbQUcREiSNtgjDwMs",
+    "placeName": "Széchenyi Thermal Bath",
+    "cityName": "Budapest",
+    "formattedAddress": "Budapest, Állatkerti krt. 9-11, 1146 Hungary",
+    "latitude": 47.518656799999995,
+    "longitude": 19.0823791,
+    "countryCode": "HU"
+  },
+  {
+    "googlePlaceId": "ChIJ53NrLJ-NQEcRNIJ1skjHIqY",
+    "placeName": "Gál Tibor winery in Eger",
+    "cityName": "Eger",
+    "formattedAddress": "Eger, Csiky Sándor u. 10, 3300 Hungary",
+    "latitude": 47.903415599999995,
+    "longitude": 20.371489399999998,
+    "countryCode": "HU"
+  },
+  {
+    "googlePlaceId": "ChIJo4VoqG2VaUcReSfLzax-DnM",
+    "placeName": "Lake Balaton",
+    "cityName": "Lake Balaton",
+    "formattedAddress": "Lake Balaton, Hungary",
+    "latitude": 46.830267899999996,
+    "longitude": 17.7340438,
+    "countryCode": "HU"
+  },
+  {
+    "googlePlaceId": "ChIJiwtskR8MSUcRixQfMxxgvAs",
+    "placeName": "Cluj-Napoca",
+    "cityName": "Cluj-Napoca",
+    "formattedAddress": "Cluj-Napoca, Romania",
+    "latitude": 46.7712101,
+    "longitude": 23.6236353,
+    "countryCode": "RO"
+  },
+  {
+    "googlePlaceId": "ChIJ1Rws_YhnTEcRtJAzTiGd3jo",
+    "placeName": "Sibiu",
+    "cityName": "Sibiu",
+    "formattedAddress": "Sibiu, Romania",
+    "latitude": 45.803478899999995,
+    "longitude": 24.1449997,
+    "countryCode": "RO"
+  },
+  {
+    "googlePlaceId": "ChIJW35j5vJ0S0cRfyRjQQngEns",
+    "placeName": "Sighișoara",
+    "cityName": "Sighișoara",
+    "formattedAddress": "Sighișoara, Romania",
+    "latitude": 46.219702500000004,
+    "longitude": 24.7963878,
+    "countryCode": "RO"
+  },
+  {
+    "googlePlaceId": "ChIJPXZIogjRrBQRoDgTb_rRcGQ",
+    "placeName": "Plovdiv",
+    "cityName": "Plovdiv",
+    "formattedAddress": "Plovdiv, Bulgaria",
+    "latitude": 42.1354079,
+    "longitude": 24.7452904,
+    "countryCode": "BG"
+  },
+  {
+    "googlePlaceId": "ChIJp_Q3jYrHpkAR21SLHiWqdn4",
+    "placeName": "Sozopol Central Beach",
+    "cityName": "Sozopol Central Beach",
+    "formattedAddress": "Sozopol Central Beach, Bulgaria",
+    "latitude": 42.4205079,
+    "longitude": 27.6948956,
+    "countryCode": "BG"
+  },
+  {
+    "googlePlaceId": "ChIJodfzqotTpEARfIulcRyUJ1c",
+    "placeName": "Varna",
+    "cityName": "Varna",
+    "formattedAddress": "Varna, Bulgaria",
+    "latitude": 43.2140504,
+    "longitude": 27.914733299999998,
+    "countryCode": "BG"
+  },
+  {
+    "googlePlaceId": "ChIJIdKiTjCGZ0ARZ6ku4alTMHo",
+    "placeName": "Batumi",
+    "cityName": "Batumi",
+    "formattedAddress": "Batumi, Georgia",
+    "latitude": 41.6460978,
+    "longitude": 41.64049,
+    "countryCode": "GE"
+  },
+  {
+    "googlePlaceId": "ChIJLa9UDuOMXEARb2Um1rJB7Ps",
+    "placeName": "Kutaisi",
+    "cityName": "Kutaisi",
+    "formattedAddress": "Kutaisi, Georgia",
+    "latitude": 42.2718339,
+    "longitude": 42.7059437,
+    "countryCode": "GE"
+  },
+  {
+    "googlePlaceId": "ChIJO6NVdHhvREARwsZfFdNUrnc",
+    "placeName": "Mtskheta",
+    "cityName": "Mtskheta",
+    "formattedAddress": "Mtskheta, Georgia",
+    "latitude": 41.8454251,
+    "longitude": 44.720273899999995,
+    "countryCode": "GE"
+  },
+  {
+    "googlePlaceId": "ChIJP0y1YPM5Q0ARBhf-urZs0fQ",
+    "placeName": "Borjomi",
+    "cityName": "Borjomi",
+    "formattedAddress": "Borjomi, Georgia",
+    "latitude": 41.8378653,
+    "longitude": 43.378518199999995,
+    "countryCode": "GE"
+  },
+  {
+    "googlePlaceId": "ChIJ4xg3u_AoRUAR7NEa89VCxkw",
+    "placeName": "Gudauri Ski Resort",
+    "cityName": "Gudauri",
+    "formattedAddress": "Redco New, Gudauri 4702, Georgia",
+    "latitude": 42.4676969,
+    "longitude": 44.49013360000001,
+    "countryCode": "GE"
+  },
+  {
+    "googlePlaceId": "ChIJ_fL-LQB9MEARlW8F70X6mhA",
+    "placeName": "Old Baku Boutique hotel",
+    "cityName": "Baku",
+    "formattedAddress": "9R8P+R5F, Baku, Azerbaijan",
+    "latitude": 40.3670225,
+    "longitude": 49.8353828,
+    "countryCode": "AZ"
+  },
+  {
+    "googlePlaceId": "ChIJOavewsaHR0ARTJ8mOt92cKU",
+    "placeName": "Sheki",
+    "cityName": "Sheki",
+    "formattedAddress": "Sheki, Azerbaijan",
+    "latitude": 41.1974753,
+    "longitude": 47.1571241,
+    "countryCode": "AZ"
+  },
+  {
+    "googlePlaceId": "ChIJYw7W680YTT8R_Hdy3kkG2ac",
+    "placeName": "Grand Plaza Hotel Samarkand",
+    "cityName": "Samarqand",
+    "formattedAddress": "Universitet xiyoboni 7, 140100, Samarqand, Samarqand viloyati, Uzbekistan",
+    "latitude": 39.648346,
+    "longitude": 66.964337,
+    "countryCode": "UZ"
+  },
+  {
+    "googlePlaceId": "ChIJ1TyZZQ4GUD8RZ-dIDvTqe8g",
+    "placeName": "Bukhara",
+    "cityName": "Bukhara",
+    "formattedAddress": "Bukhara, Bukhara Region, Uzbekistan",
+    "latitude": 39.7682591,
+    "longitude": 64.45686479999999,
+    "countryCode": "UZ"
+  },
+  {
+    "googlePlaceId": "ChIJ-Yzk_xOk30ERzcBten_0dc0",
+    "placeName": "Khiva",
+    "cityName": "Khiva",
+    "formattedAddress": "Khiva, Xorazm Region, Uzbekistan",
+    "latitude": 41.3895075,
+    "longitude": 60.3414529,
+    "countryCode": "UZ"
+  },
+  {
+    "googlePlaceId": "ChIJlXtgoAx8gzgRDLrOQNVyd0o",
+    "placeName": "Shymbulak",
+    "cityName": "Almaty",
+    "formattedAddress": "Kerey and Zhanibek Khans St 558/1, Almaty 050020, Kazakhstan",
+    "latitude": 43.128706699999995,
+    "longitude": 77.0804725,
+    "countryCode": "KZ"
+  },
+  {
+    "googlePlaceId": "ChIJCUa1fcSARUIRKJKx3Y0U-Zc",
+    "placeName": "Astana",
+    "cityName": "Astana",
+    "formattedAddress": "Astana, Kazakhstan",
+    "latitude": 51.1655126,
+    "longitude": 71.4272222,
+    "countryCode": "KZ"
+  },
+  {
+    "googlePlaceId": "ChIJq017_YwABjgRinB6rOtSWao",
+    "placeName": "Ürümqi",
+    "cityName": "Ürümqi",
+    "formattedAddress": "Ürümqi, Xinjiang, China",
+    "latitude": 43.8266299,
+    "longitude": 87.61688,
+    "countryCode": "CN"
+  },
+  {
+    "googlePlaceId": "ChIJM2esmovpkjgRXtT5tC642aI",
+    "placeName": "Kashgar",
+    "cityName": "Kashgar Prefecture",
+    "formattedAddress": "Kashgar, Kashgar Prefecture, Xinjiang, China",
+    "latitude": 39.4677199,
+    "longitude": 75.99381,
+    "countryCode": "CN"
+  },
+  {
+    "googlePlaceId": "ChIJIfi7IMozYTcRpBcb1H5WUVg",
+    "placeName": "Lhasa",
+    "cityName": "Lhasa",
+    "formattedAddress": "Lhasa, Tibet, China",
+    "latitude": 29.6526199,
+    "longitude": 91.13775,
+    "countryCode": "CN"
+  },
+  {
+    "googlePlaceId": "ChIJIXdEACPF7zYRAg4kLs5Shrk",
+    "placeName": "Chengdu",
+    "cityName": "Chengdu",
+    "formattedAddress": "Chengdu, Sichuan, China",
+    "latitude": 30.572259900000002,
+    "longitude": 104.0665099,
+    "countryCode": "CN"
+  },
+  {
+    "googlePlaceId": "ChIJowMUgi2nZDYRxz_j6XQ-48M",
+    "placeName": "Emperor Qinshihuang's Mausoleum Site Museum",
+    "cityName": "Xi'An",
+    "formattedAddress": "Lintong District, Xi'An, Shaanxi, China, 710612",
+    "latitude": 34.3841153,
+    "longitude": 109.2784918,
+    "countryCode": "CN"
+  },
+  {
+    "googlePlaceId": "ChIJmaqaQym2SzQROuhNgoPRv6c",
+    "placeName": "Hangzhou",
+    "cityName": "Hangzhou",
+    "formattedAddress": "Hangzhou, Zhejiang, China",
+    "latitude": 30.2741499,
+    "longitude": 120.15514999999999,
+    "countryCode": "CN"
+  },
+  {
+    "googlePlaceId": "ChIJB17Sm9GgszURBGB2vYV_5SE",
+    "placeName": "Suzhou",
+    "cityName": "Suzhou",
+    "formattedAddress": "Suzhou, Jiangsu, China",
+    "latitude": 31.298339899999995,
+    "longitude": 120.58319,
+    "countryCode": "CN"
+  },
+  {
+    "googlePlaceId": "ChIJg82NZpuMtTURBhvfeQu2-48",
+    "placeName": "Nanjing",
+    "cityName": "Nanjing",
+    "formattedAddress": "Nanjing, Jiangsu, China",
+    "latitude": 32.0583799,
+    "longitude": 118.79647,
+    "countryCode": "CN"
+  },
+  {
+    "googlePlaceId": "ChIJa_D4gtUPljUR8_JMYfqCTWE",
+    "placeName": "Qingdao",
+    "cityName": "Qingdao",
+    "formattedAddress": "Qingdao, Shandong, China",
+    "latitude": 36.066229899999996,
+    "longitude": 120.38298999999998,
+    "countryCode": "CN"
+  },
+  {
+    "googlePlaceId": "ChIJP1j2OhRahjURNsllbOuKc3Y",
+    "placeName": "Dalian",
+    "cityName": "Dalian",
+    "formattedAddress": "Dalian, Liaoning, China",
+    "latitude": 38.9139899,
+    "longitude": 121.6147,
+    "countryCode": "CN"
+  },
+  {
+    "googlePlaceId": "ChIJq6raXBaAQ14RfdXnDxVFhCc",
+    "placeName": "Harbin Ice & Snow World",
+    "cityName": "Ha Er Bin Shi",
+    "formattedAddress": "China, Hei Long Jiang Sheng, Ha Er Bin Shi, Dao Li Qu, 兆麟公园 邮政编码: 150036",
+    "latitude": 45.7776401,
+    "longitude": 126.6228455,
+    "countryCode": "CN"
+  },
+  {
+    "googlePlaceId": "ChIJb5q9bfNdOF4RmLFWJ_TUx58",
+    "placeName": "Changchun",
+    "cityName": "Changchun",
+    "formattedAddress": "Changchun, Jilin, China",
+    "latitude": 43.8160199,
+    "longitude": 125.32356999999999,
+    "countryCode": "CN"
+  },
+  {
+    "googlePlaceId": "ChIJtzQTOkE8JV4RZpGSzvDkmVQ",
+    "placeName": "Shenyang",
+    "cityName": "Shenyang",
+    "formattedAddress": "Shenyang, Liaoning, China",
+    "latitude": 41.804778,
+    "longitude": 123.43296799999999,
+    "countryCode": "CN"
+  },
+  {
+    "googlePlaceId": "ChIJy9MnEsOD0DYRNgpPmKTzscw",
+    "placeName": "Kunming",
+    "cityName": "Kunming",
+    "formattedAddress": "Kunming, Yunnan, China",
+    "latitude": 24.8796599,
+    "longitude": 102.83322,
+    "countryCode": "CN"
+  },
+  {
+    "googlePlaceId": "ChIJ6dMLQOavIDcRqF1HPYNY1Lg",
+    "placeName": "Lijiang",
+    "cityName": "Lijiang",
+    "formattedAddress": "Lijiang, Yunnan, China",
+    "latitude": 26.8564799,
+    "longitude": 100.2270999,
+    "countryCode": "CN"
+  },
+  {
+    "googlePlaceId": "ChIJt1faVaO4JzcRVrjXyfaoTtw",
+    "placeName": "Dali",
+    "cityName": "Dali",
+    "formattedAddress": "Dali, Yunnan, China",
+    "latitude": 25.6064799,
+    "longitude": 100.26764,
+    "countryCode": "CN"
+  },
+  {
+    "googlePlaceId": "ChIJM1EhdTb0pDYR4UpwHRnBhv8",
+    "placeName": "Guilin",
+    "cityName": "Guilin",
+    "formattedAddress": "Guilin, Guangxi, China",
+    "latitude": 25.2736099,
+    "longitude": 110.29002,
+    "countryCode": "CN"
+  },
+  {
+    "googlePlaceId": "ChIJmVW2gyEGmzYRVpDCIF2LkGE",
+    "placeName": "Zhangjiajie",
+    "cityName": "Zhangjiajie",
+    "formattedAddress": "Zhangjiajie, Hunan, China",
+    "latitude": 29.116669899999998,
+    "longitude": 110.47838999999999,
+    "countryCode": "CN"
+  },
+  {
+    "googlePlaceId": "ChIJyxxIIzbENTQRSXVRMSA_MU8",
+    "placeName": "Huangshan City",
+    "cityName": "Huangshan City",
+    "formattedAddress": "Huangshan City, Anhui, China",
+    "latitude": 29.715169900000003,
+    "longitude": 118.33865999999999,
+    "countryCode": "CN"
+  },
+  {
+    "googlePlaceId": "ChIJfxiB_GkKdTYRfvBVjVK09Oo",
+    "placeName": "Pingyao",
+    "cityName": "Jinzhong",
+    "formattedAddress": "Pingyao, Jinzhong, Shanxi, China",
+    "latitude": 37.1893399,
+    "longitude": 112.17557,
+    "countryCode": "CN"
+  },
+  {
+    "googlePlaceId": "ChIJyQaywIMDtTcR2tY-CYmFBFs",
+    "placeName": "Zhangye Qicai Danxia Scenic Spot",
+    "cityName": "Zhang Ye Shi",
+    "formattedAddress": "X27J+WRQ, 肃南, Nan Tai Cun, Ni Jia Ying Zhen, 裕固族自治县, Zhang Ye Shi, Gan Su Sheng, China, 734201",
+    "latitude": 38.96483,
+    "longitude": 100.03210000000001,
+    "countryCode": "CN"
+  },
+  {
+    "googlePlaceId": "ChIJMXJzSkrB6jcRcsi_xsC_YXQ",
+    "placeName": "Dunhuang",
+    "cityName": "Jiuquan",
+    "formattedAddress": "Dunhuang, Jiuquan, Gansu, China",
+    "latitude": 40.1421899,
+    "longitude": 94.66197,
+    "countryCode": "CN"
+  },
+  {
+    "googlePlaceId": "ChIJZ1OaN_wllF0RbVHTVqrx64M",
+    "placeName": "Мөнхжин Жуулчны бааз - My Mongolia Eco Ger Camp",
+    "cityName": "Налайх",
+    "formattedAddress": "Terelj National Park, Nalaikh Rd, НД - 6 хороо, Налайх, Улаанбаатар 12604, Mongolia",
+    "latitude": 47.8667234,
+    "longitude": 107.3909383,
+    "countryCode": "MN"
+  },
+  {
+    "googlePlaceId": "ChIJU_SGUpDuhV0RmWEI8fEQTaE",
+    "placeName": "Gobi Desert",
+    "cityName": "Gobi Desert",
+    "formattedAddress": "Gobi Desert",
+    "latitude": 42.7951536,
+    "longitude": 105.03236349999999,
+    "countryCode": "UNKNOWN"
+  },
+  {
+    "googlePlaceId": "ChIJZfbiU9M6qF0RTunYVhTN1jE",
+    "placeName": "Irkutsk",
+    "cityName": "Irkutsk",
+    "formattedAddress": "Irkutsk, Irkutsk Oblast, Russia",
+    "latitude": 52.2854834,
+    "longitude": 104.28902219999999,
+    "countryCode": "RU"
+  },
+  {
+    "googlePlaceId": "ChIJc9iNz-19q10RSTOFxRKUSPI",
+    "placeName": "Lake Baikal",
+    "cityName": "Lake Baikal",
+    "formattedAddress": "Lake Baikal, Russia",
+    "latitude": 53.5587003,
+    "longitude": 108.16499639999999,
+    "countryCode": "RU"
+  },
+  {
+    "googlePlaceId": "ChIJhdRJUrqcs18RNX6W3dQEZxg",
+    "placeName": "Vladivostok",
+    "cityName": "Vladivostok",
+    "formattedAddress": "Vladivostok, Primorsky Krai, Russia",
+    "latitude": 43.1332484,
+    "longitude": 131.9112975,
+    "countryCode": "RU"
+  },
+  {
+    "googlePlaceId": "ChIJaR-gprLiBFkRjbG7hrr8wEw",
+    "placeName": "Kamchatka Peninsula",
+    "cityName": "Kamchatka Peninsula",
+    "formattedAddress": "Kamchatka Peninsula, Kamchatka Krai, Russia, 684405",
+    "latitude": 56.1327377,
+    "longitude": 159.5314398,
+    "countryCode": "RU"
+  },
+  {
+    "googlePlaceId": "ChIJzZJKYvqZ4VgRIUrRvHH0MAE",
+    "placeName": "Petropavlovsk-Kamchatskiy",
+    "cityName": "Petropavlovsk-Kamchatskiy",
+    "formattedAddress": "Petropavlovsk-Kamchatskiy, Kamchatka Krai, Russia",
+    "latitude": 53.058399699999995,
+    "longitude": 158.6320734,
+    "countryCode": "RU"
+  },
+  {
+    "googlePlaceId": "ChIJfcTSoDk59lsR-6KvXLPEtGk",
+    "placeName": "Yakutsk",
+    "cityName": "Yakutsk",
+    "formattedAddress": "Yakutsk, Sakha Republic, Russia",
+    "latitude": 62.03969120000001,
+    "longitude": 129.7422193,
+    "countryCode": "RU"
+  },
+  {
+    "googlePlaceId": "ChIJ6UpSLYGEaVkRWwac4edMyTk",
+    "placeName": "Magadan",
+    "cityName": "Magadan",
+    "formattedAddress": "Magadan, Magadan Oblast, Russia",
+    "latitude": 59.559439700000006,
+    "longitude": 150.8127537,
+    "countryCode": "RU"
+  },
+  {
+    "googlePlaceId": "ChIJKdPFSFEpC18RnuAg7TaybA4",
+    "placeName": "Odori Park",
+    "cityName": "札幌市",
+    "formattedAddress": "Japan, 〒060-0042 北海道札幌市中央区大通西１〜１２丁目",
+    "latitude": 43.060752099999995,
+    "longitude": 141.3544308,
+    "countryCode": "JP"
+  },
+  {
+    "googlePlaceId": "ChIJAw2rEwywCl8RGq9YSV20Zxk",
+    "placeName": "Niseko Tokyu Grand Hirafu",
+    "cityName": "Kutchan",
+    "formattedAddress": "2-chōme-9-1 Nisekohirafu 1 Jō, Kutchan, Abuta District, Hokkaido 044-0080, Japan",
+    "latitude": 42.8644562,
+    "longitude": 140.7012542,
+    "countryCode": "JP"
+  },
+  {
+    "googlePlaceId": "ChIJp9Vk7AajGWARUYrjpXc1SYg",
+    "placeName": "Tenzan Onsen",
+    "cityName": "Hakone",
+    "formattedAddress": "Japan, 〒250-0312 Kanagawa, Ashigarashimo District, Hakone, Yumotochaya, ２０８ １階",
+    "latitude": 35.2252429,
+    "longitude": 139.0886999,
+    "countryCode": "JP"
+  },
+  {
+    "googlePlaceId": "ChIJ0ciaxrekH2ARwNEdlkJrUm8",
+    "placeName": "Nikko",
+    "cityName": "Nikko",
+    "formattedAddress": "Nikko, Tochigi, Japan",
+    "latitude": 36.7198987,
+    "longitude": 139.6982361,
+    "countryCode": "JP"
+  },
+  {
+    "googlePlaceId": "ChIJw2aFRlU2-F8RFWLeb8RV8Y0",
+    "placeName": "Kanazawa",
+    "cityName": "Kanazawa",
+    "formattedAddress": "Kanazawa, Ishikawa, Japan",
+    "latitude": 36.5597341,
+    "longitude": 136.6520376,
+    "countryCode": "JP"
+  },
+  {
+    "googlePlaceId": "ChIJScNPoUKjAmAR3OO48IT78tQ",
+    "placeName": "Takayama",
+    "cityName": "Takayama",
+    "formattedAddress": "Takayama, Gifu, Japan",
+    "latitude": 36.1461317,
+    "longitude": 137.252159,
+    "countryCode": "JP"
+  },
+  {
+    "googlePlaceId": "ChIJYWCMvZY5AWARVnREV_OsbPk",
+    "placeName": "Nara Park",
+    "cityName": "Nara",
+    "formattedAddress": "Nara, Japan",
+    "latitude": 34.685047,
+    "longitude": 135.843012,
+    "countryCode": "JP"
+  },
+  {
+    "googlePlaceId": "ChIJqYAn2wyiWjURlsDG4Hpn5jQ",
+    "placeName": "Atomic Bomb Dome",
+    "cityName": "Hiroshima",
+    "formattedAddress": "1-chōme-1-10 Ōtemachi, Naka Ward, Hiroshima, 730-0051, Japan",
+    "latitude": 34.395483,
+    "longitude": 132.453592,
+    "countryCode": "JP"
+  },
+  {
+    "googlePlaceId": "ChIJGcmNiM-2WjURAUMA7utiH8k",
+    "placeName": "Itsukushima",
+    "cityName": "Hatsukaichi",
+    "formattedAddress": "Itsukushima, Miyajimacho, Hatsukaichi, Hiroshima 739-0588, Japan",
+    "latitude": 34.2732114,
+    "longitude": 132.3052488,
+    "countryCode": "JP"
+  },
+  {
+    "googlePlaceId": "ChIJaVDnv46RQTURWuJE01tjUGk",
+    "placeName": "Shin Shin",
+    "cityName": "Fukuoka",
+    "formattedAddress": "3-chōme-2-19 Tenjin, Chuo Ward, Fukuoka, 810-0001, Japan",
+    "latitude": 33.5927497,
+    "longitude": 130.39684459999998,
+    "countryCode": "JP"
+  },
+  {
+    "googlePlaceId": "ChIJZ9oYhFRMFTURk8wyyu2m94s",
+    "placeName": "Nagasaki",
+    "cityName": "Nagasaki",
+    "formattedAddress": "Nagasaki, Japan",
+    "latitude": 32.750333399999995,
+    "longitude": 129.8778888,
+    "countryCode": "JP"
+  },
+  {
+    "googlePlaceId": "ChIJJdFU6tsT5TQRFtGMxK9GlzU",
+    "placeName": "Araha Beach",
+    "cityName": "Chatan",
+    "formattedAddress": "8Q35+MC, 2-chōme-16-2 Chatan, Nakagami District, Okinawa 904-0116, Japan",
+    "latitude": 26.304187499999998,
+    "longitude": 127.7585625,
+    "countryCode": "JP"
+  },
+  {
+    "googlePlaceId": "ChIJtcMT0y1pDDURs0J4dM6N51I",
+    "placeName": "Jeju Island",
+    "cityName": "Jeju Island",
+    "formattedAddress": "Jeju Island",
+    "latitude": 33.378561399999995,
+    "longitude": 126.5661908,
+    "countryCode": "KR"
+  },
+  {
+    "googlePlaceId": "ChIJudkrFArpaDURbbCzajeQs0c",
+    "placeName": "Jagalchi Market",
+    "cityName": "Jagalchi Market",
+    "formattedAddress": "52 Jagalchihaean-ro, Jung-gu, Busan, South Korea",
+    "latitude": 35.0966339,
+    "longitude": 129.0307965,
+    "countryCode": "KR"
+  },
+  {
+    "googlePlaceId": "ChIJHQMN-EZOZjURCcjQz-6WFTc",
+    "placeName": "Gyeongju-si",
+    "cityName": "Gyeongju-si",
+    "formattedAddress": "Gyeongju-si, Gyeongsangbuk-do, South Korea",
+    "latitude": 35.8447433,
+    "longitude": 129.206998,
+    "countryCode": "KR"
+  },
+  {
+    "googlePlaceId": "ChIJU8lC7j-hZjURbI6VBB8u7qs",
+    "placeName": "Andong-si",
+    "cityName": "Andong-si",
+    "formattedAddress": "Andong-si, Gyeongsangbuk-do, South Korea",
+    "latitude": 36.5667057,
+    "longitude": 128.72891099999998,
+    "countryCode": "KR"
+  },
+  {
+    "googlePlaceId": "ChIJ0aVJAwmjfDURPfa3OEEMUTE",
+    "placeName": "DMZ Tour - Seoul City Tour",
+    "cityName": "DMZ Tour - Seoul City Tour",
+    "formattedAddress": "South Korea, Seoul, Jongno District, Insa-dong, 194-4 하나로빌딩 507호",
+    "latitude": 37.572060199999996,
+    "longitude": 126.9853831,
+    "countryCode": "KR"
+  },
+  {
+    "googlePlaceId": "ChIJg6W0DZyrQjQR9vZdgYMRoj0",
+    "placeName": "Raohe Night Market",
+    "cityName": "Raohe Night Market",
+    "formattedAddress": "Raohe St, Ciyou Village, Songshan District, Taipei City, Taiwan 105",
+    "latitude": 25.0508854,
+    "longitude": 121.5774891,
+    "countryCode": "TW"
+  },
+  {
+    "googlePlaceId": "ChIJ0fJdV2U9aTQRCnt0UfuU1I0",
+    "placeName": "Taichung",
+    "cityName": "Taichung",
+    "formattedAddress": "Taichung, Wuchang Village, North District, Taichung City, Taiwan",
+    "latitude": 24.1629765,
+    "longitude": 120.6746104,
+    "countryCode": "TW"
+  },
+  {
+    "googlePlaceId": "ChIJE_4_lcx8bjQRTnbcpapMf9Q",
+    "placeName": "Tainan City",
+    "cityName": "Tainan City",
+    "formattedAddress": "Tainan City, Taiwan",
+    "latitude": 22.9998999,
+    "longitude": 120.22687579999999,
+    "countryCode": "TW"
+  },
+  {
+    "googlePlaceId": "ChIJG3R6elFDbjQRNypzVEqiJkg",
+    "placeName": "Kaohsiung City",
+    "cityName": "Kaohsiung City",
+    "formattedAddress": "Kaohsiung City, Taiwan",
+    "latitude": 22.627278399999998,
+    "longitude": 120.3014353,
+    "countryCode": "TW"
+  },
+  {
+    "googlePlaceId": "ChIJ7-fCX4SCaDQRMaqw4IX92d0",
+    "placeName": "Taroko National Park",
+    "cityName": "Taroko National Park",
+    "formattedAddress": "Xiulin Township, Hualien County, Taiwan 972",
+    "latitude": 24.1939246,
+    "longitude": 121.4906668,
+    "countryCode": "TW"
+  },
+  {
+    "googlePlaceId": "ChIJqUBshyBbbDQRf1vw1phNUno",
+    "placeName": "Penghu",
+    "cityName": "Penghu",
+    "formattedAddress": "Penghu, Magong City, Penghu County, Taiwan 880",
+    "latitude": 23.583333,
+    "longitude": 119.583333,
+    "countryCode": "TW"
+  },
+  {
+    "googlePlaceId": "ChIJsd2-34n_AzQROJPZYjyLMS4",
+    "placeName": "Victoria Peak",
+    "cityName": "Victoria Peak",
+    "formattedAddress": "Victoria Peak, The Peak, Hong Kong",
+    "latitude": 22.2758835,
+    "longitude": 114.14553199999999,
+    "countryCode": "HK"
+  },
+  {
+    "googlePlaceId": "ChIJt-hEEBpwATQRoEK-ymvSAAU",
+    "placeName": "Cotai",
+    "cityName": "Cotai",
+    "formattedAddress": "Cotai, Macao",
+    "latitude": 22.1425065,
+    "longitude": 113.56352299999999,
+    "countryCode": "MO"
+  },
+  {
+    "googlePlaceId": "ChIJs0G-7hvuAzQRIHlDkmMjmNA",
+    "placeName": "Shenzhen Wan Innovation Science and Technology Center",
+    "cityName": "Shen Zhen Shi",
+    "formattedAddress": "China, Guang Dong Sheng, Shen Zhen Shi, Nan Shan Qu, 29, 正南方向190米 邮政编码: 518063",
+    "latitude": 22.52932,
+    "longitude": 113.94667,
+    "countryCode": "CN"
+  },
+  {
+    "googlePlaceId": "ChIJMX6fVo_4AjQRoxUR87YgW0A",
+    "placeName": "Guangzhou Restaurant",
+    "cityName": "Guang Zhou Shi",
+    "formattedAddress": "2 Wen Chang Nan Lu, 上下九地区 Li Wan Qu, Guang Zhou Shi, Guang Dong Sheng, China, 510140",
+    "latitude": 23.113813,
+    "longitude": 113.245888,
+    "countryCode": "CN"
+  },
+  {
+    "googlePlaceId": "ChIJta-eZoVoATQRBMbqOlLiMd8",
+    "placeName": "Zhuhai",
+    "cityName": "Zhuhai",
+    "formattedAddress": "Zhuhai, Guangdong Province, China",
+    "latitude": 22.270859899999998,
+    "longitude": 113.57665999999999,
+    "countryCode": "CN"
+  },
+  {
+    "googlePlaceId": "ChIJzyHZdZ9ORTER2OVWfvDdn9o",
+    "placeName": "三亚湾",
+    "cityName": "Sanya",
+    "formattedAddress": "7FHC+P5F, Tianya District, Sanya, Hainan, China, 572023",
+    "latitude": 18.279308999999998,
+    "longitude": 109.47041100000001,
+    "countryCode": "CN"
+  },
+  {
+    "googlePlaceId": "ChIJIQNZZnoXQjERnUtHFznBNg8",
+    "placeName": "My Khe Beach",
+    "cityName": "My Khe Beach",
+    "formattedAddress": "My Khe Beach, An Hai, Da Nang 550000, Vietnam",
+    "latitude": 16.047,
+    "longitude": 108.25,
+    "countryCode": "VN"
+  },
+  {
+    "googlePlaceId": "ChIJRa5hw1kOQjERvqlueVE88bE",
+    "placeName": "Hoi An lanterns shop",
+    "cityName": "Hoi An lanterns shop",
+    "formattedAddress": "424 Hùng Vương, Hội An Tây, Đà Nẵng, Vietnam",
+    "latitude": 15.8805505,
+    "longitude": 108.29814119999999,
+    "countryCode": "VN"
+  },
+  {
+    "googlePlaceId": "ChIJ-zZHO4GhQTER8_Eb9kDoaEE",
+    "placeName": "Hue Imperial City",
+    "cityName": "Huế",
+    "formattedAddress": "Huế, Hue, Vietnam",
+    "latitude": 16.469527,
+    "longitude": 107.577432,
+    "countryCode": "VN"
+  },
+  {
+    "googlePlaceId": "ChIJZ0qug8wTcTER0m4S0SZkp2I",
+    "placeName": "Dalat City Flower Garden",
+    "cityName": "Lâm Viên - Đà Lạt",
+    "formattedAddress": "02 Đ. Trần Nhân Tông, Lâm Viên - Đà Lạt, Lâm Đồng, Vietnam",
+    "latitude": 11.950247899999999,
+    "longitude": 108.4498289,
+    "countryCode": "VN"
+  },
+  {
+    "googlePlaceId": "ChIJy8-KGrtmcDEROXeA-POt_lE",
+    "placeName": "Nha Trang",
+    "cityName": "NHA Trang",
+    "formattedAddress": "NHA Trang, Khanh Hoa, Vietnam",
+    "latitude": 12.213021399999999,
+    "longitude": 109.2772057,
+    "countryCode": "VN"
+  },
+  {
+    "googlePlaceId": "ChIJF9qetGKMpzER2yzXvft5qgg",
+    "placeName": "Phú Quốc",
+    "cityName": "Phu Quoc",
+    "formattedAddress": "Phú Quốc, Phu Quoc, An Giang, Vietnam",
+    "latitude": 10.289878999999999,
+    "longitude": 103.98402,
+    "countryCode": "VN"
+  },
+  {
+    "googlePlaceId": "ChIJ0dIKmcVnJDERkAKyZz0rREc",
+    "placeName": "Pha That Luang Vientiane",
+    "cityName": "Xaysettha",
+    "formattedAddress": "That Luang, Xaysettha 10009, Laos",
+    "latitude": 17.9766165,
+    "longitude": 102.6364667,
+    "countryCode": "LA"
+  },
+  {
+    "googlePlaceId": "ChIJE-c78DTsJTEROOLT1LmsNRs",
+    "placeName": "Vang Vieng",
+    "cityName": "Vang Vieng",
+    "formattedAddress": "Vang Vieng, Laos",
+    "latitude": 18.95009,
+    "longitude": 102.44379,
+    "countryCode": "LA"
+  },
+  {
+    "googlePlaceId": "ChIJSzSF_bb4FDEREEPZWp9fELk",
+    "placeName": "Pakse",
+    "cityName": "Pakse",
+    "formattedAddress": "Pakse, Laos",
+    "latitude": 15.1171823,
+    "longitude": 105.81590450000002,
+    "countryCode": "LA"
+  },
+  {
+    "googlePlaceId": "ChIJ14F0FEILEzERO15D0pu4_1w",
+    "placeName": "Si Phan Don",
+    "cityName": "Si Phan Don",
+    "formattedAddress": "Si Phan Don, Laos",
+    "latitude": 14.098512284711015,
+    "longitude": 105.87018921576414,
+    "countryCode": "LA"
+  },
+  {
+    "googlePlaceId": "ChIJ5dfd6pZJBTERk-PpXJXOVZw",
+    "placeName": "Krong Battambang",
+    "cityName": "Krong Battambang",
+    "formattedAddress": "Krong Battambang, Cambodia",
+    "latitude": 13.09573,
+    "longitude": 103.2022055,
+    "countryCode": "KH"
+  },
+  {
+    "googlePlaceId": "ChIJoSJWb-vBBzERWB2aRlr3aoM",
+    "placeName": "Koh Rong",
+    "cityName": "Preah Sihanouk",
+    "formattedAddress": "Koh Rong, Preah Sihanouk, Cambodia",
+    "latitude": 10.7290832,
+    "longitude": 103.23172249999999,
+    "countryCode": "KH"
+  },
+  {
+    "googlePlaceId": "ChIJPzZsMU6Z4jARQUzvk913bCo",
+    "placeName": "The Grand Palace",
+    "cityName": "The Grand Palace",
+    "formattedAddress": "Phra Borom Maha Ratchawang, Phra Nakhon, Bangkok 10200, Thailand",
+    "latitude": 13.7498558,
+    "longitude": 100.4915765,
+    "countryCode": "TH"
+  },
+  {
+    "googlePlaceId": "ChIJXW-7kH462jARZ0ObpXBi1Jg",
+    "placeName": "Chiang Mai",
+    "cityName": "Chiang Mai",
+    "formattedAddress": "Chiang Mai, Mueang Chiang Mai District, Chiang Mai, Thailand",
+    "latitude": 18.788343899999997,
+    "longitude": 98.98530079999999,
+    "countryCode": "TH"
+  },
+  {
+    "googlePlaceId": "ChIJZYPDE2cG1zARNwa2sbtUFXE",
+    "placeName": "Mueang Chiang Rai",
+    "cityName": "Mueang Chiang Rai",
+    "formattedAddress": "Mueang Chiang Rai, Mueang Chiang Rai District, Chiang Rai, Thailand",
+    "latitude": 19.910479799999997,
+    "longitude": 99.840576,
+    "countryCode": "TH"
+  },
+  {
+    "googlePlaceId": "ChIJ66we6bCB2jAR352TyECeB0A",
+    "placeName": "Pai",
+    "cityName": "Pai",
+    "formattedAddress": "Pai, Pai District, Mae Hong Son 58130, Thailand",
+    "latitude": 19.358911199999998,
+    "longitude": 98.43902709999999,
+    "countryCode": "TH"
+  },
+  {
+    "googlePlaceId": "ChIJCZN_LXmNUTARkEw2LLwjAgE",
+    "placeName": "Krabi",
+    "cityName": "Krabi",
+    "formattedAddress": "Krabi, Thailand",
+    "latitude": 8.1191811,
+    "longitude": 99.1013498,
+    "countryCode": "TH"
+  },
+  {
+    "googlePlaceId": "ChIJbyZmHFDxVDARMIN9Pb1a1e0",
+    "placeName": "Ko Samui",
+    "cityName": "Ko Samui",
+    "formattedAddress": "Ko Samui, Ko Samui District, Surat Thani, Thailand",
+    "latitude": 9.5120168,
+    "longitude": 100.01359289999999,
+    "countryCode": "TH"
+  },
+  {
+    "googlePlaceId": "ChIJ73cD-pb9VDAR_q95XhqN_dM",
+    "placeName": "Ko Pha Ngan",
+    "cityName": "Ko Pha Ngan",
+    "formattedAddress": "Ko Pha Ngan, Ko Pha-ngan District, Surat Thani 84280, Thailand",
+    "latitude": 9.731875299999999,
+    "longitude": 100.01359289999999,
+    "countryCode": "TH"
+  },
+  {
+    "googlePlaceId": "ChIJYXQPmEYCTjARkH82LLwjAgM",
+    "placeName": "Ko Lanta District",
+    "cityName": "Ko Lanta District",
+    "formattedAddress": "Ko Lanta District, Krabi, Thailand",
+    "latitude": 7.7532419,
+    "longitude": 99.0792263,
+    "countryCode": "TH"
+  },
+  {
+    "googlePlaceId": "ChIJg4-8rtp14jARGSv_p5Bvw0c",
+    "placeName": "Phra Nakhon Si Ayutthaya",
+    "cityName": "Phra Nakhon Si Ayutthaya",
+    "formattedAddress": "Phra Nakhon Si Ayutthaya, Phra Nakhon Si Ayutthaya District, Phra Nakhon Si Ayutthaya, Thailand",
+    "latitude": 14.369232499999999,
+    "longitude": 100.5876634,
+    "countryCode": "TH"
+  },
+  {
+    "googlePlaceId": "ChIJN3sdS5DDSjARUmrRo2Vcbw0",
+    "placeName": "Chulia Street Hawker Food",
+    "cityName": "George Town",
+    "formattedAddress": "Lbh Chulia, George Town, 10450 George Town, Pulau Pinang, Malaysia",
+    "latitude": 5.4181458,
+    "longitude": 100.3362829,
+    "countryCode": "MY"
+  },
+  {
+    "googlePlaceId": "ChIJXXXEadp4TDAR_m2919txOeQ",
+    "placeName": "Langkawi",
+    "cityName": "Langkawi",
+    "formattedAddress": "Langkawi, 07000 Langkawi, Kedah, Malaysia",
+    "latitude": 6.35,
+    "longitude": 99.8,
+    "countryCode": "MY"
+  },
+  {
+    "googlePlaceId": "ChIJ3WWMjifu0TERagGedoFyKgM",
+    "placeName": "Malacca",
+    "cityName": "Malacca",
+    "formattedAddress": "Malacca, Malaysia",
+    "latitude": 2.1943422,
+    "longitude": 102.2487735,
+    "countryCode": "MY"
+  },
+  {
+    "googlePlaceId": "ChIJp6um5pVpOzIRfnqUFmozgvE",
+    "placeName": "Kota Kinabalu",
+    "cityName": "Kota Kinabalu",
+    "formattedAddress": "Kota Kinabalu, Sabah, Malaysia",
+    "latitude": 5.9843644,
+    "longitude": 116.07734399999998,
+    "countryCode": "MY"
+  },
+  {
+    "googlePlaceId": "ChIJEb-MJYQH-zERcn6xGllXctM",
+    "placeName": "Kuching",
+    "cityName": "Kuching",
+    "formattedAddress": "Kuching, Sarawak, Malaysia",
+    "latitude": 1.5533785,
+    "longitude": 110.35950299999999,
+    "countryCode": "MY"
+  },
+  {
+    "googlePlaceId": "ChIJl9anCfCMei4Ry8NNdDRD0w0",
+    "placeName": "Borobudur Temple",
+    "cityName": "Borobudur Temple",
+    "formattedAddress": "Jl. Badrawati, Kw. Candi Borobudur, Borobudur, Kec. Borobudur, Kabupaten Magelang, Jawa Tengah, Indonesia",
+    "latitude": -7.6078738,
+    "longitude": 110.2037513,
+    "countryCode": "ID"
+  },
+  {
+    "googlePlaceId": "ChIJf0dSgjnmaC4RshXo05MfahQ",
+    "placeName": "Bandung",
+    "cityName": "Bandung",
+    "formattedAddress": "Bandung, Bandung City, West Java, Indonesia",
+    "latitude": -6.9174638999999996,
+    "longitude": 107.61912280000001,
+    "countryCode": "ID"
+  },
+  {
+    "googlePlaceId": "ChIJf8QaOPj71y0RQL5S43Z6AgM",
+    "placeName": "Surabaya",
+    "cityName": "Surabaya",
+    "formattedAddress": "Surabaya, East Java, Indonesia",
+    "latitude": -7.2574719,
+    "longitude": 112.7520883,
+    "countryCode": "ID"
+  },
+  {
+    "googlePlaceId": "ChIJRceMPtK3zS0RydhQq8SJZkQ",
+    "placeName": "Lombok",
+    "cityName": "Lombok",
+    "formattedAddress": "Lombok, West Nusa Tenggara, Indonesia",
+    "latitude": -8.650979,
+    "longitude": 116.3249438,
+    "countryCode": "ID"
+  },
+  {
+    "googlePlaceId": "ChIJu7uyqFtUtC0REqTrPyybKwY",
+    "placeName": "Komodo",
+    "cityName": "Komodo",
+    "formattedAddress": "Komodo, West Manggarai Regency, East Nusa Tenggara, Indonesia",
+    "latitude": -8.5850461,
+    "longitude": 119.4411476,
+    "countryCode": "ID"
+  },
+  {
+    "googlePlaceId": "ChIJl3C0zKo-XC0RRN9MTIS9UXg",
+    "placeName": "Raja Ampat Regency",
+    "cityName": "Raja Ampat Regency",
+    "formattedAddress": "Raja Ampat Regency, Southwest Papua, Indonesia",
+    "latitude": -1.0320467503386865,
+    "longitude": 130.50521757183867,
+    "countryCode": "ID"
+  },
+  {
+    "googlePlaceId": "ChIJ505LMi88pTMRNtptXh7oOKc",
+    "placeName": "Boracay",
+    "cityName": "Malay",
+    "formattedAddress": "Boracay, Malay, Aklan, Philippines",
+    "latitude": 11.967375299999999,
+    "longitude": 121.92481500000001,
+    "countryCode": "PH"
+  },
+  {
+    "googlePlaceId": "ChIJ_S3NjSWZqTMRBzXT2wwDNEw",
+    "placeName": "Cebu City",
+    "cityName": "Cebu City",
+    "formattedAddress": "Cebu City, Cebu, Philippines",
+    "latitude": 10.2926115,
+    "longitude": 123.90219339999999,
+    "countryCode": "PH"
+  },
+  {
+    "googlePlaceId": "ChIJRZ65UOe8tTMR6zuNDGxfxt8",
+    "placeName": "Palawan",
+    "cityName": "Palawan",
+    "formattedAddress": "Palawan, Philippines",
+    "latitude": 9.946088956583973,
+    "longitude": 119.10993362197702,
+    "countryCode": "PH"
+  },
+  {
+    "googlePlaceId": "ChIJD55c7xVVtjMRVQSbWVtmTvw",
+    "placeName": "El Nido",
+    "cityName": "El Nido",
+    "formattedAddress": "El Nido, Palawan, Philippines",
+    "latitude": 11.1989164,
+    "longitude": 119.4231658,
+    "countryCode": "PH"
+  },
+  {
+    "googlePlaceId": "ChIJ--F1Ez3KlzMRCLrAWKa_ngQ",
+    "placeName": "Intramuros",
+    "cityName": "Manila",
+    "formattedAddress": "Intramuros, Manila, 1002 Metro Manila, Philippines",
+    "latitude": 14.589597200000002,
+    "longitude": 120.9747258,
+    "countryCode": "PH"
+  },
+  {
+    "googlePlaceId": "ChIJfzKeUZ9t-TIRc8V5n1gkOrU",
+    "placeName": "Davao City",
+    "cityName": "Davao City",
+    "formattedAddress": "Davao City, Davao del Sur, Philippines",
+    "latitude": 7.064745599999999,
+    "longitude": 125.60884270000001,
+    "countryCode": "PH"
+  },
+  {
+    "googlePlaceId": "ChIJ93JdpqE9qjMRZ90HM2qFnNg",
+    "placeName": "Chocolate Hills",
+    "cityName": "Batuan",
+    "formattedAddress": "Chocolate Hills, Batuan, Bohol, Philippines",
+    "latitude": 9.829708,
+    "longitude": 124.13967559999999,
+    "countryCode": "PH"
+  },
+  {
+    "googlePlaceId": "ChIJjSO_Z_4VqzMRMutrHJyNvSk",
+    "placeName": "Siquijor",
+    "cityName": "Siquijor",
+    "formattedAddress": "Siquijor, Philippines",
+    "latitude": 9.2141568,
+    "longitude": 123.51442859999999,
+    "countryCode": "PH"
+  },
+  {
+    "googlePlaceId": "ChIJq5JWHNQwAmkRxJifiIG0pj8",
+    "placeName": "Port Moresby",
+    "cityName": "Port Moresby",
+    "formattedAddress": "Port Moresby National Capital District, Papua New Guinea",
+    "latitude": -9.4790043,
+    "longitude": 147.1494164,
+    "countryCode": "PG"
+  },
+  {
+    "googlePlaceId": "ChIJu6IGNI9bKG8R3ATs9q89-kM",
+    "placeName": "Honiara",
+    "cityName": "Honiara",
+    "formattedAddress": "Honiara, Solomon Islands",
+    "latitude": -9.4306698,
+    "longitude": 159.95267579999998,
+    "countryCode": "SB"
+  },
+  {
+    "googlePlaceId": "ChIJE2CSyF5giW4RlscpI2eU5zw",
+    "placeName": "Port Vila",
+    "cityName": "Port Vila",
+    "formattedAddress": "Port Vila, Vanuatu",
+    "latitude": -17.742979,
+    "longitude": 168.3173027,
+    "countryCode": "VU"
+  },
+  {
+    "googlePlaceId": "ChIJyzIaP2niJ2wRAN0S8yqy8Xs",
+    "placeName": "Nouméa",
+    "cityName": "Nouméa",
+    "formattedAddress": "Nouméa 98800, New Caledonia",
+    "latitude": -22.2716866,
+    "longitude": 166.4398627,
+    "countryCode": "NC"
+  },
+  {
+    "googlePlaceId": "ChIJrU8RQiLeG24RyddNu3R1B-I",
+    "placeName": "Suva",
+    "cityName": "Suva",
+    "formattedAddress": "Suva, Fiji",
+    "latitude": -18.1265564,
+    "longitude": 178.439908,
+    "countryCode": "FJ"
+  },
+  {
+    "googlePlaceId": "ChIJAxDsZKMTpXERYvcKx8jIPIk",
+    "placeName": "Apia",
+    "cityName": "Apia",
+    "formattedAddress": "Apia, Samoa",
+    "latitude": -13.831609,
+    "longitude": -171.7689086,
+    "countryCode": "WS"
+  },
+  {
+    "googlePlaceId": "ChIJA3qajcSj9HERyVkHNwrJbzQ",
+    "placeName": "Nuku'alofa",
+    "cityName": "Nuku'alofa",
+    "formattedAddress": "Nuku'alofa, Tonga",
+    "latitude": -21.134306499999997,
+    "longitude": -175.20048580000002,
+    "countryCode": "TO"
+  },
+  {
+    "googlePlaceId": "ChIJlWZPhxw6mnYRKzaBKFPb1mI",
+    "placeName": "Papeete",
+    "cityName": "Papeete",
+    "formattedAddress": "Papeete 98714, French Polynesia",
+    "latitude": -17.5324608,
+    "longitude": -149.5677151,
+    "countryCode": "PF"
+  },
+  {
+    "googlePlaceId": "ChIJq5hKihi9vXYRYc7Vkp4IChY",
+    "placeName": "Bora Bora",
+    "cityName": "Bora Bora",
+    "formattedAddress": "Bora Bora, French Polynesia",
+    "latitude": -16.5004126,
+    "longitude": -151.7414904,
+    "countryCode": "PF"
+  },
+  {
+    "googlePlaceId": "ChIJH9SMu2YnmnYRpBSMkqvgyg8",
+    "placeName": "Mo'orea",
+    "cityName": "Moorea-Maiao",
+    "formattedAddress": "Mo'orea, Moorea-Maiao, French Polynesia",
+    "latitude": -17.5388435,
+    "longitude": -149.8295234,
+    "countryCode": "PF"
+  },
+  {
+    "googlePlaceId": "ChIJ6SqjrGjRV3ERXZ7_fsQBoFE",
+    "placeName": "Rarotonga",
+    "cityName": "Rarotonga",
+    "formattedAddress": "Rarotonga, Cook Islands",
+    "latitude": -21.2292371,
+    "longitude": -159.7763491,
+    "countryCode": "CK"
+  },
+  {
+    "googlePlaceId": "ChIJn9-4GHdJUHERTkSAivs5NVw",
+    "placeName": "Aitutaki",
+    "cityName": "Aitutaki",
+    "formattedAddress": "Aitutaki, Cook Islands",
+    "latitude": -18.8579523,
+    "longitude": -159.7852843,
+    "countryCode": "CK"
+  },
+  {
+    "googlePlaceId": "ChIJx7FjdmZFF24RtYDihWrUXgw",
+    "placeName": "DoubleTree Resort by Hilton Hotel Fiji - Sonaisali Island",
+    "cityName": "Nadi",
+    "formattedAddress": "5994+J93 Naisali Island Sonaisali, Nadi, Fiji",
+    "latitude": -17.8309222,
+    "longitude": 177.3562691,
+    "countryCode": "FJ"
+  },
+  {
+    "googlePlaceId": "ChIJIXINOslEF24RCLgHJHWs3-c",
+    "placeName": "Denarau Island",
+    "cityName": "Denarau Island",
+    "formattedAddress": "Denarau Island, Fiji",
+    "latitude": -17.772759999999998,
+    "longitude": 177.37362919999998,
+    "countryCode": "FJ"
+  },
+  {
+    "googlePlaceId": "ChIJATJpooEd1akRh42btCeFgwk",
+    "placeName": "Off Road Adventures Queenstown",
+    "cityName": "Queenstown",
+    "formattedAddress": "61a Shotover Street, Queenstown 9300, New Zealand",
+    "latitude": -45.0322665,
+    "longitude": 168.6578082,
+    "countryCode": "NZ"
+  },
+  {
+    "googlePlaceId": "ChIJ6dTcxlAnbG0RzVbJZJYie4c",
+    "placeName": "Geothermal Valley Te Puia",
+    "cityName": "Rotorua",
+    "formattedAddress": "3040 Hemo Road, Tihiotonga, Rotorua 3010, New Zealand",
+    "latitude": -38.1633961,
+    "longitude": 176.25465499999999,
+    "countryCode": "NZ"
+  },
+  {
+    "googlePlaceId": "ChIJy3TpSfyxOG0RcLQTomPvAAo",
+    "placeName": "Wellington",
+    "cityName": "Wellington",
+    "formattedAddress": "Wellington, New Zealand",
+    "latitude": -41.2923814,
+    "longitude": 174.7787463,
+    "countryCode": "NZ"
+  },
+  {
+    "googlePlaceId": "ChIJAe3FY0gvMm0RRZl5hIbvAAU",
+    "placeName": "Christchurch",
+    "cityName": "Christchurch",
+    "formattedAddress": "Christchurch, New Zealand",
+    "latitude": -43.5320301,
+    "longitude": 172.63664799999998,
+    "countryCode": "NZ"
+  },
+  {
+    "googlePlaceId": "ChIJ4UlLuk3g1akRAN5kq4bvACo",
+    "placeName": "Milford Sound / Piopiotahi",
+    "cityName": "Milford Sound / Piopiotahi",
+    "formattedAddress": "Milford Sound / Piopiotahi, Southland Region, New Zealand",
+    "latitude": -44.6414024,
+    "longitude": 167.8973801,
+    "countryCode": "NZ"
+  },
+  {
+    "googlePlaceId": "ChIJHWUmvV_RK20RaxSyBZVTB70",
+    "placeName": "Franz Josef Glacier",
+    "cityName": "Franz Josef Glacier",
+    "formattedAddress": "Franz Josef Glacier, West Coast Region 7886, New Zealand",
+    "latitude": -43.4606523,
+    "longitude": 170.1860509,
+    "countryCode": "NZ"
+  },
+  {
+    "googlePlaceId": "ChIJz_o0fifteqoRZEBAKd2ljyo",
+    "placeName": "Tasmania",
+    "cityName": "Tasmania",
+    "formattedAddress": "Tasmania, Australia",
+    "latitude": -42.0409059,
+    "longitude": 146.80873219999998,
+    "countryCode": "AU"
+  },
+  {
+    "googlePlaceId": "ChIJPXNH22yWMioR0FXfNbXwBAM",
+    "placeName": "Perth",
+    "cityName": "Perth",
+    "formattedAddress": "Perth WA, Australia",
+    "latitude": -31.951399300000002,
+    "longitude": 115.86167830000001,
+    "countryCode": "AU"
+  },
+  {
+    "googlePlaceId": "ChIJP7Mmxcc1t2oRQMaOYlQ2AwQ",
+    "placeName": "Adelaide",
+    "cityName": "Adelaide",
+    "formattedAddress": "Adelaide SA, Australia",
+    "latitude": -34.9284989,
+    "longitude": 138.60074559999998,
+    "countryCode": "AU"
+  },
+  {
+    "googlePlaceId": "ChIJM9KTrJpXkWsRQK_e81qjAgQ",
+    "placeName": "Brisbane",
+    "cityName": "Brisbane",
+    "formattedAddress": "Brisbane QLD, Australia",
+    "latitude": -27.4704528,
+    "longitude": 153.0260341,
+    "countryCode": "AU"
+  },
+  {
+    "googlePlaceId": "ChIJt2BdK0cakWsRcK_e81qjAgM",
+    "placeName": "Gold Coast",
+    "cityName": "Gold Coast",
+    "formattedAddress": "Gold Coast QLD, Australia",
+    "latitude": -27.9769248,
+    "longitude": 153.380936,
+    "countryCode": "AU"
+  },
+  {
+    "googlePlaceId": "ChIJEySiW1VieGkRYHggf_HuAAQ",
+    "placeName": "Cairns",
+    "cityName": "Cairns",
+    "formattedAddress": "Cairns QLD, Australia",
+    "latitude": -16.920347600000003,
+    "longitude": 145.7709529,
+    "countryCode": "AU"
+  },
+  {
+    "googlePlaceId": "ChIJPwRZn_ygwCwRIHwkKqgXAgM",
+    "placeName": "Darwin",
+    "cityName": "Darwin",
+    "formattedAddress": "Darwin NT, Australia",
+    "latitude": -12.4637333,
+    "longitude": 130.8444446,
+    "countryCode": "AU"
+  },
+  {
+    "googlePlaceId": "ChIJI1JibStsIysRIV_Fm03NqEM",
+    "placeName": "Uluru",
+    "cityName": "Petermann",
+    "formattedAddress": "Uluru, Petermann NT 0872, Australia",
+    "latitude": -25.344427699999997,
+    "longitude": 131.0368822,
+    "countryCode": "AU"
+  },
+  {
+    "googlePlaceId": "ChIJMROPvkQZMisR0E8lKqgXAgU",
+    "placeName": "Alice Springs",
+    "cityName": "Alice Springs",
+    "formattedAddress": "Alice Springs NT 0870, Australia",
+    "latitude": -23.698041999999997,
+    "longitude": 133.8807471,
+    "countryCode": "AU"
+  },
+  {
+    "googlePlaceId": "ChIJ7c8s5YR1bqoRMBXe0E3JAwU",
+    "placeName": "Hobart",
+    "cityName": "Hobart",
+    "formattedAddress": "Hobart TAS 7000, Australia",
+    "latitude": -42.8826055,
+    "longitude": 147.32571959999999,
+    "countryCode": "AU"
+  },
+  {
+    "googlePlaceId": "ChIJuzQLsqNMFmsRcFlpp27qAAQ",
+    "placeName": "Canberra",
+    "cityName": "Canberra",
+    "formattedAddress": "Canberra ACT, Australia",
+    "latitude": -35.2801846,
+    "longitude": 149.13103239999998,
+    "countryCode": "AU"
+  },
+  {
+    "googlePlaceId": "ChIJEaGM8gx1EmsRXj9z2s5VnUU",
+    "placeName": "Blue Mountains",
+    "cityName": "Blue Mountains",
+    "formattedAddress": "Blue Mountains, New South Wales, Australia",
+    "latitude": -33.3856304,
+    "longitude": 150.48652719999998,
+    "countryCode": "AU"
+  },
+  {
+    "googlePlaceId": "ChIJMcyMyFMh02oRldDR8MOJbqA",
+    "placeName": "Great Ocean Road",
+    "cityName": "Great Ocean Road",
+    "formattedAddress": "Great Ocean Rd, Victoria, Australia",
+    "latitude": -38.6804339,
+    "longitude": 143.3915596,
+    "countryCode": "AU"
+  },
+  {
+    "googlePlaceId": "ChIJn4mjDXd5rWoRkMS5RVU2Aw8",
+    "placeName": "Kangaroo Island",
+    "cityName": "Kangaroo Island",
+    "formattedAddress": "Kangaroo Island, South Australia, Australia",
+    "latitude": -35.7752426,
+    "longitude": 137.2142417,
+    "countryCode": "AU"
+  },
+  {
+    "googlePlaceId": "ChIJ_bdmpVBXLSoRIFDfNbXwBAU",
+    "placeName": "Rottnest Island",
+    "cityName": "Rottnest Island",
+    "formattedAddress": "Rottnest Island WA 6161, Australia",
+    "latitude": -31.996502699999997,
+    "longitude": 115.5398997,
+    "countryCode": "AU"
+  },
+  {
+    "googlePlaceId": "ChIJk7Ynf-UueiwRUBF6JDj2AAU",
+    "placeName": "Broome",
+    "cityName": "Broome",
+    "formattedAddress": "Broome WA 6725, Australia",
+    "latitude": -17.96182,
+    "longitude": 122.23699799999999,
+    "countryCode": "AU"
+  },
+  {
+    "googlePlaceId": "ChIJP7K5fyO1_isRmfz6leLUSrg",
+    "placeName": "Ningaloo Discovery Whale Shark Tours",
+    "cityName": "Exmouth",
+    "formattedAddress": "1 Kennedy St, Exmouth WA 6707, Australia",
+    "latitude": -21.9303752,
+    "longitude": 114.12231349999999,
+    "countryCode": "AU"
+  },
+  {
+    "googlePlaceId": "ChIJV-D2fR6t2WsR_36MiSUK1c4",
+    "placeName": "Hamilton Island",
+    "cityName": "Hamilton Island",
+    "formattedAddress": "Hamilton Island, Queensland, Australia",
+    "latitude": -20.3518817,
+    "longitude": 148.9572514,
+    "countryCode": "AU"
+  },
+  {
+    "googlePlaceId": "ChIJXwS-RUAafGwRVU9LRksVlJM",
+    "placeName": "Lord Howe Island",
+    "cityName": "Lord Howe Island",
+    "formattedAddress": "Lord Howe Island, New South Wales, Australia",
+    "latitude": -31.5553263,
+    "longitude": 159.0821211,
+    "countryCode": "AU"
+  },
+  {
+    "googlePlaceId": "ChIJOcm6rR_RS2wRUhVdMyOYerk",
+    "placeName": "Norfolk Island",
+    "cityName": "Norfolk Island",
+    "formattedAddress": "Norfolk Island",
+    "latitude": -29.040835,
+    "longitude": 167.954712,
+    "countryCode": "NF"
+  },
+  {
+    "googlePlaceId": "ChIJn0s-nx28KWwRIkua6PvKmqo",
+    "placeName": "Isle of Pines",
+    "cityName": "Isle of Pines",
+    "formattedAddress": "Isle of Pines, New Caledonia",
+    "latitude": -22.6149275,
+    "longitude": 167.4816693,
+    "countryCode": "NC"
+  },
+  {
+    "googlePlaceId": "ChIJmVBTcAuDgiER1rfCLuSR-sg",
+    "placeName": "Mafate",
+    "cityName": "La Possession",
+    "formattedAddress": "Mafate, La Possession 97419, Réunion",
+    "latitude": -21.049914599999997,
+    "longitude": 55.4272377,
+    "countryCode": "RE"
+  },
+  {
+    "googlePlaceId": "ChIJ0Rv1QBh_giERYJbZVPDRDXU",
+    "placeName": "Saint-Denis",
+    "cityName": "Saint-Denis",
+    "formattedAddress": "Saint-Denis 97400, Réunion",
+    "latitude": -20.8784675,
+    "longitude": 55.4484856,
+    "countryCode": "RE"
+  },
+  {
+    "googlePlaceId": "ChIJ7wHWQUlQfCERPbu9kWwYxf0",
+    "placeName": "Port Louis",
+    "cityName": "Port Louis",
+    "formattedAddress": "Port Louis, Mauritius",
+    "latitude": -20.160891200000002,
+    "longitude": 57.5012222,
+    "countryCode": "MU"
+  },
+  {
+    "googlePlaceId": "ChIJaRjJelQo4CIR3jxsfn7g42I",
+    "placeName": "Victoria",
+    "cityName": "Victoria",
+    "formattedAddress": "Victoria, Seychelles",
+    "latitude": -4.6231555,
+    "longitude": 55.4550151,
+    "countryCode": "SC"
+  },
+  {
+    "googlePlaceId": "ChIJVdotSCDuHyMRLerpte1Rxrc",
+    "placeName": "Praslin",
+    "cityName": "Praslin",
+    "formattedAddress": "Praslin, Seychelles",
+    "latitude": -4.3325908,
+    "longitude": 55.746725899999994,
+    "countryCode": "SC"
+  },
+  {
+    "googlePlaceId": "ChIJGTqSulMq4CIRLOIygZTdY0M",
+    "placeName": "Mahé",
+    "cityName": "Mahé",
+    "formattedAddress": "Mahé, Seychelles",
+    "latitude": -4.6826693,
+    "longitude": 55.480396,
+    "countryCode": "SC"
+  },
+  {
+    "googlePlaceId": "ChIJ5fXRB1Z-PzsRmRIFWpvp2Io",
+    "placeName": "Malé",
+    "cityName": "Malé",
+    "formattedAddress": "Malé, Maldives",
+    "latitude": 4.175270900000001,
+    "longitude": 73.50911719999999,
+    "countryCode": "MV"
+  },
+  {
+    "googlePlaceId": "ChIJtfeBd_gsSDsRGd0NBmnB-ow",
+    "placeName": "Maafushi",
+    "cityName": "Maafushi",
+    "formattedAddress": "Maafushi, Maldives",
+    "latitude": 1.7920355999999997,
+    "longitude": 73.3343939,
+    "countryCode": "MV"
+  },
+  {
+    "googlePlaceId": "ChIJleZOS9U44ToRfMVq3_lhFds",
+    "placeName": "Sri Lanka Tea Board",
+    "cityName": "Colombo",
+    "formattedAddress": "574 Galle Rd, Colombo 00300, Sri Lanka",
+    "latitude": 6.9008275,
+    "longitude": 79.85297179999999,
+    "countryCode": "LK"
+  },
+  {
+    "googlePlaceId": "ChIJXQLueKNz4ToR_sMWrhaKb7k",
+    "placeName": "Galle Dutch Fort",
+    "cityName": "Galle",
+    "formattedAddress": "Galle 80000, Sri Lanka",
+    "latitude": 6.0304592,
+    "longitude": 80.2150207,
+    "countryCode": "LK"
+  },
+  {
+    "googlePlaceId": "ChIJ9ftJsS1m4zoRh-gVwQrXZYE",
+    "placeName": "Sri Dalada Maligawa",
+    "cityName": "Kandy",
+    "formattedAddress": "Kandy, Sri Lanka",
+    "latitude": 7.293609,
+    "longitude": 80.641325,
+    "countryCode": "LK"
+  },
+  {
+    "googlePlaceId": "ChIJs5pMcluh_DoRUg03WydxF6s",
+    "placeName": "Sigiriya",
+    "cityName": "Sigiriya",
+    "formattedAddress": "Sigiriya, Sri Lanka",
+    "latitude": 7.957032699999999,
+    "longitude": 80.760257,
+    "countryCode": "LK"
+  },
+  {
+    "googlePlaceId": "ChIJZ6t67bNl5DoRhHTko5plwKU",
+    "placeName": "Ella",
+    "cityName": "Ella",
+    "formattedAddress": "Wellawaya-Ella-Kumbalwela Highway, Ella, Sri Lanka",
+    "latitude": 6.8757755,
+    "longitude": 81.0471082,
+    "countryCode": "LK"
+  },
+  {
+    "googlePlaceId": "ChIJcXj30VcY6zkR_UGmBRA5sMU",
+    "placeName": "Kathmandu Durbar Square",
+    "cityName": "Kathmandu",
+    "formattedAddress": "Kathmandu 44600, Nepal",
+    "latitude": 27.704273699999998,
+    "longitude": 85.307463,
+    "countryCode": "NP"
+  },
+  {
+    "googlePlaceId": "ChIJfSGlpeGUlTkRVzgkq3TRjXY",
+    "placeName": "Phewa Lake View Point",
+    "cityName": "Pokhara",
+    "formattedAddress": "6X74+W75, gantavya St, Pokhara 33700, Nepal",
+    "latitude": 28.2147667,
+    "longitude": 83.9557282,
+    "countryCode": "NP"
+  },
+  {
+    "googlePlaceId": "ChIJQ99ydzOwlDkRF6JjXT1goa8",
+    "placeName": "Chitwan National Park",
+    "cityName": "Chitwan National Park",
+    "formattedAddress": "Nepal",
+    "latitude": 27.519285,
+    "longitude": 84.31353179999999,
+    "countryCode": "NP"
+  },
+  {
+    "googlePlaceId": "ChIJq26ERHIxYTcRGQzBfoUN6Eo",
+    "placeName": "Potala Palace",
+    "cityName": "La Sa Shi",
+    "formattedAddress": "35 Bei Jing Zhong Lu, Cheng Guan Qu, La Sa Shi, Xi Zang Zi Zhi Qu, China, 850000",
+    "latitude": 29.655494200000003,
+    "longitude": 91.11857920000001,
+    "countryCode": "CN"
+  },
+  {
+    "googlePlaceId": "ChIJtzcglhmU4TkR0WAFZuL_AXw",
+    "placeName": "Thimphu",
+    "cityName": "Thimphu",
+    "formattedAddress": "Thimphu, Bhutan",
+    "latitude": 27.471586,
+    "longitude": 89.6386108,
+    "countryCode": "BT"
+  },
+  {
+    "googlePlaceId": "ChIJC7P1Nix14TkR3EWV0fvLS4Q",
+    "placeName": "Paro Taktsang (Tiger's Nest Monastery)",
+    "cityName": "Paro",
+    "formattedAddress": "F9R7+PCR, Taktsang trail, Paro, Bhutan",
+    "latitude": 27.492912,
+    "longitude": 89.3636439,
+    "countryCode": "BT"
+  },
+  {
+    "googlePlaceId": "ChIJCedkOte4VTcRvQ671ZvppGU",
+    "placeName": "Old Dhaka",
+    "cityName": "Dhaka",
+    "formattedAddress": "Old Dhaka, Dhaka, Bangladesh",
+    "latitude": 23.722755199999998,
+    "longitude": 90.38759499999999,
+    "countryCode": "BD"
+  },
+  {
+    "googlePlaceId": "ChIJkelevTlVUDcRsyMTw-s1amY",
+    "placeName": "Tea Garden",
+    "cityName": "Sylhet",
+    "formattedAddress": "Chowkidekhi Road, Sylhet, Bangladesh",
+    "latitude": 24.9128841,
+    "longitude": 91.8848563,
+    "countryCode": "BD"
+  },
+  {
+    "googlePlaceId": "ChIJbzSCLmIbGTkR7LRMMh7HvTU",
+    "placeName": "Lahore Fort",
+    "cityName": "Lahore",
+    "formattedAddress": "H8Q7+56P, Fort Rd, Walled City of Lahore, Lahore, Pakistan",
+    "latitude": 31.588273700000002,
+    "longitude": 74.31545249999999,
+    "countryCode": "PK"
+  },
+  {
+    "googlePlaceId": "ChIJv0sdZQY-sz4RIwxaVUQv-Zw",
+    "placeName": "Karachi",
+    "cityName": "Karachi",
+    "formattedAddress": "Karachi, Pakistan",
+    "latitude": 24.860734299999997,
+    "longitude": 67.0011364,
+    "countryCode": "PK"
+  },
+  {
+    "googlePlaceId": "ChIJ2afeeFcxOzkRL9RVTscv17o",
+    "placeName": "Multan",
+    "cityName": "Multan",
+    "formattedAddress": "Multan, Pakistan",
+    "latitude": 30.1863557,
+    "longitude": 71.4885808,
+    "countryCode": "PK"
+  },
+  {
+    "googlePlaceId": "ChIJz3kOD7kX2TgREqRYdWOyFqg",
+    "placeName": "Peshawar",
+    "cityName": "Peshawar",
+    "formattedAddress": "Peshawar, Pakistan",
+    "latitude": 34.008337399999995,
+    "longitude": 71.5188619,
+    "countryCode": "PK"
+  },
+  {
+    "googlePlaceId": "ChIJSW0ePExp0TgRKUQheDVH3-s",
+    "placeName": "Kabul",
+    "cityName": "Kabul",
+    "formattedAddress": "Kabul, Afghanistan",
+    "latitude": 34.5553494,
+    "longitude": 69.207486,
+    "countryCode": "AF"
+  },
+  {
+    "googlePlaceId": "ChIJ92y-lKjmPD8RxHfWUhf4uZ0",
+    "placeName": "Herat",
+    "cityName": "Herat",
+    "formattedAddress": "Herat, Afghanistan",
+    "latitude": 34.352865,
+    "longitude": 62.204028699999995,
+    "countryCode": "AF"
+  },
+  {
+    "googlePlaceId": "ChIJvRRTYKO4ND8Rcc8fbBpeerI",
+    "placeName": "Mazar-i-Sharif",
+    "cityName": "Mazar-i-Sharif",
+    "formattedAddress": "Mazar-i-Sharif, Afghanistan",
+    "latitude": 36.706218199999995,
+    "longitude": 67.1138395,
+    "countryCode": "AF"
+  },
+  {
+    "googlePlaceId": "ChIJzysAzwpKvD8R6Ewf-L7FuCo",
+    "placeName": "Jame' Mosque of Isfahan",
+    "cityName": "Isfahan",
+    "formattedAddress": "Isfahan Province, Isfahan, Majlesi St, MM9P+V3C, Iran",
+    "latitude": 32.669686000000006,
+    "longitude": 51.6851455,
+    "countryCode": "IR"
+  },
+  {
+    "googlePlaceId": "ChIJv0OaYwwSsj8Rf5phJlHeFhU",
+    "placeName": "Eram Garden",
+    "cityName": "Shiraz",
+    "formattedAddress": "Shiraz, Eram Blvd, Iran",
+    "latitude": 29.636928100000002,
+    "longitude": 52.526297299999996,
+    "countryCode": "IR"
+  },
+  {
+    "googlePlaceId": "ChIJn9YSsmETpj8RFpV1D7Q2bx0",
+    "placeName": "Aftab ashkezar city desert camp",
+    "cityName": "حسین آباد",
+    "formattedAddress": "استان یزد، حسین آباد، ،، 27VC+R33, Iran",
+    "latitude": 32.044503899999995,
+    "longitude": 54.270185600000005,
+    "countryCode": "IR"
+  },
+  {
+    "googlePlaceId": "ChIJba3wXF_jrT8R7s-Xacc-NgI",
+    "placeName": "Persepolis",
+    "cityName": "Marvdasht",
+    "formattedAddress": "Fars Province, Marvdasht, Persepolis street, Iran",
+    "latitude": 29.9355823,
+    "longitude": 52.889181699999995,
+    "countryCode": "IR"
+  },
+  {
+    "googlePlaceId": "ChIJDRcmOjAFGkARiXSGB_My5U4",
+    "placeName": "Tabriz Grand Bazaar",
+    "cityName": "Tabriz",
+    "formattedAddress": "37JR+8WM Bazar, Tabriz, East Azerbaijan Province, Iran",
+    "latitude": 38.080831599999996,
+    "longitude": 46.292288299999996,
+    "countryCode": "IR"
+  },
+  {
+    "googlePlaceId": "ChIJux8MDmyRbD8RwqB-Oy98JP4",
+    "placeName": "Imam Reza Shrine",
+    "cityName": "Mashhad",
+    "formattedAddress": "Mashhad, Razavi Khorasan Province, Iran",
+    "latitude": 36.2878549,
+    "longitude": 59.615663700000006,
+    "countryCode": "IR"
+  },
+  {
+    "googlePlaceId": "ChIJk0GnoGd_VxURLG-xo9Kp7Z0",
+    "placeName": "Baghdad",
+    "cityName": "Baghdad",
+    "formattedAddress": "Baghdad, Baghdad Governorate, Iraq",
+    "latitude": 33.315241,
+    "longitude": 44.366067099999995,
+    "countryCode": "IQ"
+  },
+  {
+    "googlePlaceId": "ChIJYTREE_4iB0AR0XnekTPWAT4",
+    "placeName": "Erbil",
+    "cityName": "Erbil",
+    "formattedAddress": "Erbil, Erbil Governorate, Iraq",
+    "latitude": 36.1877383,
+    "longitude": 44.0106983,
+    "countryCode": "IQ"
+  },
+  {
+    "googlePlaceId": "ChIJNRUqhXGXxD8RENRLJycp0rg",
+    "placeName": "Basrah",
+    "cityName": "Basrah",
+    "formattedAddress": "Basrah, Basra Governorate, Iraq",
+    "latitude": 30.525995299999998,
+    "longitude": 47.7737891,
+    "countryCode": "IQ"
+  },
+  {
+    "googlePlaceId": "ChIJp8Y8QdzmGBUR8pTj0etmn2s",
+    "placeName": "Damascus",
+    "cityName": "Damascus",
+    "formattedAddress": "Damascus, Syria",
+    "latitude": 33.5132192,
+    "longitude": 36.2768193,
+    "countryCode": "SY"
+  },
+  {
+    "googlePlaceId": "ChIJrzWBuRP4LxURKsNCxV9efpY",
+    "placeName": "Aleppo",
+    "cityName": "Aleppo",
+    "formattedAddress": "Aleppo, Syria",
+    "latitude": 36.2021047,
+    "longitude": 37.1342603,
+    "countryCode": "SY"
+  },
+  {
+    "googlePlaceId": "ChIJaVlkRtYQHxURRdMxpk3A_Lc",
+    "placeName": "كورنيش بيروت",
+    "cityName": "بيروت",
+    "formattedAddress": "كورنيش بيروت، بيروت، Lebanon",
+    "latitude": 33.900209499999995,
+    "longitude": 35.470682499999995,
+    "countryCode": "LB"
+  },
+  {
+    "googlePlaceId": "ChIJcR0UXaxcHxUR8FOxPA_i4XU",
+    "placeName": "Ancient Byblos",
+    "cityName": "Byblos",
+    "formattedAddress": "4J9W+GFQ, Byblos, Lebanon",
+    "latitude": 34.118842199999996,
+    "longitude": 35.6462195,
+    "countryCode": "LB"
+  },
+  {
+    "googlePlaceId": "ChIJ_c4iZmKhGBURx0IOeDvWh3M",
+    "placeName": "Baalbek Temple",
+    "cityName": "Baalbek",
+    "formattedAddress": "2644+W8R, Baalbek, Lebanon",
+    "latitude": 34.007357999999996,
+    "longitude": 36.2057769,
+    "countryCode": "LB"
+  },
+  {
+    "googlePlaceId": "ChIJI8ybU5ZfGxURbX5jjs8b1oM",
+    "placeName": "Amman Citadel",
+    "cityName": "Amman",
+    "formattedAddress": "K. Ali Ben Al-Hussein St. 146, Amman, Jordan",
+    "latitude": 31.954316300000002,
+    "longitude": 35.936504600000006,
+    "countryCode": "JO"
+  },
+  {
+    "googlePlaceId": "ChIJOc_TeetuARURWWBHgbpQBaQ",
+    "placeName": "The Treasury",
+    "cityName": "The Treasury",
+    "formattedAddress": "Jordan",
+    "latitude": 30.322139199999995,
+    "longitude": 35.4517457,
+    "countryCode": "JO"
+  },
+  {
+    "googlePlaceId": "ChIJsze106WTABURB12LlZJViOk",
+    "placeName": "Wadi Rum Protected Area",
+    "cityName": "Wadi Rum Protected Area",
+    "formattedAddress": "Jordan",
+    "latitude": 29.555872,
+    "longitude": 35.4076008,
+    "countryCode": "JO"
+  },
+  {
+    "googlePlaceId": "ChIJZw9ID1l2ABURZ5jz985lrOw",
+    "placeName": "Red Sea Dive Center",
+    "cityName": "Red Sea Dive Center",
+    "formattedAddress": "South Beach, Dive Centers Area Next to Aqaba Marine Park Aqaba, Jordan",
+    "latitude": 29.4270324,
+    "longitude": 34.9821319,
+    "countryCode": "JO"
+  },
+  {
+    "googlePlaceId": "ChIJobufry48AxURgljBoEj_jPM",
+    "placeName": "Dead Sea",
+    "cityName": "Dead Sea",
+    "formattedAddress": "Dead Sea",
+    "latitude": 31.5590287,
+    "longitude": 35.4731895,
+    "countryCode": "UNKNOWN"
+  },
+  {
+    "googlePlaceId": "ChIJiywm3MgpAxURAKQ4yFkatpo",
+    "placeName": "Old City",
+    "cityName": "Jerusalem",
+    "formattedAddress": "Old City, Jerusalem",
+    "latitude": 31.7767923,
+    "longitude": 35.2310338,
+    "countryCode": "UNKNOWN"
+  },
+  {
+    "googlePlaceId": "ChIJcZ8MoodMHRURZmvV8Wyq778",
+    "placeName": "Tel Aviv Beach",
+    "cityName": "Tel Aviv-Yafo",
+    "formattedAddress": "Tel Aviv Beach, Shlomo Lahat Promenade, Tel Aviv-Yafo, Israel",
+    "latitude": 32.0748062,
+    "longitude": 34.765367,
+    "countryCode": "IL"
+  },
+  {
+    "googlePlaceId": "ChIJRegNdUy6HRURmlKBKpgjXcM",
+    "placeName": "Haifa",
+    "cityName": "Haifa",
+    "formattedAddress": "Haifa, Israel",
+    "latitude": 32.7940463,
+    "longitude": 34.989571,
+    "countryCode": "IL"
+  },
+  {
+    "googlePlaceId": "ChIJ37OqWvhxABURaXaRdCMrYuk",
+    "placeName": "Red Sea Hotel",
+    "cityName": "Eilat",
+    "formattedAddress": "Sderot HaTmarim 11, Eilat, 88000, Israel",
+    "latitude": 29.554978600000002,
+    "longitude": 34.952657,
+    "countryCode": "IL"
+  },
+  {
+    "googlePlaceId": "ChIJ_w9s8XxOHBUR1l0nwTBbONI",
+    "placeName": "Nazareth",
+    "cityName": "Nazareth",
+    "formattedAddress": "Nazareth, Israel",
+    "latitude": 32.699635,
+    "longitude": 35.303546,
+    "countryCode": "IL"
+  },
+  {
+    "googlePlaceId": "ChIJZw3IrmXYAhUR-PG65D0hxPU",
+    "placeName": "Bethlehem",
+    "cityName": "Bethlehem",
+    "formattedAddress": "Bethlehem",
+    "latitude": 31.7053821,
+    "longitude": 35.202442500000004,
+    "countryCode": "UNKNOWN"
+  },
+  {
+    "googlePlaceId": "ChIJ0Vgt2kzVAhURdiyLzBdNbb8",
+    "placeName": "Ramallah",
+    "cityName": "Ramallah",
+    "formattedAddress": "Ramallah",
+    "latitude": 31.903764100000004,
+    "longitude": 35.2034184,
+    "countryCode": "UNKNOWN"
+  },
+  {
+    "googlePlaceId": "ChIJZydUTgV__RQRkmMEE8mN-X8",
+    "placeName": "Gaza",
+    "cityName": "Gaza",
+    "formattedAddress": "Gaza",
+    "latitude": 31.501695100000003,
+    "longitude": 34.4668445,
+    "countryCode": "UNKNOWN"
+  },
+  {
+    "googlePlaceId": "ChIJdYeB7UwbwhURzslwz2kkq5g",
+    "placeName": "Makkah",
+    "cityName": "Makkah",
+    "formattedAddress": "Makkah Saudi Arabia",
+    "latitude": 21.4240968,
+    "longitude": 39.817336399999995,
+    "countryCode": "SA"
+  },
+  {
+    "googlePlaceId": "ChIJ1SDSl1G-vRUR2Qg76k9RVC4",
+    "placeName": "Madinah",
+    "cityName": "Madinah",
+    "formattedAddress": "Madinah Saudi Arabia",
+    "latitude": 24.4672132,
+    "longitude": 39.6024496,
+    "countryCode": "SA"
+  },
+  {
+    "googlePlaceId": "ChIJGWgTqZarpRUR1oUYaViumwM",
+    "placeName": "AlUla",
+    "cityName": "AlUla",
+    "formattedAddress": "AlUla Saudi Arabia",
+    "latitude": 26.6031391,
+    "longitude": 37.929482,
+    "countryCode": "SA"
+  },
+  {
+    "googlePlaceId": "ChIJS-JnijRDXz4R4rfO4QLlRf8",
+    "placeName": "Burj Khalifa",
+    "cityName": "Dubai",
+    "formattedAddress": "1 Sheikh Mohammed bin Rashid Blvd - Burj Khalifa - Downtown Dubai - Dubai - United Arab Emirates",
+    "latitude": 25.197197,
+    "longitude": 55.274376399999994,
+    "countryCode": "AE"
+  },
+  {
+    "googlePlaceId": "ChIJSf7a6HNCXj4Rx6_i78u7jyQ",
+    "placeName": "Sheikh Zayed Grand Mosque",
+    "cityName": "Abu Dhabi",
+    "formattedAddress": "Abu Dhabi - Al Rawdah - W54 - Abu Dhabi - United Arab Emirates",
+    "latitude": 24.4128334,
+    "longitude": 54.4749754,
+    "countryCode": "AE"
+  },
+  {
+    "googlePlaceId": "ChIJS5bn7V9fXz4RiW0fnKEKgyo",
+    "placeName": "Sharjah",
+    "cityName": "Sharjah",
+    "formattedAddress": "Sharjah - United Arab Emirates",
+    "latitude": 25.3561698,
+    "longitude": 55.427211,
+    "countryCode": "AE"
+  },
+  {
+    "googlePlaceId": "ChIJL7iog4X3kT4RwF2LPI3S6hQ",
+    "placeName": "Mutrah Souq",
+    "cityName": "مسقط",
+    "formattedAddress": "سوق مطرح مطرح، مسقط،، Mutrah Market, near Mutrah Corniche, مسقط، Oman",
+    "latitude": 23.6204018,
+    "longitude": 58.56449999999999,
+    "countryCode": "OM"
+  },
+  {
+    "googlePlaceId": "ChIJsZeHcvTl0z0Rr4D8rskneQE",
+    "placeName": "Ain Sahanoot",
+    "cityName": "Salalah",
+    "formattedAddress": "45XH+783, Salalah, Oman",
+    "latitude": 17.148142399999998,
+    "longitude": 54.178309,
+    "countryCode": "OM"
+  },
+  {
+    "googlePlaceId": "ChIJPQ3xm-rwjj4Rq6oCMx2_1h8",
+    "placeName": "Nizwa Fort",
+    "cityName": "Nizwa",
+    "formattedAddress": "Nizwa, Oman",
+    "latitude": 22.933211999999997,
+    "longitude": 57.530196,
+    "countryCode": "OM"
+  },
+  {
+    "googlePlaceId": "ChIJr94o6XLFRT4RxiIEOr9CBcc",
+    "placeName": "National Museum of Qatar",
+    "cityName": "Doha",
+    "formattedAddress": "Museum Pk St, Doha, Qatar",
+    "latitude": 25.2882656,
+    "longitude": 51.5492631,
+    "countryCode": "QA"
+  },
+  {
+    "googlePlaceId": "ChIJg1lFzoOczz8RDrkJr_Wu68M",
+    "placeName": "Kuwait City",
+    "cityName": "Kuwait City",
+    "formattedAddress": "Kuwait City, Kuwait",
+    "latitude": 29.3780268,
+    "longitude": 47.9751178,
+    "countryCode": "KW"
+  },
+  {
+    "googlePlaceId": "ChIJLaZ2J3KvST4RwmAPB6Y4Z4s",
+    "placeName": "Manama",
+    "cityName": "Manama",
+    "formattedAddress": "Manama, Bahrain",
+    "latitude": 26.223530500000003,
+    "longitude": 50.5875935,
+    "countryCode": "BH"
+  },
+  {
+    "googlePlaceId": "ChIJMfeERtXbAxYRc6yCFHqVa6Q",
+    "placeName": "Sanaa",
+    "cityName": "Sanaa",
+    "formattedAddress": "Sanaa, Yemen",
+    "latitude": 15.3545381,
+    "longitude": 44.2064003,
+    "countryCode": "YE"
+  },
+  {
+    "googlePlaceId": "ChIJVf85KJcdHhYRUf7BwXNWpLk",
+    "placeName": "Puerto de Adén",
+    "cityName": "'Adan",
+    "formattedAddress": "QXRP+F6V South Arabia, 'Adan, Yemen",
+    "latitude": 12.7912375,
+    "longitude": 44.985546899999996,
+    "countryCode": "YE"
+  },
+  {
+    "googlePlaceId": "ChIJ5cFsCrT4kT4RrgTEB502G-M",
+    "placeName": "W Muscat",
+    "cityName": "Muscat",
+    "formattedAddress": "Al Qurum Bareeq Al Shatti, Al Kharjiya Street, Muscat 103, Oman",
+    "latitude": 23.6166996,
+    "longitude": 58.466514499999995,
+    "countryCode": "OM"
+  }
+]

@@ -34,6 +34,22 @@ debug:
 backingServices:
   postgres:
     enabled: false
+    serviceName: postgres
+    image: postgres:16-alpine
+    database: tripplanning
+    storageSize: 5Gi
+    auth:
+      username: tripplanning
+      password: tripplanning
+      passwordKey: password
+      existingSecret: ""
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "256Mi"
+      limits:
+        cpu: "500m"
+        memory: "512Mi"
   redis:
     enabled: true
     serviceName: redis
@@ -50,16 +66,39 @@ backingServices:
     serviceName: elasticsearch
     image: docker.elastic.co/elasticsearch/elasticsearch:7.17.18
     storageSize: 5Gi
+    # Bulk mass-indexing ~15k trips needs headroom beyond the JVM heap (off-heap buffers, merges).
+    javaOpts: "-Xms768m -Xmx768m"
     resources:
       requests:
-        cpu: "250m"
-        memory: "768Mi"
-      limits:
         cpu: "500m"
-        memory: "1Gi"
+        memory: "1536Mi"
+      limits:
+        cpu: "1000m"
+        memory: "2Gi"
 
 firestoreEmulator:
   enabled: true
   image: gcr.io/google.com/cloudsdktool/google-cloud-cli:emulators
+
+seedJob:
+  enabled: false
+  backoffLimit: 1
+  wipeBeforeSeed: "true"
+  manifestPath: /tmp/perf_seed_manifest.json
+  manifestCopyTo: ""
+  firestoreHostPort: "firestore-emulator.tripplanning.svc.cluster.local:8080"
+  firestoreHost: "firestore-emulator"
+  firestorePort: "8080"
+  googleCloudProject: "tbd-cloudappdev"
+  image:
+    repository: tripplanning-seed-job
+    tag: local
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "768Mi"
+    limits:
+      cpu: "2000m"
+      memory: "1536Mi"
 
 ingressDebugRoutes: true
