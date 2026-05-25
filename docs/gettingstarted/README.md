@@ -245,8 +245,8 @@ curl -s 'http://localhost:8080/api/v2/external/details/search?q=Paris' | jq .
 # Stop weather + travel warning (use placeId from search)
 curl -s 'http://localhost:8080/api/v2/external/stop-details?placeId=ChIJD7fiBh9u5kcRYJSMaMOCCwQ' | jq .
 
-# Transport distance between coordinates
-curl -s 'http://localhost:8080/api/v2/external/transport/distance?originLat=48.8566&originLon=2.3522&destLat=52.5200&destLon=13.4050' | jq .
+# Transport route (distance, duration, encoded polyline) for one travel mode
+curl -s 'http://localhost:8080/api/v2/external/transport/route?originLat=48.8566&originLon=2.3522&destLat=52.5200&destLon=13.4050&mode=DRIVE' | jq .
 ```
 
 **Routing:** The SPA uses **one** origin (`http://localhost:8080` or Vite proxy). **Ingress** routes social paths (`/api/v2/comments`, trip community, likes, `countLikes`) and `/api/v2/external/*` to the correct service (see [`values-local.yaml`](../../k8s/local/chart/values-local.yaml) `ingressRoutes`; GKE counterpart: [`api-httproute.yaml`](../../../infrastructure/ms2/charts/tripplanning/templates/routes/api-httproute.yaml)).
@@ -291,7 +291,7 @@ Trips, stops, accommodations, and transports use **Google Places** IDs — not f
 | `GET /details/search?q=` | Google Places text search |
 | `GET /stop-details`, `/stop-details/batch` | Weather + travel warnings for a place |
 | `GET /accommodation-details`, `/accommodation-details/batch` | Viator tours for accommodation cost context |
-| `GET /transport/distance` | Multi-mode distance/duration (Google Routes API) |
+| `GET /transport/route` | Single-mode route with distance, duration, encoded polyline (Google Routes API; `mode`: DRIVE, WALK, BICYCLE, TRANSIT) |
 | `GET /details`, `/details/batch` | Deprecated; use `placeId` param instead of free-text location |
 
 **Removed:** Nominatim geocoding, `/api/v1/details/**`, `/api/v2/locations`.

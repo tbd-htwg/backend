@@ -108,7 +108,7 @@ Set **`TRIPPLANNING_AUTH_TEST_BEARER_TOKEN`** to a shared secret on `develop` (a
 - **Accommodation / transport writes:** **`POST` / `PUT /api/v2/accommodations`** and **`/api/v2/transports`** (JWT required; SDR `save` disabled on those repositories). Bodies use Google place IDs — see [getting-started API contract](docs/gettingstarted/README.md#8-places--external-info-api-contract).
 - **Trip search:** **`GET /api/search/...`** (see [`TripSearchController`](tripplanning-trip-service/src/main/java/com/tripplanning/search/TripSearchController.java)).
 - **Social:** Firestore-backed **comments** and **likes** on social-service (`com.tripplanning.social`).
-- **External info** (external-info-service, routed at **`/api/v2/external/**`** via ingress): Google Places search (`/details/search`), stop details (`/stop-details`), accommodation tours (`/accommodation-details`), transport distance (`/transport/distance`), plus deprecated `/details` endpoints. Trip-service calls **`/internal/location-pack`** for place enrichment on writes.
+- **External info** (external-info-service, routed at **`/api/v2/external/**`** via ingress): Google Places search (`/details/search`), stop details (`/stop-details`), accommodation tours (`/accommodation-details`), transport route (`/transport/route`), plus deprecated `/details` endpoints. Trip-service calls **`/internal/location-pack`** for place enrichment on writes.
 
 ## Firestore `likes` document IDs
 

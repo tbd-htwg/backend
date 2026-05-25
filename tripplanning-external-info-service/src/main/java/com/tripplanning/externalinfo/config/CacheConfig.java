@@ -17,7 +17,7 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 public class CacheConfig {
 
     private static final String[] CACHE_NAMES = {
-        "places", "warnings", "weather", "tours", "transportDistance"
+        "places", "warnings", "weather", "tours", "transportRouteV2"
     };
     private static final Duration PLACES_TTL = Duration.ofDays(7);
     private static final Duration VOLATILE_TTL = Duration.ofDays(1);

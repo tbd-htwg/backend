@@ -17,7 +17,7 @@ import com.tripplanning.externalinfo.dto.ExternalInfoDtos.AccommodationExternalI
 import com.tripplanning.externalinfo.dto.ExternalInfoDtos.AccommodationExternalInput;
 import com.tripplanning.externalinfo.dto.ExternalInfoDtos.PlaceDetailsResult;
 import com.tripplanning.externalinfo.dto.ExternalInfoDtos.StopExternalInfo;
-import com.tripplanning.externalinfo.dto.ExternalInfoDtos.TransportDistanceResult;
+import com.tripplanning.externalinfo.dto.ExternalInfoDtos.TransportRouteResult;
 import com.tripplanning.externalinfo.dto.ExternalInfoDtos.TripExternalInfo;
 import com.tripplanning.externalinfo.util.ViatorPriceSplitter;
 
@@ -130,9 +130,14 @@ public class ExternalDetailsService {
                 .collectMap(Map.Entry::getKey, Map.Entry::getValue);
     }
 
-    public Mono<TransportDistanceResult> transportDistance(
-            double originLat, double originLon, double destLat, double destLon) {
-        return googleRoutesDistanceApi.computeDistance(originLat, originLon, destLat, destLon);
+    public Mono<TransportRouteResult> transportRoute(
+            double originLat,
+            double originLon,
+            double destLat,
+            double destLon,
+            String travelMode) {
+        return googleRoutesDistanceApi.computeRoute(
+                originLat, originLon, destLat, destLon, travelMode);
     }
 
     private Mono<StopExternalInfo> buildStopExternalInfo(PlaceDetailsResult geo) {

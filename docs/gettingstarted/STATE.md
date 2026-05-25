@@ -50,7 +50,8 @@ Installed by [`scripts/local-dev.sh`](../../scripts/local-dev.sh) → `helm upgr
 | **Identity Platform / Firebase** | trip-service (`POST /api/v2/auth/firebase`) | Real project; optional if using dev-login only |
 | **GCS images bucket** | trip-service signed uploads | Real bucket via ADC + SA impersonation in `application-local.yml` |
 | **Google Places API (New)** | external-info-service | Place search and details via `GOOGLE_MAPS_API_KEY` |
-| **Google Routes API** | external-info-service | Transport distance/duration |
+| **Google Routes API** | external-info-service | Transport route (distance, duration, polyline per mode) |
+| **Maps JavaScript API** | frontend (`VITE_GOOGLE_MAPS_API_KEY`) | Draw transport route polylines on trip detail (browser key, referrer-restricted) |
 
 ### Not used locally
 
@@ -292,7 +293,7 @@ flowchart LR
 
 **trip-service Valkey cache names** (10s TTL): `tripFeedPage`, `tripFeedByUser`, `tripFeedLikedBy`, `tripDetail`, `tripExists`.
 
-**external-info-service Caffeine cache names** (reactive `@Cacheable`): `places` (7d), `warnings`, `weather`, `tours`, `transportDistance` (60m TTL where configured).
+**external-info-service Caffeine cache names** (reactive `@Cacheable`): `places` (7d), `warnings`, `weather`, `tours`, `transportRoute` (1d TTL).
 
 ---
 

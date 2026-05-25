@@ -70,7 +70,7 @@ public class DebugController {
         }
         body.put(
                 "sampleKeyPatterns",
-                List.of("places*", "weather*", "warnings*", "tours*", "transportDistance*"));
+                List.of("places*", "weather*", "warnings*", "tours*", "transportRouteV2*"));
         return body;
     }
 
