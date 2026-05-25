@@ -6,7 +6,7 @@ For the **GKE / Terraform** stack, see [infrastructure/ms2/docs/README.md](../..
 
 ## TL;DR
 
-**Goal:** Run trip-service, social-service, and external-info-service on **Minikube** with in-cluster PostgreSQL, Redis, Elasticsearch, and Firestore emulator — no Terraform, no GKE, no Cloud SQL.
+**Goal:** Run trip-service, social-service, and external-info-service on **Minikube** with in-cluster PostgreSQL, Valkey, OpenSearch, and Firestore emulator — no Terraform, no GKE, no Cloud SQL.
 
 1. **One-time:** Install tools from [§0](#0-prerequisites). For Google sign-in and GCS image uploads:
 
@@ -52,14 +52,14 @@ cd backend   # project root
 
 ## Local profile (what is included)
 
-Designed for a **single Minikube** cluster with **24 GiB RAM** default (`MINIKUBE_MEMORY=24576`) so Elasticsearch, Redis, Postgres, and three Spring Boot services can start reliably.
+Designed for a **single Minikube** cluster with **24 GiB RAM** default (`MINIKUBE_MEMORY=24576`) so OpenSearch, Valkey, Postgres, and three Spring Boot services can start reliably.
 
 | Included | Excluded (use GKE guide instead) |
 |----------|----------------------------------|
 | Minikube cluster (`tripplanning` namespace) | Terraform / VPC / GKE |
 | trip + social + external-info (local images `:local`) | Cloud SQL (uses **in-cluster Postgres** instead) |
 | In-cluster **PostgreSQL 16** + **Flyway** (V1–V14) | GKE Gateway, DNS, TLS, cert-manager |
-| In-cluster **Redis** + **Elasticsearch** | Real Firestore `tbd-firestore` |
+| In-cluster **Valkey** + **OpenSearch** | Real Firestore `tbd-firestore` |
 | In-cluster **Firestore emulator** | Artifact Registry push |
 | Host `temp/` only for JVM-only dev (gitignored H2/Lucene) | Legacy monolith `src/` tree |
 | **GCP Identity Platform** (optional Google sign-in) | Frontend on GCS |
@@ -76,9 +76,9 @@ Designed for a **single Minikube** cluster with **24 GiB RAM** default (`MINIK
 | Piece | Technology |
 |-------|------------|
 | Cluster | [Minikube](https://minikube.sigs.k8s.io/) (driver default: `docker`) |
-| Trip API | Spring Boot + in-cluster PostgreSQL + Elasticsearch + Redis |
+| Trip API | Spring Boot + in-cluster PostgreSQL + OpenSearch + Valkey |
 | Social API | Spring Boot + in-cluster Firestore emulator |
-| External-info | Spring Boot + Redis + Google Places / Routes + weather / warnings / Viator |
+| External-info | Spring Boot + Valkey + Google Places / Routes + weather / warnings / Viator |
 | Ingress | nginx (minikube addon) — path routing to trip / social / external-info |
 | Frontend | Vite dev server → `http://localhost:8080` |
 
@@ -191,7 +191,7 @@ Re-apply after changing `.env`: `./scripts/local-dev.sh deploy`.
 
 ## 5. Deploy
 
-Builds JARs, images in the Minikube Docker daemon, renders `k8s/local/chart` with Helm, applies Postgres + Redis + Elasticsearch + apps + Firestore emulator:
+Builds JARs, images in the Minikube Docker daemon, renders `k8s/local/chart` with Helm (Valkey + OpenSearch subcharts), applies Postgres + apps + Firestore emulator:
 
 ```bash
 ./scripts/local-dev.sh deploy
@@ -204,9 +204,9 @@ Steps inside `deploy`:
 3. `helm template` → `kubectl apply` from `k8s/local/chart` (see `k8s/local/README.md`)
 4. ConfigMaps + rollout restart
 
-**First trip-service start** can take 1–3 minutes (Elasticsearch mass indexing via `SearchIndexCoordinationService`).
+**First trip-service start** can take 1–3 minutes (OpenSearch mass indexing via `SearchIndexCoordinationService`).
 
-With ingress port-forward running, optional **debug UIs** from the Helm chart: `/debug/redis` (redis-commander), `/debug/elasticsearch`, `/debug/external` (external-info internal debug).
+With ingress port-forward running, optional **debug UIs** from the Helm chart: `/debug/valkey` (Valkey Admin), `/debug/opensearch` (OpenSearch Dashboards), `/debug/external` (external-info internal debug).
 
 ---
 
@@ -232,7 +232,8 @@ Checks pod readiness, actuator health via port-forward, and optional **dev-login
 | trip-service (debug) | `:8080` in-cluster | `trip-service.tripplanning.svc.cluster.local:8080` |
 | social-service (debug) | `:8081` in-cluster | `social-service.tripplanning.svc.cluster.local:8081` |
 | external-info-service (debug) | `:8082` in-cluster | `external-info-service.tripplanning.svc.cluster.local:8082` |
-| redis-commander (debug) | `http://localhost:8080/debug/redis` | Via ingress when port-forward is active |
+| Valkey Admin (debug) | `http://localhost:8080/debug/valkey/` | Trailing slash required (Vite relative assets); redirects from `/debug/valkey` |
+| OpenSearch Dashboards (debug) | `http://localhost:8080/debug/opensearch` | Dev Tools, index `tripentity-local` |
 | search-index debug | `http://localhost:8080/internal/debug/search-index` | Trip-service ES indexing status |
 
 **API smoke tests** (requires `GOOGLE_MAPS_API_KEY` and Places API New enabled on the GCP project):
@@ -244,8 +245,8 @@ curl -s 'http://localhost:8080/api/v2/external/details/search?q=Paris' | jq .
 # Stop weather + travel warning (use placeId from search)
 curl -s 'http://localhost:8080/api/v2/external/stop-details?placeId=ChIJD7fiBh9u5kcRYJSMaMOCCwQ' | jq .
 
-# Transport distance between coordinates
-curl -s 'http://localhost:8080/api/v2/external/transport/distance?originLat=48.8566&originLon=2.3522&destLat=52.5200&destLon=13.4050' | jq .
+# Transport route (distance, duration, encoded polyline) for one travel mode
+curl -s 'http://localhost:8080/api/v2/external/transport/route?originLat=48.8566&originLon=2.3522&destLat=52.5200&destLon=13.4050&mode=DRIVE' | jq .
 ```
 
 **Routing:** The SPA uses **one** origin (`http://localhost:8080` or Vite proxy). **Ingress** routes social paths (`/api/v2/comments`, trip community, likes, `countLikes`) and `/api/v2/external/*` to the correct service (see [`values-local.yaml`](../../k8s/local/chart/values-local.yaml) `ingressRoutes`; GKE counterpart: [`api-httproute.yaml`](../../../infrastructure/ms2/charts/tripplanning/templates/routes/api-httproute.yaml)).
@@ -290,7 +291,7 @@ Trips, stops, accommodations, and transports use **Google Places** IDs — not f
 | `GET /details/search?q=` | Google Places text search |
 | `GET /stop-details`, `/stop-details/batch` | Weather + travel warnings for a place |
 | `GET /accommodation-details`, `/accommodation-details/batch` | Viator tours for accommodation cost context |
-| `GET /transport/distance` | Multi-mode distance/duration (Google Routes API) |
+| `GET /transport/route` | Single-mode route with distance, duration, encoded polyline (Google Routes API; `mode`: DRIVE, WALK, BICYCLE, TRANSIT) |
 | `GET /details`, `/details/batch` | Deprecated; use `placeId` param instead of free-text location |
 
 **Removed:** Nominatim geocoding, `/api/v1/details/**`, `/api/v2/locations`.
@@ -475,12 +476,12 @@ cd ../infrastructure/ms2/terraform/envs/dev
 | **503 on place search / 400 on trip writes** | Missing or invalid `GOOGLE_MAPS_API_KEY`; enable `places.googleapis.com` on the GCP project |
 | **502 on accom/transport create** | external-info unreachable or `INTERNAL_SECRET` mismatch between trip-service and external-info-service |
 | **trip-service Not Ready for several minutes** | Expected during ES mass indexing (`SearchIndexCoordinationService`); check `GET /internal/debug/search-index` via ingress |
-| **trip-service CrashLoop / not Ready** | Elasticsearch still starting — `kubectl logs -n tripplanning deployment/trip-service --tail=80`. Raise `MINIKUBE_MEMORY`. |
+| **trip-service CrashLoop / not Ready** | OpenSearch still starting — `kubectl logs -n tripplanning deployment/trip-service --tail=80`. Raise `MINIKUBE_MEMORY`. |
 | **HSEARCH400075 / Lucene analysis configurer** | Rebuild image after fix: `local,k8s` must not load Lucene search config (see `application-local-lucene.yml`). Run `./scripts/local-dev.sh deploy`. |
 | **500 on `/trips/*/community`** | trip-service called `localhost:8081` from inside the pod — rebuild/deploy after `application-local-k8s-services.yml` fix. Check `kubectl logs deployment/trip-service`. |
 | **404 on `POST /api/v2/comments`** | Ingress must route `/api/v2/comments` to social-service — check `kubectl get ingress -n tripplanning` and rebuild/deploy. |
 | **Comment list 500 / index errors** | Firestore emulator usually needs no manual DB; composite indexes are required on **real** Firestore (GKE). Emulator often works without them. |
-| **500 on trip child resources** (`/accommodations`, etc.) | Elasticsearch pod OOM/crash — `kubectl get pods -l app.kubernetes.io/component=elasticsearch`. Re-apply: `./scripts/local-dev.sh deploy` then restart trip-service. |
+| **500 on trip child resources** (`/accommodations`, etc.) | OpenSearch pod OOM/crash — `kubectl get pods -l app.kubernetes.io/name=opensearch`. Re-apply: `./scripts/local-dev.sh deploy` then restart trip-service. |
 | **social-service Firestore errors** | `kubectl logs -n tripplanning deployment/social-service`; ensure `firestore-emulator` pod is Running. |
 | **ImagePullBackOff** | Images must be built **inside** minikube Docker (`eval "$(minikube docker-env)"` is done by `deploy`). Tag must be `:local` with `imagePullPolicy: Never`. |
 | **dev-login 404** | Trip must use `SPRING_PROFILES_ACTIVE=local,k8s,postgres` (ConfigMap from `local-dev.sh`). |

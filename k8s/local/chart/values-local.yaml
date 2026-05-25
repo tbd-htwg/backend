@@ -26,10 +26,11 @@ services:
       POSTGRES_USER: "tripplanning"
       POSTGRES_PASSWORD: "tripplanning"
       ELASTICSEARCH_PROTOCOL: "http"
-      ELASTICSEARCH_HOSTS: "elasticsearch:9200"
+      ELASTICSEARCH_HOSTS: "opensearch:9200"
+      HIBERNATE_SEARCH_BACKEND_VERSION: "opensearch:2.19"
       TRIPPLANNING_SEARCH_ELASTICSEARCH_INDEX_NAME: "tripentity-local"
       TRIPPLANNING_SEARCH_READINESS_ENABLED: "true"
-      SPRING_DATA_REDIS_HOST: "redis"
+      SPRING_DATA_REDIS_HOST: "valkey"
       SPRING_DATA_REDIS_PORT: "6379"
       TRIPPLANNING_SOCIAL_SERVICE_URL: "http://social-service.tripplanning.svc.cluster.local:8081"
       TRIPPLANNING_EXTERNAL_INFO_SERVICE_URL: "http://external-info-service.tripplanning.svc.cluster.local:8082"
@@ -39,8 +40,8 @@ services:
     livenessPath: /actuator/health/liveness
     readinessPath: /actuator/health/readiness
     bootstrap:
-      waitForRedis: true
-      waitForElasticsearch: true
+      waitForValkey: true
+      waitForOpensearch: true
       readinessInitialDelaySeconds: 25
       readinessPeriodSeconds: 10
       readinessFailureThreshold: 60
@@ -67,14 +68,14 @@ services:
       CORS_ALLOWED_ORIGINS: "http://localhost:5173,http://127.0.0.1:5173"
       TRIPPLANNING_TRIP_SERVICE_URL: "http://trip-service.tripplanning.svc.cluster.local:8080"
       GCP_FIRESTORE_DATABASE_ID: "(default)"
-      SPRING_DATA_REDIS_HOST: "redis"
+      SPRING_DATA_REDIS_HOST: "valkey"
       SPRING_DATA_REDIS_PORT: "6379"
     secretRefs:
       - social-service-secrets
     livenessPath: /actuator/health/liveness
     readinessPath: /actuator/health/readiness
     bootstrap:
-      waitForRedis: true
+      waitForValkey: true
       readinessInitialDelaySeconds: 15
       readinessPeriodSeconds: 10
 
@@ -95,14 +96,14 @@ services:
     env:
       SERVER_PORT: "8082"
       CORS_ALLOWED_ORIGINS: "http://localhost:5173,http://127.0.0.1:5173"
-      SPRING_DATA_REDIS_HOST: "redis"
+      SPRING_DATA_REDIS_HOST: "valkey"
       SPRING_DATA_REDIS_PORT: "6379"
     secretRefs:
       - external-info-service-secrets
     readinessPath: /actuator/health/readiness
     livenessPath: /actuator/health/liveness
     bootstrap:
-      waitForRedis: true
+      waitForValkey: true
       readinessInitialDelaySeconds: 15
       readinessPeriodSeconds: 10
 
@@ -144,10 +145,6 @@ ingressRoutes:
     service: trip-service
     port: 8080
     pathType: Prefix
-  - path: /debug/redis
-    service: redis-commander
-    port: 8081
-    pathType: Prefix
   - path: /api/search
     service: trip-service
     port: 8080
@@ -169,5 +166,5 @@ ingressRoutes:
     port: 8080
     pathType: Prefix
 
-# Enables separate nginx ingress resources for /debug/elasticsearch and /debug/external.
+# Enables separate nginx ingress for /debug/opensearch (Dashboards) and /debug/external.
 ingressDebugRoutes: true

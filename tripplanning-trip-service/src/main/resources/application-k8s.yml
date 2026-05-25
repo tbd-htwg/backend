@@ -1,4 +1,4 @@
-# Kubernetes (minikube / GKE): use in-cluster Elasticsearch for Hibernate Search.
+# Kubernetes (minikube / GKE): use in-cluster OpenSearch for Hibernate Search (Elasticsearch-protocol backend).
 # Activate with SPRING_PROFILES_ACTIVE=local,k8s (minikube) or omit gke-dev on GKE.
 spring:
   config:
@@ -22,8 +22,9 @@ spring:
                 strategy: async
           backend:
             type: elasticsearch
+            version: ${HIBERNATE_SEARCH_BACKEND_VERSION:opensearch:2.19}
             protocol: ${ELASTICSEARCH_PROTOCOL:http}
-            hosts: ${ELASTICSEARCH_HOSTS:elasticsearch.tripplanning.svc.cluster.local:9200}
+            hosts: ${ELASTICSEARCH_HOSTS:opensearch.tripplanning.svc.cluster.local:9200}
             username: ${ELASTICSEARCH_USERNAME:}
             password: ${ELASTICSEARCH_PASSWORD:}
             path_prefix: ${ELASTICSEARCH_PATH_PREFIX:}

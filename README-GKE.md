@@ -47,7 +47,7 @@ cp docs/gettingstarted/.env.example docs/gettingstarted/.env   # JWT_SECRET ≥ 
 ./scripts/local-dev.sh port-forward
 ```
 
-Uses in-cluster **PostgreSQL** (trip), **Redis**, **Elasticsearch**, **Firestore emulator**, and **GCP Identity Platform** + **GCS** (optional Google sign-in and image uploads). Prerequisites:
+Uses in-cluster **PostgreSQL** (trip), **Valkey**, **OpenSearch**, **Firestore emulator**, and **GCP Identity Platform** + **GCS** (optional Google sign-in and image uploads). Prerequisites:
 
 ```bash
 gcloud auth application-default login

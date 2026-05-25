@@ -20,16 +20,17 @@ Reference for the **local ms2-shaped** stack on Minikube: in-cluster components,
 
 | Component | Implementation | Manifest |
 |-----------|----------------|----------|
-| **trip-service** | Spring Boot, PostgreSQL + ES + Redis | [`k8s/local/chart/templates/deployments/trip-deployment.yaml`](../../k8s/local/chart/templates/deployments/trip-deployment.yaml) |
+| **trip-service** | Spring Boot, PostgreSQL + OpenSearch + Valkey | [`k8s/local/chart/templates/deployments/trip-deployment.yaml`](../../k8s/local/chart/templates/deployments/trip-deployment.yaml) |
 | **social-service** | Spring Boot, Firestore emulator | [`k8s/local/chart/templates/deployments/social-deployment.yaml`](../../k8s/local/chart/templates/deployments/social-deployment.yaml) |
-| **external-info-service** | Spring Boot, Redis + Caffeine cache | [`k8s/local/chart/templates/deployments/external-info-deployment.yaml`](../../k8s/local/chart/templates/deployments/external-info-deployment.yaml) |
+| **external-info-service** | Spring Boot, Valkey + Caffeine cache | [`k8s/local/chart/templates/deployments/external-info-deployment.yaml`](../../k8s/local/chart/templates/deployments/external-info-deployment.yaml) |
 | **PostgreSQL** | Postgres 16, StatefulSet + PVC | [`k8s/local/chart/templates/backing/postgres-*.yaml`](../../k8s/local/chart/templates/backing/) |
-| **Redis** | `redis:7-alpine` | [`k8s/local/chart/templates/backing/redis-*.yaml`](../../k8s/local/chart/templates/backing/) |
-| **Elasticsearch** | Elastic 7.17.x, StatefulSet + 5Gi PVC | [`k8s/local/chart/templates/backing/elasticsearch-*.yaml`](../../k8s/local/chart/templates/backing/) |
+| **Valkey** | Official Helm subchart (`valkey-io/valkey-helm`) | [`k8s/local/chart/Chart.yaml`](../../k8s/local/chart/Chart.yaml) |
+| **OpenSearch** | Official Helm subchart 2.x (`opensearch-project/helm-charts`), single-node + 5Gi PVC | [`k8s/local/chart/Chart.yaml`](../../k8s/local/chart/Chart.yaml) |
 | **Firestore emulator** | `google-cloud-cli:emulators` | [`k8s/local/chart/templates/firestore-emulator.yaml`](../../k8s/local/chart/templates/firestore-emulator.yaml) |
-| **redis-commander** (debug) | Web UI for Redis | [`k8s/local/chart/templates/debug/redis-commander-*.yaml`](../../k8s/local/chart/templates/debug/) |
+| **valkey-admin** (debug) | Official Valkey Admin web UI | [`k8s/local/chart/templates/debug/valkey-admin-*.yaml`](../../k8s/local/chart/templates/debug/) |
+| **opensearch-dashboards** (debug) | Official OpenSearch Dashboards (Dev Tools, Discover) | [`k8s/local/chart/Chart.yaml`](../../k8s/local/chart/Chart.yaml) subchart |
 
-Installed by [`scripts/local-dev.sh`](../../scripts/local-dev.sh) → `helm template` + `kubectl apply` from [`k8s/local/chart`](../../k8s/local/chart/) (Postgres, Redis, Elasticsearch, apps, Firestore emulator, optional debug UIs).
+Installed by [`scripts/local-dev.sh`](../../scripts/local-dev.sh) → `helm upgrade` from [`k8s/local/chart`](../../k8s/local/chart/) (Postgres, Valkey, OpenSearch subcharts, apps, Firestore emulator, optional debug UIs).
 
 **Postgres:** enabled in [`values-local.yaml`](../../k8s/local/chart/values-local.yaml) (`backingServices.postgres.enabled: true`). Trip-service uses profile **`local,k8s,postgres`** with Flyway migrations. **H2** is only for **JVM-only** dev (`SPRING_PROFILES_ACTIVE=local` without `postgres`).
 
@@ -49,7 +50,8 @@ Installed by [`scripts/local-dev.sh`](../../scripts/local-dev.sh) → `helm temp
 | **Identity Platform / Firebase** | trip-service (`POST /api/v2/auth/firebase`) | Real project; optional if using dev-login only |
 | **GCS images bucket** | trip-service signed uploads | Real bucket via ADC + SA impersonation in `application-local.yml` |
 | **Google Places API (New)** | external-info-service | Place search and details via `GOOGLE_MAPS_API_KEY` |
-| **Google Routes API** | external-info-service | Transport distance/duration |
+| **Google Routes API** | external-info-service | Transport route (distance, duration, polyline per mode) |
+| **Maps JavaScript API** | frontend (`VITE_GOOGLE_MAPS_API_KEY`) | Draw transport route polylines on trip detail (browser key, referrer-restricted) |
 
 ### Not used locally
 
@@ -72,8 +74,8 @@ flowchart TB
     Trip[trip-service]
     Social[social-service]
     Ext[external-info-service]
-    Redis[(Redis)]
-    ES[(Elasticsearch)]
+    Valkey[(Valkey)]
+    OS[(OpenSearch)]
     PG[(PostgreSQL)]
     FSE[(Firestore emulator)]
   end
@@ -90,11 +92,11 @@ flowchart TB
   GW --> Trip
   GW --> Social
   GW --> Ext
-  Trip --> Redis
-  Trip --> ES
+  Trip --> Valkey
+  Trip --> OS
   Trip --> PG
   Social --> FSE
-  Ext --> Redis
+  Ext --> Valkey
   Social -->|internal| Trip
   Trip -->|internal| Social
   Trip -->|location-pack| Ext
@@ -121,12 +123,13 @@ The SPA uses **one** base URL (`VITE_API_BASE_URL=http://localhost:8080` or Vite
 |-------------|---------|
 | `/api/v2/comments`, `/api/v2/trips/.../community`, likes, `countLikes` | social-service |
 | `/api/v2/external` | external-info-service |
-| `/internal/debug` | trip-service (search-index / Redis debug) |
-| `/debug/redis` | redis-commander |
+| `/internal/debug` | trip-service (search-index / Valkey debug) |
+| `/debug/valkey/` | Valkey Admin (use trailing slash; ingress redirects bare `/debug/valkey`) |
+| `/debug/opensearch` | OpenSearch Dashboards |
 | `/api/search`, `/api/v2` (catch-all), `/actuator`, auth | trip-service |
 | `/swagger-ui`, `/v3` | trip-service (OpenAPI / Swagger UI) |
 
-With `ingressDebugRoutes: true` (default in `values-local.yaml`), separate ingress resources also expose `/debug/elasticsearch` and `/debug/external`.
+With `ingressDebugRoutes: true` (default in `values-local.yaml`), separate ingress resources also expose `/debug/valkey`, `/debug/opensearch`, and `/debug/external`.
 
 ---
 
@@ -205,8 +208,8 @@ flowchart TB
     PG[(PostgreSQL)]
     GP[(google_places cache)]
     FSE[(Firestore emulator)]
-    ES[(Elasticsearch)]
-    Redis[(Redis)]
+    OS[(OpenSearch)]
+    Valkey[(Valkey)]
     GCS[(GCS images)]
   end
 
@@ -220,8 +223,8 @@ flowchart TB
 
   Trip --> PG
   Trip --> GP
-  Trip --> ES
-  Trip --> Redis
+  Trip --> OS
+  Trip --> Valkey
   Trip --> GCS
   Trip -->|internal HTTP| Social
   Trip -->|location-pack| Ext
@@ -229,7 +232,7 @@ flowchart TB
   Social --> FSE
   Social -->|validate| Trip
 
-  Ext --> Redis
+  Ext --> Valkey
   Ext --> Places
   Ext --> Routes
   Ext --> Amt
@@ -239,7 +242,7 @@ flowchart TB
 
 ### Per-service data store usage
 
-| Service | SQL | Elasticsearch | Redis | Firestore | GCS | Other HTTP |
+| Service | SQL | OpenSearch | Valkey | Firestore | GCS | Other HTTP |
 |---------|:---:|:-------------:|:-----:|:---------:|:---:|------------|
 | **trip-service** | PostgreSQL + `google_places` (JPA, Flyway V1–V14) | Hibernate Search `tripentity-local` | Cache 10s TTL; search-index lock/status | — | Signed uploads | social, external-info (`/internal/location-pack`) |
 | **social-service** | — | — | — | Emulator `(default)` | — | trip-service |
@@ -248,8 +251,8 @@ flowchart TB
 **In-cluster DNS:**
 
 - `postgres.tripplanning.svc.cluster.local:5432`
-- `elasticsearch.tripplanning.svc.cluster.local:9200`
-- `redis.tripplanning.svc.cluster.local:6379`
+- `opensearch.tripplanning.svc.cluster.local:9200`
+- `valkey.tripplanning.svc.cluster.local:6379`
 - `firestore-emulator.tripplanning.svc.cluster.local:8080`
 - `trip-service.tripplanning.svc.cluster.local:8080`
 - `social-service.tripplanning.svc.cluster.local:8081`
@@ -261,16 +264,16 @@ flowchart TB
 
 ---
 
-## 6. Redis & Elasticsearch
+## 6. Valkey & OpenSearch
 
 ```mermaid
 flowchart LR
   subgraph TripFlow["trip-service"]
-    Req[API request] --> Cache{Redis cache?}
+    Req[API request] --> Cache{Valkey cache?}
     Cache -->|hit| Resp[Response]
     Cache -->|miss| PG[(PostgreSQL)]
     PG --> Index[Hibernate Search]
-    Index --> ES[(Elasticsearch)]
+    Index --> OS[(OpenSearch)]
     PG --> Resp
   end
 
@@ -283,14 +286,14 @@ flowchart LR
 
 | System | Used by | Purpose |
 |--------|---------|---------|
-| **Elasticsearch** | trip-service (`local,k8s` profile) | Index `tripentity-local`; in-chart StatefulSet 7.17.x + 5Gi PVC |
-| **Redis** | trip-service, external-info-service | Trip feed cache; **SearchIndexCoordinationService** lock/status (`tripplanning:search:index:*`); Caffeine fallback if Redis host unset (JVM-only) |
+| **OpenSearch** | trip-service (`local,k8s` profile) | Index `tripentity-local`; official Helm subchart, single-node 2.x + 5Gi PVC; `HIBERNATE_SEARCH_BACKEND_VERSION=opensearch:2.19` |
+| **Valkey** | trip-service, external-info-service | Trip feed cache; **SearchIndexCoordinationService** lock/status (`tripplanning:search:index:*`); Caffeine fallback if Valkey host unset (JVM-only) |
 
-**SearchIndexCoordinationService** (trip-service): on cold start, coordinates Hibernate Search mass indexing across pods via a Redis lock (`tripplanning:search:index:lock`). Readiness includes `searchIndex` health — pods may stay **Not Ready** for 1–3+ minutes until indexing completes. Debug: `GET /internal/debug/search-index` via ingress.
+**SearchIndexCoordinationService** (trip-service): on cold start, coordinates Hibernate Search mass indexing across pods via a Valkey lock (`tripplanning:search:index:lock`). Readiness includes `searchIndex` health — pods may stay **Not Ready** for 1–3+ minutes until indexing completes. Debug: `GET /internal/debug/search-index` via ingress.
 
-**trip-service Redis cache names** (10s TTL): `tripFeedPage`, `tripFeedByUser`, `tripFeedLikedBy`, `tripDetail`, `tripExists`.
+**trip-service Valkey cache names** (10s TTL): `tripFeedPage`, `tripFeedByUser`, `tripFeedLikedBy`, `tripDetail`, `tripExists`.
 
-**external-info-service Caffeine cache names** (reactive `@Cacheable`): `places` (7d), `warnings`, `weather`, `tours`, `transportDistance` (60m TTL where configured).
+**external-info-service Caffeine cache names** (reactive `@Cacheable`): `places` (7d), `warnings`, `weather`, `tours`, `transportRoute` (1d TTL).
 
 ---
 
@@ -302,7 +305,7 @@ flowchart LR
 | `social-service-secrets` | same | `TRIPPLANNING_AUTH_JWT_SECRET`, `TRIPPLANNING_INTERNAL_SECRET` |
 | `external-info-service-secrets` | same | `TRIPPLANNING_AUTH_JWT_SECRET`, `TRIPPLANNING_INTERNAL_SECRET`, `GOOGLE_MAPS_API_KEY`, `VIATOR_API_KEY` |
 
-No Secret Manager or External Secrets on the local path. ConfigMaps are applied imperatively by `local-dev.sh` (Firestore host, ES/Redis, CORS, service URLs).
+No Secret Manager or External Secrets on the local path. ConfigMaps are applied imperatively by `local-dev.sh` (Firestore host, OpenSearch/Valkey, CORS, service URLs).
 
 ---
 
@@ -347,7 +350,7 @@ Minikube trip-service stores SQL data in the **postgres StatefulSet PVC**. Host 
 | Lifecycle automation | [`scripts/local-dev.sh`](../../scripts/local-dev.sh), [README.md](README.md) |
 | Verify smoke tests | [`scripts/verify-local-deployment.sh`](../../scripts/verify-local-deployment.sh) |
 | Local K8s manifests | [`k8s/local/chart/`](../../k8s/local/chart/) (Helm templates; rendered by `local-dev.sh`) |
-| Redis / Elasticsearch / Postgres (local chart) | [`k8s/local/chart/templates/backing/`](../../k8s/local/chart/templates/backing/) |
+| Valkey / OpenSearch (Helm subcharts) / Postgres (local chart) | [`k8s/local/chart/`](../../k8s/local/chart/) |
 | Places & external-info API | `tripplanning-external-info-service/.../ExternalPublicApiController.java`, `InternalExternalApiController.java`, `ExternalDetailsService.java` |
 | Place cache (trip-service) | `tripplanning-trip-service/.../place/PlaceService.java` |
 | Search index coordination | `tripplanning-trip-service/.../search/SearchIndexCoordinationService.java` |

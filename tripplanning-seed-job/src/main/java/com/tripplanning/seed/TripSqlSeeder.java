@@ -28,6 +28,9 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class TripSqlSeeder {
 
+    /** Radii tried in order until at least two places are found near the anchor. */
+    private static final double[] TRANSPORT_RADIUS_KM = {80, 150, 300};
+
     private final JdbcTemplate jdbc;
     private final SeedAssetLoader assetLoader;
 
@@ -107,9 +110,8 @@ public class TripSqlSeeder {
                 }
 
                 for (int tr = 0; tr < spec.transportsPerTrip(); tr++) {
-                    PrefetchedPlace start = places.get(rng.nextInt(places.size()));
-                    PrefetchedPlace end = places.get(rng.nextInt(places.size()));
-                    long transportId = insertTransport(start, end);
+                    PrefetchedPlace[] endpoints = pickTransportEndpoints(places, dest, rng);
+                    long transportId = insertTransport(endpoints[0], endpoints[1]);
                     linkTripTransport(tripId, transportId);
                 }
             }
@@ -342,6 +344,68 @@ public class TripSqlSeeder {
 
     private void linkTripTransport(long tripId, long transportId) {
         jdbc.update("INSERT INTO trip_transport (trip_id, transport_id) VALUES (?, ?)", tripId, transportId);
+    }
+
+    /** Picks two distinct places close enough for Google Routes to return a real route. */
+    private PrefetchedPlace[] pickTransportEndpoints(
+            List<PrefetchedPlace> places, PrefetchedPlace anchor, Random rng) {
+        for (double radiusKm : TRANSPORT_RADIUS_KM) {
+            List<PrefetchedPlace> nearby = placesWithinRadius(places, anchor, radiusKm);
+            if (nearby.size() >= 2) {
+                return pickTwoDistinct(nearby, rng);
+            }
+        }
+        List<PrefetchedPlace> sameCountry = new ArrayList<>();
+        for (PrefetchedPlace place : places) {
+            if (anchor.countryCode().equals(place.countryCode())) {
+                sameCountry.add(place);
+            }
+        }
+        if (sameCountry.size() >= 2) {
+            return pickTwoDistinct(sameCountry, rng);
+        }
+        return pickTwoDistinct(places, rng);
+    }
+
+    private List<PrefetchedPlace> placesWithinRadius(
+            List<PrefetchedPlace> places, PrefetchedPlace anchor, double radiusKm) {
+        List<PrefetchedPlace> nearby = new ArrayList<>();
+        for (PrefetchedPlace place : places) {
+            if (distanceKm(anchor, place) <= radiusKm) {
+                nearby.add(place);
+            }
+        }
+        return nearby;
+    }
+
+    private PrefetchedPlace[] pickTwoDistinct(List<PrefetchedPlace> pool, Random rng) {
+        PrefetchedPlace start = pool.get(rng.nextInt(pool.size()));
+        PrefetchedPlace end = start;
+        for (int attempt = 0;
+                attempt < 8 && end.googlePlaceId().equals(start.googlePlaceId());
+                attempt++) {
+            end = pool.get(rng.nextInt(pool.size()));
+        }
+        if (end.googlePlaceId().equals(start.googlePlaceId())) {
+            for (PrefetchedPlace candidate : pool) {
+                if (!candidate.googlePlaceId().equals(start.googlePlaceId())) {
+                    end = candidate;
+                    break;
+                }
+            }
+        }
+        return new PrefetchedPlace[] {start, end};
+    }
+
+    private static double distanceKm(PrefetchedPlace a, PrefetchedPlace b) {
+        double lat1 = Math.toRadians(a.latitude());
+        double lat2 = Math.toRadians(b.latitude());
+        double dLat = lat2 - lat1;
+        double dLon = Math.toRadians(b.longitude() - a.longitude());
+        double sinLat = Math.sin(dLat / 2);
+        double sinLon = Math.sin(dLon / 2);
+        double h = sinLat * sinLat + Math.cos(lat1) * Math.cos(lat2) * sinLon * sinLon;
+        return 6371.0 * 2 * Math.asin(Math.min(1.0, Math.sqrt(h)));
     }
 
     private Map<String, List<String>> groupImagesByCategory(List<SampleImageRow> images) {

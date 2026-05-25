@@ -17,7 +17,9 @@ import com.tripplanning.externalinfo.ApiProxyServices.GooglePlacesApiException;
 import com.tripplanning.externalinfo.dto.ExternalInfoDtos.AccommodationExternalInfo;
 import com.tripplanning.externalinfo.dto.ExternalInfoDtos.PlaceSearchResult;
 import com.tripplanning.externalinfo.dto.ExternalInfoDtos.StopExternalInfo;
-import com.tripplanning.externalinfo.dto.ExternalInfoDtos.TransportDistanceResult;
+import com.tripplanning.externalinfo.ApiProxyServices.GoogleRoutesDistanceApi;
+import com.tripplanning.externalinfo.ApiProxyServices.TransportRouteNotFoundException;
+import com.tripplanning.externalinfo.dto.ExternalInfoDtos.TransportRouteResult;
 import com.tripplanning.externalinfo.dto.ExternalInfoDtos.TripExternalInfo;
 
 import lombok.RequiredArgsConstructor;
@@ -149,20 +151,49 @@ public class ExternalPublicApiController {
                 .onErrorResume(e -> Mono.just(ResponseEntity.internalServerError().build()));
     }
 
-    @GetMapping("/transport/distance")
-    public Mono<ResponseEntity<TransportDistanceResult>> getTransportDistance(
+    @GetMapping("/transport/route")
+    public Mono<ResponseEntity<TransportRouteResult>> getTransportRoute(
             @RequestParam double originLat,
             @RequestParam double originLon,
             @RequestParam double destLat,
-            @RequestParam double destLon) {
+            @RequestParam double destLon,
+            @RequestParam String mode) {
+        if (GoogleRoutesDistanceApi.normalizeTravelMode(mode) == null) {
+            return Mono.error(
+                    new ResponseStatusException(
+                            HttpStatus.BAD_REQUEST,
+                            "Invalid mode. Allowed: DRIVE, WALK, BICYCLE, TRANSIT"));
+        }
         return externalDetailsService
-                .transportDistance(originLat, originLon, destLat, destLon)
+                .transportRoute(originLat, originLon, destLat, destLon, mode)
                 .map(ResponseEntity::ok)
-                .onErrorResume(GooglePlacesApiException.class, e -> Mono.error(placesUnavailable(e)))
-                .onErrorResume(e -> Mono.just(ResponseEntity.internalServerError().build()));
+                .onErrorMap(
+                        TransportRouteNotFoundException.class,
+                        e -> new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage()))
+                .onErrorMap(
+                        IllegalArgumentException.class,
+                        e -> new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage()))
+                .onErrorMap(
+                        GooglePlacesApiException.class,
+                        ExternalPublicApiController::mapTransportRouteServiceError)
+                .onErrorMap(
+                        e -> !(e instanceof ResponseStatusException),
+                        e -> new ResponseStatusException(
+                                HttpStatus.INTERNAL_SERVER_ERROR,
+                                "Transport route request failed",
+                                e));
     }
 
     private static ResponseStatusException placesUnavailable(GooglePlacesApiException e) {
         return new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, e.getMessage(), e);
+    }
+
+    /** Only true outages (missing key, Routes API disabled) are 503; not “no route for this mode”. */
+    private static ResponseStatusException mapTransportRouteServiceError(GooglePlacesApiException e) {
+        String msg = e.getMessage() != null ? e.getMessage() : "";
+        if (msg.contains("not configured") || msg.contains("Routes API") || msg.contains("API key")) {
+            return placesUnavailable(e);
+        }
+        return new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, msg, e);
     }
 }

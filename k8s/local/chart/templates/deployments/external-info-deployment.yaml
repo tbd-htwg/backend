@@ -17,9 +17,9 @@ spec:
         app.kubernetes.io/component: external-info-service
         {{- include "tripplanning.selectorLabels" . | nindent 8 }}
     spec:
-{{- if .Values.services.externalInfo.bootstrap.waitForRedis }}
+{{- if .Values.services.externalInfo.bootstrap.waitForValkey }}
       initContainers:
-        {{- include "tripplanning.waitForRedis" . | nindent 8 }}
+        {{- include "tripplanning.waitForValkey" . | nindent 8 }}
 {{- end }}
       containers:
         - name: external-info-service

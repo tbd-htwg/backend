@@ -34,16 +34,20 @@ public class TripFeedImagesController {
 
     @GetMapping("/feed-location-images")
     public Map<Long, List<String>> feedLocationImages(
-            @RequestParam(name = "tripId", required = false) List<Long> tripIds) {
+            @RequestParam(name = "tripId", required = false) List<Long> tripIds,
+            @RequestParam(name = "startIndex", required = false) Integer startIndex,
+            @RequestParam(name = "perTripLimit", required = false) Integer perTripLimit) {
         if (tripIds == null || tripIds.isEmpty()) {
             return Map.of();
         }
         List<Long> slice = tripIds.size() > MAX_TRIP_IDS ? tripIds.subList(0, MAX_TRIP_IDS) : tripIds;
-        Map<Long, List<String>> out = new LinkedHashMap<>();
-        for (TripEntity trip : tripRepository.findAllById(slice)) {
-            out.put(trip.getId(), tripFeedLocationImagesHelper.collectLocationImageUrls(trip));
+        if (perTripLimit != null && perTripLimit < 1) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "perTripLimit must be at least 1");
         }
-        return out;
+        if (startIndex != null && startIndex < 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "startIndex must be non-negative");
+        }
+        return tripFeedLocationImagesHelper.collectFeedLocationImageUrls(slice, startIndex, perTripLimit);
     }
 
     /**

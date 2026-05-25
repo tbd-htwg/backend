@@ -17,13 +17,13 @@ spec:
         app.kubernetes.io/component: trip-service
         {{- include "tripplanning.selectorLabels" . | nindent 8 }}
     spec:
-{{- if or .Values.services.trip.bootstrap.waitForRedis .Values.services.trip.bootstrap.waitForElasticsearch }}
+{{- if or .Values.services.trip.bootstrap.waitForValkey .Values.services.trip.bootstrap.waitForOpensearch }}
       initContainers:
-{{- if .Values.services.trip.bootstrap.waitForRedis }}
-        {{- include "tripplanning.waitForRedis" . | nindent 8 }}
+{{- if .Values.services.trip.bootstrap.waitForValkey }}
+        {{- include "tripplanning.waitForValkey" . | nindent 8 }}
 {{- end }}
-{{- if .Values.services.trip.bootstrap.waitForElasticsearch }}
-        {{- include "tripplanning.waitForElasticsearch" . | nindent 8 }}
+{{- if .Values.services.trip.bootstrap.waitForOpensearch }}
+        {{- include "tripplanning.waitForOpensearch" . | nindent 8 }}
 {{- end }}
 {{- end }}
       containers:

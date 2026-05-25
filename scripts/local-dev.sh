@@ -168,6 +168,7 @@ cmd_use_local() {
     echo "== Enabling minikube ingress addon =="
     minikube addons enable ingress
   fi
+  ensure_local_ingress_debug_snippets
   kubectl config use-context minikube
   MODE=local
   save_state
@@ -317,9 +318,10 @@ apply_local_configmaps() {
     --from-literal=TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID="${TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID}" \
     --from-literal=CORS_ALLOWED_ORIGINS="http://localhost:5173,http://127.0.0.1:5173" \
     --from-literal=ELASTICSEARCH_PROTOCOL=http \
-    --from-literal=ELASTICSEARCH_HOSTS=elasticsearch:9200 \
+    --from-literal=ELASTICSEARCH_HOSTS=opensearch:9200 \
+    --from-literal=HIBERNATE_SEARCH_BACKEND_VERSION=opensearch:2.19 \
     --from-literal=TRIPPLANNING_SEARCH_ELASTICSEARCH_INDEX_NAME=tripentity-local \
-    --from-literal=SPRING_DATA_REDIS_HOST=redis \
+    --from-literal=SPRING_DATA_REDIS_HOST=valkey \
     --from-literal=SPRING_DATA_REDIS_PORT=6379 \
     --from-literal=GCP_STORAGE_BUCKET_NAME="${GCP_STORAGE_BUCKET_NAME}" \
     --from-literal=GCP_IMPERSONATE_SERVICE_ACCOUNT="${GCP_IMPERSONATE_SERVICE_ACCOUNT}" \
@@ -340,7 +342,7 @@ apply_local_configmaps() {
     --namespace="${NS}" \
     --from-literal=SERVER_PORT=8082 \
     --from-literal=CORS_ALLOWED_ORIGINS="http://localhost:5173,http://127.0.0.1:5173" \
-    --from-literal=SPRING_DATA_REDIS_HOST=redis \
+    --from-literal=SPRING_DATA_REDIS_HOST=valkey \
     --from-literal=SPRING_DATA_REDIS_PORT=6379 \
     --dry-run=client -o yaml | kubectl apply -f -
 }
@@ -403,8 +405,41 @@ helm_local_template_args() {
     "$@"
 }
 
+# Valkey Admin Vite assets require /debug/valkey/ in the browser; Exact redirect cannot live on an
+# Ingress (regex rule wins). Use controller server-snippet instead (no per-Ingress snippets needed).
+ensure_local_ingress_debug_snippets() {
+  require_cmd kubectl
+  local ingress_ns="ingress-nginx"
+  local cm="ingress-nginx-controller"
+  if ! kubectl get cm -n "${ingress_ns}" "${cm}" >/dev/null 2>&1; then
+    return 0
+  fi
+  local snippet='location = /debug/valkey { return 301 /debug/valkey/; }'
+  local current
+  current="$(kubectl get cm -n "${ingress_ns}" "${cm}" -o jsonpath='{.data.server-snippet}' 2>/dev/null || true)"
+  if [[ "${current}" == *"${snippet}"* ]]; then
+    return 0
+  fi
+  echo "== ingress-nginx: redirect /debug/valkey → /debug/valkey/ =="
+  # Remove invalid http-snippet from earlier attempts (location is not allowed in http context).
+  kubectl patch cm -n "${ingress_ns}" "${cm}" --type json \
+    -p='[{"op":"remove","path":"/data/http-snippet"}]' 2>/dev/null || true
+  kubectl patch cm -n "${ingress_ns}" "${cm}" --type merge -p "$(python3 -c "
+import json, sys
+snippet = sys.argv[1]
+existing = sys.argv[2] if len(sys.argv) > 2 and sys.argv[2] else ''
+merged = (existing.rstrip() + '\n' + snippet).strip() if existing else snippet
+print(json.dumps({'data': {'server-snippet': merged}}))
+" "${snippet}" "${current}")"
+  kubectl rollout restart deployment/ingress-nginx-controller -n "${ingress_ns}" >/dev/null 2>&1 || true
+  kubectl rollout status deployment/ingress-nginx-controller -n "${ingress_ns}" --timeout=120s >/dev/null 2>&1 || true
+}
+
 helm_upgrade_local() {
   require_cmd helm
+  ensure_local_ingress_debug_snippets
+  echo "== helm dependency build (opensearch + valkey subcharts) =="
+  helm dependency build "${K8S_CHART}"
   kubectl get namespace "${NS}" >/dev/null 2>&1 || kubectl create namespace "${NS}"
   local firestore_enabled="true"
   if [[ "${USE_HOST_FIRESTORE_EMULATOR}" == "true" ]]; then
@@ -509,12 +544,11 @@ cmd_deploy() {
   echo "== restart app deployments (pick up rebuilt :${IMAGE_TAG} images) =="
   kubectl rollout restart deployment/trip-service deployment/social-service deployment/external-info-service -n "${NS}"
 
-  echo "Waiting for redis..."
-  kubectl wait --for=condition=available deployment/redis -n "${NS}" --timeout=120s 2>/dev/null \
-    || kubectl rollout status deployment/redis -n "${NS}" --timeout=120s
-  kubectl wait --for=condition=ready pod -l app.kubernetes.io/component=redis -n "${NS}" --timeout=120s
-  echo "Waiting for elasticsearch..."
-  kubectl rollout status statefulset/elasticsearch -n "${NS}" --timeout=300s || true
+  echo "Waiting for valkey..."
+  kubectl wait --for=condition=available deployment/valkey -n "${NS}" --timeout=120s 2>/dev/null \
+    || kubectl rollout status deployment/valkey -n "${NS}" --timeout=120s
+  echo "Waiting for opensearch..."
+  kubectl rollout status statefulset/opensearch -n "${NS}" --timeout=300s || true
 
   if [[ "${USE_HOST_FIRESTORE_EMULATOR}" != "true" ]]; then
     echo "Waiting for firestore-emulator..."
@@ -525,7 +559,8 @@ cmd_deploy() {
   kubectl rollout status deployment/social-service -n "${NS}" --timeout=180s || true
   kubectl rollout status deployment/external-info-service -n "${NS}" --timeout=120s || true
   if [[ "${USE_HOST_FIRESTORE_EMULATOR}" != "true" ]]; then
-    kubectl rollout status deployment/redis-commander -n "${NS}" --timeout=60s 2>/dev/null || true
+    kubectl rollout status deployment/valkey-admin -n "${NS}" --timeout=120s 2>/dev/null || true
+    kubectl rollout status deployment/opensearch-dashboards -n "${NS}" --timeout=180s 2>/dev/null || true
   fi
   kubectl get pods -n "${NS}"
 }

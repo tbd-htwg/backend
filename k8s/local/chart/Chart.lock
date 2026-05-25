@@ -1,0 +1,12 @@
+dependencies:
+- name: opensearch
+  repository: https://opensearch-project.github.io/helm-charts/
+  version: 2.37.0
+- name: valkey
+  repository: https://valkey.io/valkey-helm/
+  version: 0.9.4
+- name: opensearch-dashboards
+  repository: https://opensearch-project.github.io/helm-charts/
+  version: 2.33.0
+digest: sha256:d870e8c16ae462f30110844d421b06e39875a8446055f64461278b1700d4c64f
+generated: "2026-05-25T17:22:12.269843607+02:00"
