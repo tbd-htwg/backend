@@ -29,7 +29,7 @@ Spring Boot 3 **microservices** for a **trip planning** course project (HTWG Clo
 
 ### Minikube (recommended)
 
-Full stack on Kubernetes (in-cluster **PostgreSQL**, Redis, Elasticsearch, Firestore emulator, three microservices):
+Full stack on Kubernetes (in-cluster **PostgreSQL**, Valkey, OpenSearch, Firestore emulator, three microservices):
 
 **[docs/gettingstarted/README.md](docs/gettingstarted/README.md)** · architecture: [docs/gettingstarted/STATE.md](docs/gettingstarted/STATE.md)
 

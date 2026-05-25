@@ -33,7 +33,7 @@ SPRING_PROFILES_ACTIVE=local mvn -pl tripplanning-trip-service spring-boot:run
 
 - **H2** file DB: `./temp/db/tripplanning-dev` (gitignored; recreated on run); **Flyway off**; JPA **`create-drop`** each run.
 - **Hibernate Search** uses the **Lucene** backend; indexes under **`./temp/search`** (gitignored).
-- **Minikube** uses in-cluster **PostgreSQL** and Elasticsearch — not the host `temp/` directory.
+- **Minikube** uses in-cluster **PostgreSQL** and **OpenSearch** — not the host `temp/` directory.
 - **Firestore** for social: emulator on **`localhost:9090`** (JVM path) or in-cluster `firestore-emulator:8080` (k8s path).
 - Auth: override with **`TRIPPLANNING_AUTH_JWT_SECRET`** (≥32 bytes); **`TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID`** for Google token verification.
 
@@ -52,7 +52,7 @@ Default trip-service: **`http://localhost:8080`**.
 | Security, OpenAPI | `tripplanning-trip-service` — `com.tripplanning.api.config` |
 | JSON projections | `tripplanning-trip-service` — `com.tripplanning.api.projections` |
 
-Production-like runs use **PostgreSQL**, **Flyway** in `tripplanning-trip-service/src/main/resources/db/migration` (V10–V14 Google Places), **Elasticsearch** for Hibernate Search. **Not** the same as JVM-only `local`.
+Production-like runs use **PostgreSQL**, **Flyway** in `tripplanning-trip-service/src/main/resources/db/migration` (V10–V14 Google Places), **OpenSearch** (Hibernate Search Elasticsearch-protocol backend) for full-text search. **Not** the same as JVM-only `local`.
 
 ## Conventions
 

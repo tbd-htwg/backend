@@ -19,17 +19,22 @@ autoscaling:
 
 debug:
   enabled: true
-  redisCommander:
-    image: rediscommander/redis-commander:latest
-    port: 8081
-    httpRoot: /debug/redis
+  valkeyAdmin:
+    enabled: true
+    image: valkey/valkey-admin:1.0.2
+    port: 8080
+    valkeyHost: valkey
+    valkeyPort: "6379"
+    valkeyTls: "false"
     resources:
       requests:
-        cpu: "25m"
-        memory: "64Mi"
+        cpu: "50m"
+        memory: "256Mi"
       limits:
-        cpu: "100m"
-        memory: "128Mi"
+        cpu: "250m"
+        memory: "512Mi"
+  opensearchDashboards:
+    enabled: true
 
 backingServices:
   postgres:
@@ -50,31 +55,75 @@ backingServices:
       limits:
         cpu: "500m"
         memory: "512Mi"
-  redis:
+  valkey:
     enabled: true
-    serviceName: redis
-    image: redis:7-alpine
-    resources:
-      requests:
-        cpu: "50m"
-        memory: "128Mi"
-      limits:
-        cpu: "150m"
-        memory: "256Mi"
-  elasticsearch:
+    serviceName: valkey
+  opensearch:
     enabled: true
-    serviceName: elasticsearch
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.18
-    storageSize: 5Gi
-    # Bulk mass-indexing ~15k trips needs headroom beyond the JVM heap (off-heap buffers, merges).
-    javaOpts: "-Xms768m -Xmx768m"
-    resources:
-      requests:
-        cpu: "500m"
-        memory: "1536Mi"
-      limits:
-        cpu: "1000m"
-        memory: "2Gi"
+    serviceName: opensearch
+
+# Official Valkey Helm chart (valkey-io/valkey-helm).
+valkey:
+  fullnameOverride: valkey
+  auth:
+    enabled: false
+  dataStorage:
+    enabled: false
+  resources:
+    requests:
+      cpu: "50m"
+      memory: "128Mi"
+    limits:
+      cpu: "150m"
+      memory: "256Mi"
+
+# Official OpenSearch Helm chart (opensearch-project/helm-charts), 2.x single-node for local.
+opensearch:
+  fullnameOverride: opensearch
+  singleNode: true
+  replicas: 1
+  clusterName: opensearch
+  masterService: opensearch
+  protocol: http
+  securityConfig:
+    enabled: false
+  extraEnvs:
+    - name: DISABLE_SECURITY_PLUGIN
+      value: "true"
+    - name: DISABLE_INSTALL_DEMO_CONFIG
+      value: "true"
+  opensearchJavaOpts: "-Xms768m -Xmx768m"
+  persistence:
+    enabled: true
+    size: 5Gi
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "1536Mi"
+    limits:
+      cpu: "1000m"
+      memory: "2Gi"
+
+# Official OpenSearch Dashboards Helm chart (opensearch-project/helm-charts), 2.19.x for local debug UI.
+opensearch-dashboards:
+  fullnameOverride: opensearch-dashboards
+  opensearchHosts: "http://opensearch:9200"
+  extraEnvs:
+    - name: DISABLE_SECURITY_DASHBOARDS_PLUGIN
+      value: "true"
+  config:
+    opensearch_dashboards.yml: |
+      server.host: "0.0.0.0"
+      server.basePath: "/debug/opensearch"
+      server.rewriteBasePath: true
+      opensearch.ssl.verificationMode: none
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "512Mi"
+    limits:
+      cpu: "500m"
+      memory: "1Gi"
 
 firestoreEmulator:
   enabled: true
