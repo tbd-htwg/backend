@@ -4,9 +4,13 @@ import java.net.URL;
 import java.text.Normalizer;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -38,6 +42,7 @@ public class ImageService {
     private static final Duration SIGNED_UPLOAD_URL_TTL = Duration.ofMinutes(15);
 
     private final Storage storage;
+    private final ExecutorService imageSigningExecutor;
 
     @Value("${spring.cloud.gcp.storage.bucket-name}")
     private String bucketName;
@@ -147,6 +152,41 @@ public class ImageService {
         return createSignedReadUrl(objectName);
     }
 
+    /**
+     * Signs many read URLs in parallel (bounded pool). Preserves input order; entries that cannot be
+     * signed are omitted from the result positions by returning null at that index — callers should
+     * filter nulls when building lists.
+     */
+    public List<String> createSignedReadUrlsIfAuthenticated(List<String> objectNames) {
+        if (objectNames == null || objectNames.isEmpty()) {
+            return List.of();
+        }
+        if (!isAuthenticatedJwtRequest()) {
+            return Collections.nCopies(objectNames.size(), null);
+        }
+        List<Future<String>> futures = new ArrayList<>(objectNames.size());
+        for (String objectName : objectNames) {
+            futures.add(imageSigningExecutor.submit(() -> signReadUrlUnchecked(objectName)));
+        }
+        List<String> out = new ArrayList<>(objectNames.size());
+        for (Future<String> future : futures) {
+            try {
+                out.add(future.get());
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new IllegalStateException("Interrupted while signing image URLs", e);
+            } catch (ExecutionException e) {
+                throw new IllegalStateException("Failed to sign image URL", e.getCause());
+            }
+        }
+        return out;
+    }
+
+    /** Whether the current request may receive signed GCS read URLs. */
+    public boolean isAuthenticatedForSigning() {
+        return isAuthenticatedJwtRequest();
+    }
+
     public void deleteStoredObjectByPath(String objectName, String requiredNamePrefix) {
         if (objectName == null || objectName.isBlank()) {
             return;
@@ -248,6 +288,18 @@ public class ImageService {
             .map(img -> createSignedReadUrl(img.getImagePath()))
             .filter(url -> url != null)
             .toList();
+    }
+
+    /** Signs a read URL without reading {@link SecurityContextHolder} (for use from signing pool threads). */
+    private String signReadUrlUnchecked(String objectName) {
+        if (objectName == null || objectName.isBlank()) {
+            return null;
+        }
+        String trimmed = objectName.trim();
+        if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+            return trimmed;
+        }
+        return createSignedReadUrl(objectName);
     }
 
     private boolean isAuthenticatedJwtRequest() {
