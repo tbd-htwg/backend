@@ -361,7 +361,7 @@ Trip-service uses the **tbd-cloudappdev** dev bucket and signer SA, configured v
 
 Override in `.env` with `GCP_STORAGE_BUCKET_NAME` and `GCP_IMPERSONATE_SERVICE_ACCOUNT` if your console setup differs.
 
-For **GKE / ms2** (`milestone2-tbd-cad`), use the ms2 getting-started guide and Terraform-managed bucket instead.
+For **GKE / ms2** (`tbd-cloudappdev`), use the ms2 getting-started guide and Terraform-managed bucket instead.
 
 ### One-time setup (image uploads)
 
