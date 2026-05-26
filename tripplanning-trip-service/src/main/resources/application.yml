@@ -97,7 +97,7 @@ spring:
       sql:
         enabled: false
       storage:
-        bucket-name: ${GCP_STORAGE_BUCKET_NAME:milestone2-tbd-cad-images-bucket}
+        bucket-name: ${GCP_STORAGE_BUCKET_NAME:tbd-cloudappdev-images-bucket}
 
   jackson:
     serialization:
