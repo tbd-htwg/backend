@@ -1,11 +1,20 @@
 package com.tripplanning.trip.read;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import com.tripplanning.common.client.SocialServiceClient;
 import com.tripplanning.images.ImageService;
+import com.tripplanning.search.TripSearchDto;
+import com.tripplanning.search.TripSimilarityPort;
+import com.tripplanning.trip.TripRepository;
 import com.tripplanning.trip.read.TripFeedCachedReader.TripFeedAuthorRaw;
 import com.tripplanning.trip.read.TripFeedCachedReader.TripFeedDetailRaw;
 import com.tripplanning.trip.read.TripFeedCachedReader.TripFeedDetailStopRaw;
@@ -31,9 +40,14 @@ import lombok.RequiredArgsConstructor;
 public class TripFeedService {
 
     private static final int MAX_PAGE_SIZE = 50;
+    /** Maximum number of reference trips fed into the MLT query. */
+    private static final int MAX_REFERENCE_TRIPS = 5;
 
     private final TripFeedCachedReader cachedReader;
     private final ImageService imageService;
+    private final TripRepository tripRepository;
+    private final SocialServiceClient socialServiceClient;
+    private final TripSimilarityPort tripSimilarityPort;
 
     public TripFeedPage<TripFeedItem> feed(int page, int size) {
         return materialise(cachedReader.feedRaw(safePage(page), safeSize(size)));
@@ -53,6 +67,75 @@ public class TripFeedService {
 
     public boolean tripExists(long tripId) {
         return cachedReader.tripExists(tripId);
+    }
+
+    /**
+     * Returns a personalised feed based on Elasticsearch "More Like This".
+     * Uses the user's own trips and liked trips as similarity anchors.
+     * Falls back to the chronological {@link #feed} when the user has no anchors.
+     *
+     * @param userId the authenticated user's ID
+     * @param page   zero-based page index
+     * @param size   page size
+     */
+    public TripFeedPage<TripFeedItem> recommendedFeed(long userId, int page, int size) {
+        List<Long> ownIds = tripRepository
+                .findByUserId(userId, Pageable.unpaged())
+                .stream()
+                .map(t -> t.getId())
+                .collect(Collectors.toList());
+
+        List<Long> likedIds = socialServiceClient.getLikedTripIdsForUser(userId);
+        if (likedIds == null) likedIds = List.of();
+
+        // Deduplicate and cap at MAX_REFERENCE_TRIPS (most recent liked first, then own)
+        Set<Long> seen = new LinkedHashSet<>();
+        seen.addAll(likedIds);
+        seen.addAll(ownIds);
+        List<Long> referenceIds = seen.stream().limit(MAX_REFERENCE_TRIPS).collect(Collectors.toList());
+
+        if (referenceIds.isEmpty()) {
+            // No taste signal yet – fall back to latest
+            return feed(page, size);
+        }
+
+        Page<TripSearchDto> similar = tripSimilarityPort.findSimilar(
+                referenceIds, referenceIds, safePage(page), safeSize(size));
+
+        if (similar.isEmpty()) {
+            return feed(page, size);
+        }
+
+        List<TripFeedItem> items = similar.getContent().stream()
+                .map(this::searchDtoToFeedItem)
+                .collect(Collectors.toList());
+
+        return new TripFeedPage<>(
+                items,
+                similar.getNumber(),
+                similar.getSize(),
+                similar.getTotalElements(),
+                similar.getTotalPages());
+    }
+
+    /** Converts a {@link TripSearchDto} (from MLT) into a {@link TripFeedItem}. */
+    private TripFeedItem searchDtoToFeedItem(TripSearchDto dto) {
+        // Author profile image is not available from the search index;
+        // pass null – the SPA must handle a missing profileImageUrl gracefully.
+        TripFeedAuthor author = new TripFeedAuthor(
+                dto.getUserId() != null ? dto.getUserId() : 0L,
+                dto.getAuthor(),
+                null);
+        return new TripFeedItem(
+                dto.getId(),
+                dto.getTitle(),
+                dto.getDestination(),
+                dto.getStartDate(),
+                dto.getShortDescription(),
+                author,
+                dto.getLocations() != null ? dto.getLocations() : List.of(),
+                dto.getAccommodationNames() != null ? dto.getAccommodationNames() : List.of(),
+                dto.getTransportRoutes() != null ? dto.getTransportRoutes() : List.of());
     }
 
     private TripFeedPage<TripFeedItem> materialise(TripFeedPageRaw raw) {
