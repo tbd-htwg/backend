@@ -324,7 +324,7 @@ npm run dev:minikube
 
 Open `http://localhost:5173`. Vite proxies `/api/v2` to `http://localhost:8080` (ingress). CORS is configured on trip-, social-, and external-info-service for `http://localhost:5173` and `http://127.0.0.1:5173`.
 
-For the **GKE** API instead: `npm run dev:k8s` (proxies to `https://api.k8s.tbd-htwg.de`).
+For the **GKE** API instead: `npm run dev:k8s` (proxies to `https://k8s.tbd-htwg.de`).
 
 ---
 
