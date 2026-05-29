@@ -21,7 +21,7 @@ import org.springframework.stereotype.Service;
 
 import jakarta.annotation.PostConstruct;
 
-import com.google.auth.oauth2.GoogleCredentials;
+import com.google.auth.ServiceAccountSigner;
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.BlobInfo;
@@ -42,7 +42,7 @@ public class ImageService {
 
     private final Storage storage;
     private final ExecutorService imageSigningExecutor;
-    private final Optional<GoogleCredentials> gcsSigningCredentials;
+    private final Optional<ServiceAccountSigner> gcsUrlSigner;
 
     @Value("${spring.cloud.gcp.storage.bucket-name}")
     private String bucketName;
@@ -220,8 +220,7 @@ public class ImageService {
             options.add(Storage.SignUrlOption.withContentType());
         }
 
-        gcsSigningCredentials.ifPresent(
-                creds -> options.add(Storage.SignUrlOption.signWith(creds)));
+        gcsUrlSigner.ifPresent(signer -> options.add(Storage.SignUrlOption.signWith(signer)));
 
         try {
             return storage.signUrl(

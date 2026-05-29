@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import com.google.auth.ServiceAccountSigner;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.auth.oauth2.ImpersonatedCredentials;
 
@@ -30,7 +31,7 @@ class ImageSigningConfig {
      * implementation). Empty when {@code spring.cloud.gcp.impersonate-service-account} is unset.
      */
     @Bean
-    Optional<GoogleCredentials> gcsSigningCredentials(
+    Optional<ServiceAccountSigner> gcsUrlSigner(
             @Value("${spring.cloud.gcp.impersonate-service-account:}") String impersonateServiceAccount)
             throws IOException {
         String target = impersonateServiceAccount == null ? "" : impersonateServiceAccount.trim();
@@ -39,7 +40,8 @@ class ImageSigningConfig {
         }
         GoogleCredentials source =
                 GoogleCredentials.getApplicationDefault().createScoped(CLOUD_PLATFORM_SCOPE);
-        return Optional.of(
-                ImpersonatedCredentials.create(source, target, null, CLOUD_PLATFORM_SCOPE, 300));
+        ImpersonatedCredentials signer =
+                ImpersonatedCredentials.create(source, target, null, CLOUD_PLATFORM_SCOPE, 300);
+        return Optional.of(signer);
     }
 }
