@@ -5,6 +5,7 @@ import com.tripplanning.transport.TransportEntity;
 import com.tripplanning.transport.TransportRoutes;
 import com.tripplanning.tripLocation.TripLocationEntity;
 import com.tripplanning.user.UserEntity;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -118,10 +119,12 @@ public class TripEntity {
   @Column(nullable = false, columnDefinition = "TEXT")
   private String longDescription;
 
+  @JsonIgnore
   public List<String> getAccommodationNames() {
     return accommodations.stream().map(AccomEntity::getName).toList();
   }
 
+  @JsonIgnore
   public List<String> getTransportRoutes() {
     return transports.stream()
         .map(t -> TransportRoutes.format(t.getStartAddress(), t.getEndAddress()))
