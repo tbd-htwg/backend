@@ -9,18 +9,30 @@ import com.tripplanning.config.CacheConfig;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Evicts the trip-detail Valkey/Caffeine cache.
+ * Evicts trip feed, detail, and existence caches.
  *
  * <p>Spring Data REST invokes {@code @RepositoryEventHandler} methods through reflection on the
- * raw bean instance, which bypasses Spring AOP proxies. That means {@code @CacheEvict} placed on a
- * handler method does not fire. Wrapping the eviction logic in this collaborator and calling it
- * from event handlers / controllers gives reliable cache invalidation through plain method calls.
+ * raw bean instance, which bypasses Spring AOP proxies. Wrapping eviction in this collaborator gives
+ * reliable invalidation through plain method calls.
  */
 @Component
 @RequiredArgsConstructor
 public class TripCacheEvictor {
 
     private final CacheManager cacheManager;
+
+    /** Evict every paginated feed (whole list, by-user, liked-by) and the cached trip total count. */
+    public void evictAllFeeds() {
+        clear(CacheConfig.TRIP_FEED_PAGE);
+        clear(CacheConfig.TRIP_FEED_BY_USER);
+        clear(CacheConfig.TRIP_FEED_LIKED_BY);
+        clear(CacheConfig.TRIP_TOTAL_COUNT);
+    }
+
+    /** Evict the liked-by feed cache (for like add/remove). */
+    public void evictLikedByFeeds() {
+        clear(CacheConfig.TRIP_FEED_LIKED_BY);
+    }
 
     /** Evict a single trip's detail entry. */
     public void evictTripDetail(Long tripId) {
@@ -30,9 +42,19 @@ public class TripCacheEvictor {
         }
     }
 
-    /** Trip CRUD / nested trip mutations: evict that trip's cached detail payload. */
+    /** Evict the existence-check entry (used after a trip is created or deleted). */
+    public void evictTripExists(Long tripId) {
+        Cache cache = cacheManager.getCache(CacheConfig.TRIP_EXISTS);
+        if (cache != null && tripId != null) {
+            cache.evict(tripId);
+        }
+    }
+
+    /** Trip CRUD: evict the trip's detail, existence check, total count, and every feed page. */
     public void evictForTripChange(Long tripId) {
         evictTripDetail(tripId);
+        evictTripExists(tripId);
+        evictAllFeeds();
     }
 
     /**
@@ -46,11 +68,10 @@ public class TripCacheEvictor {
         }
     }
 
-    /** Kept for social-service hook; liked-by feed is no longer cached. */
-    public void evictLikedByFeeds() {}
-
-    /** Kept for call sites that previously cleared feed caches. */
-    public void evictAllFeeds() {
-        evictAllTripDetails();
+    private void clear(String name) {
+        Cache cache = cacheManager.getCache(name);
+        if (cache != null) {
+            cache.clear();
+        }
     }
 }

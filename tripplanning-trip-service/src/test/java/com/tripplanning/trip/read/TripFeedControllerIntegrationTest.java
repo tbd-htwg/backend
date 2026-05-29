@@ -183,18 +183,35 @@ class TripFeedControllerIntegrationTest {
     }
 
     @Test
+    void feedRaw_isCachedAfterFirstCall() {
+        tripFeedService.feed(0, 10);
+        assertThat(cacheManager.getCache(CacheConfig.TRIP_FEED_PAGE).get(List.of(0, 10)))
+                .isNotNull();
+    }
+
+    @Test
+    void tripExists_isCachedAfterFirstCall() {
+        boolean firstAnswer = tripFeedService.tripExists(trip.getId());
+        assertThat(firstAnswer).isTrue();
+        assertThat(cacheManager.getCache(CacheConfig.TRIP_EXISTS).get(trip.getId(), Boolean.class))
+                .isTrue();
+    }
+
+    @Test
     void detailRaw_isCachedAfterFirstCall() {
         tripFeedService.detail(trip.getId());
         assertThat(cacheManager.getCache(CacheConfig.TRIP_DETAIL).get(trip.getId())).isNotNull();
     }
 
     @Test
-    void evictForTripChange_invalidatesDetailCache() {
-        tripFeedService.detail(trip.getId());
-        assertThat(cacheManager.getCache(CacheConfig.TRIP_DETAIL).get(trip.getId())).isNotNull();
+    void evictForTripChange_invalidatesFeedAndDetailCaches() {
+        tripFeedService.feed(0, 10);
+        assertThat(cacheManager.getCache(CacheConfig.TRIP_FEED_PAGE).get(List.of(0, 10)))
+                .isNotNull();
 
         tripCacheEvictor.evictForTripChange(trip.getId());
 
+        assertThat(cacheManager.getCache(CacheConfig.TRIP_FEED_PAGE).get(List.of(0, 10))).isNull();
         assertThat(cacheManager.getCache(CacheConfig.TRIP_DETAIL).get(trip.getId())).isNull();
     }
 

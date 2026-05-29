@@ -10,7 +10,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -34,10 +36,11 @@ import lombok.RequiredArgsConstructor;
  * SQL-only read layer for the trip feed and trip detail. Returns "raw" DTOs that carry GCS
  * image paths instead of signed URLs for detail caching (independent of per-request auth).
  *
- * <p>Only {@link #detailRaw(long)} is cached in Valkey. Feed pages and search are always fresh.
+ * <p>Feed pages, trip existence, total trip count, and {@link #detailRaw(long)} are cached in Valkey.
+ * Search is always fresh.
  *
  * <p>Lives in its own bean so that {@link TripFeedService} can call into it through the Spring
- * proxy and the {@code @Cacheable} aspect on {@code detailRaw} actually fires.
+ * proxy and the {@code @Cacheable} aspect actually fires.
  */
 @Service
 @RequiredArgsConstructor
@@ -48,14 +51,19 @@ public class TripFeedCachedReader {
     private final TripLocationRepository tripLocationRepository;
     private final SocialServiceClient socialServiceClient;
 
+    @Autowired @Lazy
+    private TripFeedCachedReader self;
+
+    @Cacheable(value = CacheConfig.TRIP_EXISTS, key = "#tripId")
     @Transactional(readOnly = true)
     public boolean tripExists(long tripId) {
         return tripRepository.existsById(tripId);
     }
 
+    @Cacheable(value = CacheConfig.TRIP_FEED_PAGE, key = "T(java.util.List).of(#page, #size)")
     @Transactional(readOnly = true)
     public TripFeedPageRaw feedRaw(int page, int size) {
-        long totalItems = countAll();
+        long totalItems = self.countAllCached();
         if (totalItems == 0) {
             return emptyRawPage(page, size);
         }
@@ -72,6 +80,7 @@ public class TripFeedCachedReader {
         return assembleRawPage(headers, page, size, totalItems);
     }
 
+    @Cacheable(value = CacheConfig.TRIP_FEED_BY_USER, key = "T(java.util.List).of(#userId, #page, #size)")
     @Transactional(readOnly = true)
     public TripFeedPageRaw feedByUserRaw(long userId, int page, int size) {
         long totalItems = countByUser(userId);
@@ -92,6 +101,7 @@ public class TripFeedCachedReader {
         return assembleRawPage(headers, page, size, totalItems);
     }
 
+    @Cacheable(value = CacheConfig.TRIP_FEED_LIKED_BY, key = "T(java.util.List).of(#userId, #page, #size)")
     @Transactional(readOnly = true)
     public TripFeedPageRaw feedLikedByRaw(long userId, int page, int size) {
         List<Long> allLikedTripIds = socialServiceClient.getLikedTripIdsForUser(userId);
@@ -277,6 +287,12 @@ public class TripFeedCachedReader {
         return entityManager
                 .createQuery("SELECT count(t.id) FROM TripEntity t", Long.class)
                 .getSingleResult();
+    }
+
+    @Cacheable(value = CacheConfig.TRIP_TOTAL_COUNT, key = "'all'")
+    @Transactional(readOnly = true)
+    public long countAllCached() {
+        return countAll();
     }
 
     private long countByUser(long userId) {
