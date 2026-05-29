@@ -1,7 +1,6 @@
 package com.tripplanning.auth;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -22,6 +21,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
+import com.tripplanning.common.auth.TestBearerImpersonationFilter;
 import com.tripplanning.user.UserRepository;
 
 /**
@@ -38,16 +38,18 @@ class TestBearerImpersonationFilterTest {
   @BeforeEach
   void setUp() {
     userRepository = mock(UserRepository.class);
-    filter = new TestBearerImpersonationFilter(TEST_BEARER, userRepository);
+    filter =
+        new TestBearerImpersonationFilter(
+            TEST_BEARER, id -> id == 0L || userRepository.existsById(id));
     SecurityContextHolder.clearContext();
   }
 
   @Test
   void blankToken_throws() {
     org.junit.jupiter.api.Assertions.assertThrows(
-        IllegalStateException.class, () -> new TestBearerImpersonationFilter("", userRepository));
+        IllegalStateException.class, () -> new TestBearerImpersonationFilter(""));
     org.junit.jupiter.api.Assertions.assertThrows(
-        IllegalStateException.class, () -> new TestBearerImpersonationFilter(null, userRepository));
+        IllegalStateException.class, () -> new TestBearerImpersonationFilter(null));
   }
 
   @Test

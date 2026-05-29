@@ -8,6 +8,7 @@ tripplanning:
     firebase-project-id: ${TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID:tbd-cloudappdev}
     jwt-secret: ${TRIPPLANNING_AUTH_JWT_SECRET:}
     jwt-expiration-seconds: ${TRIPPLANNING_AUTH_JWT_EXPIRATION_SECONDS:43200}
+    test-bearer-token: ${TRIPPLANNING_AUTH_TEST_BEARER_TOKEN:}
   services:
     trip-base-url: ${TRIPPLANNING_TRIP_SERVICE_URL:http://localhost:8080}
     social-base-url: ${TRIPPLANNING_SOCIAL_SERVICE_URL:http://localhost:8081}
