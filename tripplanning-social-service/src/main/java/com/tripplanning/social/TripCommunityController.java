@@ -24,12 +24,10 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class TripCommunityController {
 
-    private static final int BUNDLE_COMMENT_PAGE = 10;
-
     private final TripServiceClient tripServiceClient;
     private final TripLikeRepository tripLikeRepository;
-    private final FirestoreSocialService firestoreSocialService;
     private final SocialCommentEnricher socialCommentEnricher;
+    private final CommunityCachedReader communityCachedReader;
 
     /**
      * Bundled community payload for the trip detail page: counts, optional like status for the
@@ -41,8 +39,10 @@ public class TripCommunityController {
             @PathVariable Long tripId,
             @AuthenticationPrincipal Jwt jwt) {
         requireTrip(tripId);
-        long likeCount = firestoreSocialService.countLikesForTrip(tripId);
-        long totalCommentCount = firestoreSocialService.countCommentsForTrip(tripId);
+        CommunityCachedReader.CommunityBundleCache bundle =
+                communityCachedReader.communityBundleRaw(tripId);
+        long likeCount = bundle.likeCount();
+        long totalCommentCount = bundle.totalCommentCount();
         Boolean likedByCurrentUser = null;
         if (jwt != null) {
             long uid = Long.parseLong(jwt.getSubject());
@@ -54,8 +54,7 @@ public class TripCommunityController {
                                     .defaultIfEmpty(false)
                                     .block());
         }
-        FirestoreSocialService.CommentPage page =
-                firestoreSocialService.fetchCommentPage(tripId, BUNDLE_COMMENT_PAGE, null);
+        FirestoreSocialService.CommentPage page = bundle.commentPage();
         List<CommunityCommentItem> comments = socialCommentEnricher.enrich(page.items());
         return new TripCommunityResponse(
                 likeCount,

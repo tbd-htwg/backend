@@ -124,7 +124,7 @@ public class TripFeedCachedReader {
         return assembleRawPage(headers, page, size, totalItems);
     }
 
-    /** Not cached in Redis: detail DTOs embed {@link TripFeedDtos} types that are awkward to round-trip. */
+    @Cacheable(value = CacheConfig.TRIP_DETAIL, key = "#tripId")
     @Transactional(readOnly = true)
     public TripFeedDetailRaw detailRaw(long tripId) {
         TripDetailHeaderRow header;

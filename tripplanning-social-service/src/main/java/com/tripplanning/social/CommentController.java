@@ -34,6 +34,7 @@ public class CommentController {
     private final TripServiceClient tripServiceClient;
     private final FirestoreSocialService firestoreSocialService;
     private final SocialCommentEnricher socialCommentEnricher;
+    private final CommunityCacheEvictor communityCacheEvictor;
 
     @GetMapping("/search/findByTripIdOrderByCreatedAtDesc")
     public Map<String, Object> getByTrip(
@@ -110,6 +111,7 @@ public class CommentController {
         }
         CommentDocument saved =
                 commentRepository.save(new CommentDocument(tripId, userId, content)).block();
+        communityCacheEvictor.evictForTrip(tripId);
         String base = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
         String userName =
                 tripServiceClient
@@ -144,6 +146,7 @@ public class CommentController {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Nicht berechtigt");
         }
         commentRepository.deleteById(id).block();
+        communityCacheEvictor.evictForTrip(comment.getTripId());
         return ResponseEntity.noContent().build();
     }
 

@@ -56,8 +56,16 @@ public class TripFeedService {
     }
 
     private TripFeedPage<TripFeedItem> materialise(TripFeedPageRaw raw) {
-        List<TripFeedItem> items = new ArrayList<>(raw.items().size());
-        for (TripFeedItemRaw item : raw.items()) {
+        List<TripFeedItemRaw> rawItems = raw.items();
+        List<String> authorPaths = new ArrayList<>(rawItems.size());
+        for (TripFeedItemRaw item : rawItems) {
+            authorPaths.add(item.author().imagePath());
+        }
+        List<String> signedAuthorUrls = signPathsInOrder(authorPaths);
+
+        List<TripFeedItem> items = new ArrayList<>(rawItems.size());
+        for (int i = 0; i < rawItems.size(); i++) {
+            TripFeedItemRaw item = rawItems.get(i);
             items.add(
                     new TripFeedItem(
                             item.id(),
@@ -65,7 +73,10 @@ public class TripFeedService {
                             item.destination(),
                             item.startDate(),
                             item.shortDescription(),
-                            materialiseAuthor(item.author()),
+                            new TripFeedAuthor(
+                                    item.author().id(),
+                                    item.author().name(),
+                                    signedAuthorUrls.get(i)),
                             item.locations(),
                             item.accommodationNames(),
                             item.transportRoutes()));
@@ -74,13 +85,26 @@ public class TripFeedService {
     }
 
     private TripFeedDetail materialiseDetail(TripFeedDetailRaw raw) {
-        List<TripFeedDetailStop> stops = new ArrayList<>(raw.stops().size());
+        List<String> flatPaths = new ArrayList<>();
+        flatPaths.add(raw.author().imagePath());
+        List<Integer> pathsPerStop = new ArrayList<>(raw.stops().size());
         for (TripFeedDetailStopRaw stop : raw.stops()) {
-            List<String> signed = new ArrayList<>(stop.imagePaths().size());
-            for (String path : stop.imagePaths()) {
-                String url = imageService.createSignedReadUrlIfAuthenticated(path);
+            pathsPerStop.add(stop.imagePaths().size());
+            flatPaths.addAll(stop.imagePaths());
+        }
+
+        List<String> signed = signPathsInOrder(flatPaths);
+        int idx = 0;
+        String authorUrl = signed.get(idx++);
+
+        List<TripFeedDetailStop> stops = new ArrayList<>(raw.stops().size());
+        for (int s = 0; s < raw.stops().size(); s++) {
+            TripFeedDetailStopRaw stop = raw.stops().get(s);
+            List<String> stopSigned = new ArrayList<>(pathsPerStop.get(s));
+            for (int p = 0; p < pathsPerStop.get(s); p++) {
+                String url = signed.get(idx++);
                 if (url != null && !url.isBlank()) {
-                    signed.add(url);
+                    stopSigned.add(url);
                 }
             }
             stops.add(
@@ -96,7 +120,7 @@ public class TripFeedService {
                             stop.longitude(),
                             stop.countryCode(),
                             stop.formattedAddress(),
-                            signed));
+                            stopSigned));
         }
         return new TripFeedDetail(
                 raw.id(),
@@ -106,15 +130,18 @@ public class TripFeedService {
                 raw.startDate(),
                 raw.shortDescription(),
                 raw.longDescription(),
-                materialiseAuthor(raw.author()),
+                new TripFeedAuthor(raw.author().id(), raw.author().name(), authorUrl),
                 stops,
                 raw.accommodations(),
                 raw.transports());
     }
 
-    private TripFeedAuthor materialiseAuthor(TripFeedAuthorRaw raw) {
-        return new TripFeedAuthor(
-                raw.id(), raw.name(), imageService.createSignedReadUrlIfAuthenticated(raw.imagePath()));
+    /** Signs paths in parallel (bounded pool); preserves input order with nulls for unsigned entries. */
+    private List<String> signPathsInOrder(List<String> paths) {
+        if (paths.isEmpty()) {
+            return List.of();
+        }
+        return imageService.createSignedReadUrlsIfAuthenticated(paths);
     }
 
     private static int safePage(int page) {
