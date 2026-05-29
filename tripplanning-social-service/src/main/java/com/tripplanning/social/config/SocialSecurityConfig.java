@@ -12,6 +12,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -54,22 +55,26 @@ public class SocialSecurityConfig {
                                         .permitAll()
                                         .requestMatchers("/internal/**")
                                         .permitAll()
-                                        .requestMatchers(HttpMethod.POST, "/api/v2/trips/*/like")
+                                        .requestMatchers(ant(HttpMethod.POST, "/api/v2/trips/*/like"))
                                         .authenticated()
-                                        .requestMatchers(HttpMethod.GET, "/api/v2/trips/search/countLikes")
+                                        .requestMatchers(ant(HttpMethod.GET, "/api/v2/trips/search/countLikes"))
                                         .permitAll()
-                                        .requestMatchers(HttpMethod.HEAD, "/api/v2/users/*/likedTrips/*")
+                                        .requestMatchers(ant(HttpMethod.HEAD, "/api/v2/users/*/likedTrips/*"))
                                         .permitAll()
-                                        .requestMatchers(HttpMethod.GET, "/api/v2/trips/*/community")
+                                        .requestMatchers(ant(HttpMethod.GET, "/api/v2/trips/*/community"))
                                         .permitAll()
-                                        .requestMatchers(HttpMethod.GET, "/api/v2/trips/*/comments")
+                                        .requestMatchers(ant(HttpMethod.GET, "/api/v2/trips/*/comments"))
                                         .permitAll()
-                                        .requestMatchers(HttpMethod.GET, "/api/v2/comments")
+                                        .requestMatchers(ant(HttpMethod.GET, "/api/v2/comments"))
                                         .permitAll()
                                         .anyRequest()
                                         .authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
                 .addFilterBefore(internalApiAuthFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
+    }
+
+    private static AntPathRequestMatcher ant(HttpMethod method, String pattern) {
+        return new AntPathRequestMatcher(pattern, method.name());
     }
 }

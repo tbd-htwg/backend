@@ -77,12 +77,18 @@ public class ViatorApi {
                 "filtering", Map.of("destination", viatorDestinationId),
                 "currency", "EUR");
 
+        String apiKey = viatorApiKey != null ? viatorApiKey.trim() : "";
+        if (apiKey.isBlank()) {
+            log.warn("VIATOR_API_KEY is not configured; returning no Viator tours for '{}'.", location);
+            return Mono.just(Collections.emptyList());
+        }
+
         return webClient.post()
                 .uri(uriBuilder -> UriComponentsBuilder.fromHttpUrl(baseUrl)
                         .path("/partner/products/search") 
                         .build()
                         .toUri())
-                .header("exp-api-key", viatorApiKey != null ? viatorApiKey : "")
+                .header("exp-api-key", apiKey)
                 .header("Accept", "application/json;version=2.0")
                 .header("Content-Type", "application/json")
                 .header("Accept-Language", "en-US")
