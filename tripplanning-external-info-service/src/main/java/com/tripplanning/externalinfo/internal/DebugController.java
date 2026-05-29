@@ -69,8 +69,7 @@ public class DebugController {
                         "extinfo:v1:places:*",
                         "extinfo:v1:weather:*",
                         "extinfo:v1:warnings:*",
-                        "extinfo:v1:tours:*",
-                        "extinfo:v1:transportRouteV2:*"));
+                        "extinfo:v1:tours:*"));
         return body;
     }
 }

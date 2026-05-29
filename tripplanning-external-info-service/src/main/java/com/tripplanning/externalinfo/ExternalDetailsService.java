@@ -9,7 +9,6 @@ import java.util.Map;
 import org.springframework.stereotype.Service;
 
 import com.tripplanning.externalinfo.ApiProxyServices.CachedGooglePlacesService;
-import com.tripplanning.externalinfo.ApiProxyServices.GoogleRoutesDistanceApi;
 import com.tripplanning.externalinfo.ApiProxyServices.TravelWarningApi;
 import com.tripplanning.externalinfo.ApiProxyServices.ViatorApi;
 import com.tripplanning.externalinfo.ApiProxyServices.WeatherApi;
@@ -17,7 +16,6 @@ import com.tripplanning.externalinfo.dto.ExternalInfoDtos.AccommodationExternalI
 import com.tripplanning.externalinfo.dto.ExternalInfoDtos.AccommodationExternalInput;
 import com.tripplanning.externalinfo.dto.ExternalInfoDtos.PlaceDetailsResult;
 import com.tripplanning.externalinfo.dto.ExternalInfoDtos.StopExternalInfo;
-import com.tripplanning.externalinfo.dto.ExternalInfoDtos.TransportRouteResult;
 import com.tripplanning.externalinfo.dto.ExternalInfoDtos.TripExternalInfo;
 import com.tripplanning.externalinfo.util.ViatorPriceSplitter;
 
@@ -33,7 +31,6 @@ public class ExternalDetailsService {
     private final TravelWarningApi travelWarningApi;
     private final WeatherApi weatherApi;
     private final ViatorApi viatorApi;
-    private final GoogleRoutesDistanceApi googleRoutesDistanceApi;
 
     /** Legacy combined payload (still includes Viator). */
     public Mono<TripExternalInfo> tripExternalInfo(
@@ -128,16 +125,6 @@ public class ExternalDetailsService {
                                                 input.currency())
                                         .map(info -> Map.entry(input.key(), info)))
                 .collectMap(Map.Entry::getKey, Map.Entry::getValue);
-    }
-
-    public Mono<TransportRouteResult> transportRoute(
-            double originLat,
-            double originLon,
-            double destLat,
-            double destLon,
-            String travelMode) {
-        return googleRoutesDistanceApi.computeRoute(
-                originLat, originLon, destLat, destLon, travelMode);
     }
 
     private Mono<StopExternalInfo> buildStopExternalInfo(PlaceDetailsResult geo) {
