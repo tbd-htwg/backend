@@ -63,6 +63,36 @@ cd ../infrastructure/ms2/terraform/envs/dev
 # follow Terraform / GitOps deploy for your environment
 ```
 
+## GKE perf dataset (seed job)
+
+Publish images (GitHub Actions → **Docker GKE services**, or build locally):
+
+```bash
+docker build --build-arg SERVICE=seed-job -t ghcr.io/tbd-htwg/backend/tripplanning-seed-job:latest ./backend
+```
+
+Sync sample images to **`gs://tbd-cloudappdev-images-bucket/sample/`** (one-time; ~2.8 GiB):
+
+```bash
+./scripts/gke-sync-sample-images.sh
+# equivalent: ./scripts/sync-sample-images.sh --target prod
+```
+
+Local/Minikube test bucket:
+
+```bash
+./scripts/sync-sample-images.sh --target test
+# equivalent: ./scripts/local-dev.sh sync-sample-images
+```
+
+Run the one-shot seed job against `tripplanning-free` (wipes Postgres + Firestore, copies manifest for Locust):
+
+```bash
+./scripts/gke-seed-job.sh --skip-sync   # if sample images already synced
+```
+
+Locust: `--host=https://k8s.tbd-htwg.de` with `PERF_TEST_BEARER` — see [GKE dev checklist](../infrastructure/ms2/docs/gke-dev-hpa-and-test-bearer-checklist.md).
+
 ### Option B — plain JVM (no Kubernetes)
 
 | Terminal | Command |

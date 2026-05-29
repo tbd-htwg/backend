@@ -283,7 +283,7 @@ maybe_sync_sample_images() {
 }
 
 cmd_sync_sample_images() {
-  "${SCRIPT_DIR}/sync-sample-images.sh"
+  "${SCRIPT_DIR}/sync-sample-images.sh" --target test
 }
 
 stop_host_firestore_emulator() {

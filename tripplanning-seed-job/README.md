@@ -48,6 +48,31 @@ Writes `performance/seeding_example/perf_seed_manifest.json` for Locust (`PERF_U
 
 Disable wipe (e.g. tests): `TRIPPLANNING_SEED_WIPE_BEFORE_SEED=false`.
 
+## Run on GKE dev (`tripplanning-free`)
+
+Prerequisites:
+
+1. Cluster credentials: `gcloud container clusters get-credentials tripplanning-gke --region europe-west1 --project tbd-cloudappdev`
+2. Seed-job image published: GitHub Actions → **Docker GKE services** (includes `tripplanning-seed-job`), or `./scripts/gke-seed-job.sh --build-push`
+3. Sample images in GKE bucket (one-time or on each full run):
+
+```bash
+./scripts/gke-sync-sample-images.sh
+# or: ./scripts/sync-sample-images.sh --target prod
+```
+
+Wipe + seed (syncs sample images unless `--skip-sync`):
+
+```bash
+./scripts/gke-seed-job.sh
+# or, if images already synced:
+./scripts/gke-seed-job.sh --skip-sync --yes
+```
+
+Writes `performance/seeding_example/perf_seed_manifest.json` for Locust. Uses real Firestore (`tbd-firestore`), not the emulator.
+
+See also [GKE dev checklist](../../infrastructure/ms2/docs/gke-dev-hpa-and-test-bearer-checklist.md).
+
 ## Ownership guarantees
 
 For every user id **1..5000**:
