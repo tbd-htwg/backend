@@ -175,4 +175,25 @@ class TestBearerImpersonationFilterTest {
     assertThat(auth).isNotNull();
     assertThat(((Jwt) auth.getPrincipal()).getSubject()).isEqualTo("7");
   }
+
+  @Test
+  void matchingBearerWithAppJwtFactory_replacesAuthorizationHeader() throws Exception {
+    when(userRepository.existsById(42L)).thenReturn(true);
+    TestBearerImpersonationFilter jwtFilter =
+        new TestBearerImpersonationFilter(
+            TEST_BEARER, id -> id == 0L || userRepository.existsById(id), userId -> "signed.app.jwt");
+
+    MockHttpServletRequest request = new MockHttpServletRequest("POST", "/api/v2/trips");
+    request.addHeader(HttpHeaders.AUTHORIZATION, "Bearer " + TEST_BEARER);
+    request.addHeader("X-Act-As-User", "42");
+    MockHttpServletResponse response = new MockHttpServletResponse();
+    FilterChain chain = mock(FilterChain.class);
+
+    jwtFilter.doFilter(request, response, chain);
+
+    ArgumentCaptor<HttpServletRequest> req = ArgumentCaptor.forClass(HttpServletRequest.class);
+    verify(chain, times(1)).doFilter(req.capture(), any());
+    assertThat(req.getValue().getHeader(HttpHeaders.AUTHORIZATION)).isEqualTo("Bearer signed.app.jwt");
+    assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
+  }
 }

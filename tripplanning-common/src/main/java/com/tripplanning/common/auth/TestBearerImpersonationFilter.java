@@ -7,6 +7,7 @@ import java.time.Instant;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.function.LongFunction;
 import java.util.function.LongPredicate;
 
 import jakarta.servlet.FilterChain;
@@ -35,17 +36,29 @@ public class TestBearerImpersonationFilter extends OncePerRequestFilter {
 
     private final byte[] expectedTokenBytes;
     private final LongPredicate userExists;
+    private final LongFunction<String> appJwtFactory;
 
     public TestBearerImpersonationFilter(String testBearerToken) {
         this(testBearerToken, id -> true);
     }
 
     public TestBearerImpersonationFilter(String testBearerToken, LongPredicate userExists) {
+        this(testBearerToken, userExists, null);
+    }
+
+    /**
+     * When {@code appJwtFactory} is set, a matching test bearer is exchanged for a real application
+     * JWT on the request (for OAuth2 resource-server + Spring Data REST). Otherwise the filter sets
+     * an impersonation {@link JwtAuthenticationToken} directly and strips {@code Authorization}.
+     */
+    public TestBearerImpersonationFilter(
+            String testBearerToken, LongPredicate userExists, LongFunction<String> appJwtFactory) {
         if (testBearerToken == null || testBearerToken.isBlank()) {
             throw new IllegalStateException("testBearerToken must not be blank when filter is wired");
         }
         this.expectedTokenBytes = testBearerToken.getBytes(StandardCharsets.UTF_8);
         this.userExists = userExists;
+        this.appJwtFactory = appJwtFactory;
     }
 
     @Override
@@ -89,6 +102,21 @@ public class TestBearerImpersonationFilter extends OncePerRequestFilter {
             }
         }
 
+        if (appJwtFactory != null) {
+            String appJwt = appJwtFactory.apply(userId);
+            if (appJwt == null || appJwt.isBlank()) {
+                sendUnauthorized(
+                        response,
+                        HttpServletResponse.SC_UNAUTHORIZED,
+                        "invalid_token",
+                        "Could not issue application JWT for test bearer impersonation");
+                return;
+            }
+            SecurityContextHolder.clearContext();
+            chain.doFilter(replaceAuthorizationHeader(request, appJwt), response);
+            return;
+        }
+
         Instant now = Instant.now();
         Jwt jwt =
                 Jwt.withTokenValue(IMPERSONATION_TOKEN_VALUE)
@@ -119,6 +147,28 @@ public class TestBearerImpersonationFilter extends OncePerRequestFilter {
                 HttpHeaders.WWW_AUTHENTICATE,
                 "Bearer error=\"" + oauthError + "\", error_description=\"" + description + "\"");
         response.sendError(status, description);
+    }
+
+    private static HttpServletRequestWrapper replaceAuthorizationHeader(
+            HttpServletRequest request, String jwt) {
+        String bearer = BEARER_PREFIX + jwt;
+        return new HttpServletRequestWrapper(request) {
+            @Override
+            public String getHeader(String name) {
+                if (HttpHeaders.AUTHORIZATION.equalsIgnoreCase(name)) {
+                    return bearer;
+                }
+                return super.getHeader(name);
+            }
+
+            @Override
+            public Enumeration<String> getHeaders(String name) {
+                if (HttpHeaders.AUTHORIZATION.equalsIgnoreCase(name)) {
+                    return Collections.enumeration(List.of(bearer));
+                }
+                return super.getHeaders(name);
+            }
+        };
     }
 
     private static HttpServletRequestWrapper stripAuthorizationHeader(HttpServletRequest request) {

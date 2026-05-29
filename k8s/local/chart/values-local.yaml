@@ -133,6 +133,10 @@ ingressRoutes:
     service: social-service
     port: 8081
     pathType: ImplementationSpecific
+  - path: /api/v2/users/[^/]+/likedTrips$
+    service: social-service
+    port: 8081
+    pathType: ImplementationSpecific
   - path: /api/v2/users/[^/]+/likedTrips/[^/]+
     service: social-service
     port: 8081

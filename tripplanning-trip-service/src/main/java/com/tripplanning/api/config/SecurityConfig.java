@@ -23,6 +23,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.tripplanning.common.auth.AuthProperties;
 import com.tripplanning.common.auth.TestBearerImpersonationFilter;
+import com.tripplanning.auth.AppJwtService;
 import com.tripplanning.user.UserRepository;
 
 @Configuration
@@ -60,9 +61,21 @@ public class SecurityConfig {
   @Bean
   @ConditionalOnExpression("'${tripplanning.auth.test-bearer-token:}'.length() > 0")
   public TestBearerImpersonationFilter testBearerImpersonationFilter(
-      AuthProperties authProperties, UserRepository userRepository) {
+      AuthProperties authProperties,
+      UserRepository userRepository,
+      AppJwtService appJwtService) {
     return new TestBearerImpersonationFilter(
-        authProperties.getTestBearerToken(), id -> id == 0L || userRepository.existsById(id));
+        authProperties.getTestBearerToken(),
+        id -> id == 0L || userRepository.existsById(id),
+        userId -> {
+          if (userId == 0L) {
+            return appJwtService.createToken(0L, "");
+          }
+          return userRepository
+              .findById(userId)
+              .map(user -> appJwtService.createToken(user.getId(), user.getEmail()))
+              .orElse(null);
+        });
   }
 
   @Bean
