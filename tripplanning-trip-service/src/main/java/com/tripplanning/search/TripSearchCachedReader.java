@@ -9,7 +9,6 @@ import java.util.Map;
 import org.hibernate.search.engine.search.query.SearchResult;
 import org.hibernate.search.mapper.orm.Search;
 import org.hibernate.search.mapper.orm.session.SearchSession;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -17,7 +16,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tripplanning.config.CacheConfig;
 import com.tripplanning.transport.TransportRoutes;
 import com.tripplanning.trip.TripEntity;
 
@@ -25,8 +23,8 @@ import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Cached Elasticsearch search with fixed-count SQL hydration (no lazy N+1). Lives in its own bean
- * so {@code @Cacheable} fires through the Spring proxy.
+ * Elasticsearch search with fixed-count SQL hydration (no lazy N+1). Lives in its own bean so
+ * {@link TripSearchService} stays thin.
  */
 @Service
 @RequiredArgsConstructor
@@ -34,9 +32,6 @@ public class TripSearchCachedReader {
 
     private final EntityManager entityManager;
 
-    @Cacheable(
-            value = CacheConfig.TRIP_SEARCH,
-            key = "T(java.util.List).of(#terms.trim().toLowerCase(), #page, #size)")
     @Transactional(readOnly = true)
     public Page<TripSearchDto> searchRaw(String terms, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);

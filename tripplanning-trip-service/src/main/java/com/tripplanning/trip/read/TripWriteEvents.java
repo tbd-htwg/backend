@@ -19,8 +19,8 @@ import com.tripplanning.tripLocation.TripLocationEntity;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Spring Data REST event handlers that invalidate {@link TripCacheEvictor} caches whenever a trip
- * (or anything embedded in a trip's feed/detail payload) changes through the SDR collections.
+ * Spring Data REST event handlers that invalidate trip-detail cache whenever a trip
+ * (or anything embedded in a trip's detail payload) changes through the SDR collections.
  *
  * <p>Mutations made through custom controllers ({@link com.tripplanning.images.TripLocationImageController},
  * {@link com.tripplanning.images.TripLocationPreuploadedImageController},

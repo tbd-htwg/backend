@@ -31,13 +31,13 @@ import jakarta.persistence.TypedQuery;
 import lombok.RequiredArgsConstructor;
 
 /**
- * SQL-only read layer for the trip feed and trip detail. Returns "raw" DTOs that carry GCS object
- * paths instead of signed URLs, so the cached representation is independent of per-request
- * authentication state.
+ * SQL-only read layer for the trip feed and trip detail. Returns "raw" DTOs that carry GCS
+ * image paths instead of signed URLs for detail caching (independent of per-request auth).
+ *
+ * <p>Only {@link #detailRaw(long)} is cached in Valkey. Feed pages and search are always fresh.
  *
  * <p>Lives in its own bean so that {@link TripFeedService} can call into it through the Spring
- * proxy and the {@code @Cacheable} aspect actually fires (self-invocation inside one bean would
- * bypass the proxy and silently disable caching).
+ * proxy and the {@code @Cacheable} aspect on {@code detailRaw} actually fires.
  */
 @Service
 @RequiredArgsConstructor
@@ -48,13 +48,11 @@ public class TripFeedCachedReader {
     private final TripLocationRepository tripLocationRepository;
     private final SocialServiceClient socialServiceClient;
 
-    @Cacheable(value = CacheConfig.TRIP_EXISTS, key = "#tripId")
     @Transactional(readOnly = true)
     public boolean tripExists(long tripId) {
         return tripRepository.existsById(tripId);
     }
 
-    @Cacheable(value = CacheConfig.TRIP_FEED_PAGE, key = "T(java.util.List).of(#page, #size)")
     @Transactional(readOnly = true)
     public TripFeedPageRaw feedRaw(int page, int size) {
         long totalItems = countAll();
@@ -74,7 +72,6 @@ public class TripFeedCachedReader {
         return assembleRawPage(headers, page, size, totalItems);
     }
 
-    @Cacheable(value = CacheConfig.TRIP_FEED_BY_USER, key = "T(java.util.List).of(#userId, #page, #size)")
     @Transactional(readOnly = true)
     public TripFeedPageRaw feedByUserRaw(long userId, int page, int size) {
         long totalItems = countByUser(userId);
@@ -95,7 +92,6 @@ public class TripFeedCachedReader {
         return assembleRawPage(headers, page, size, totalItems);
     }
 
-    @Cacheable(value = CacheConfig.TRIP_FEED_LIKED_BY, key = "T(java.util.List).of(#userId, #page, #size)")
     @Transactional(readOnly = true)
     public TripFeedPageRaw feedLikedByRaw(long userId, int page, int size) {
         List<Long> allLikedTripIds = socialServiceClient.getLikedTripIdsForUser(userId);

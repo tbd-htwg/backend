@@ -39,21 +39,9 @@ public class CacheConfig implements CachingConfigurer {
     /** Bump suffix when Redis value serialization changes (invalidates stale keys). */
     private static final String CACHE_GEN = "v4";
 
-    public static final String TRIP_FEED_PAGE = "tripFeedPage" + CACHE_GEN;
-    public static final String TRIP_FEED_BY_USER = "tripFeedByUser" + CACHE_GEN;
-    public static final String TRIP_FEED_LIKED_BY = "tripFeedLikedBy" + CACHE_GEN;
     public static final String TRIP_DETAIL = "tripDetail" + CACHE_GEN;
-    public static final String TRIP_EXISTS = "tripExists" + CACHE_GEN;
-    public static final String TRIP_SEARCH = "tripSearch" + CACHE_GEN;
 
-    private static final String[] CACHE_NAMES = {
-        TRIP_FEED_PAGE,
-        TRIP_FEED_BY_USER,
-        TRIP_FEED_LIKED_BY,
-        TRIP_DETAIL,
-        TRIP_EXISTS,
-        TRIP_SEARCH
-    };
+    private static final String[] CACHE_NAMES = {TRIP_DETAIL};
 
     @Override
     public CacheErrorHandler errorHandler() {
