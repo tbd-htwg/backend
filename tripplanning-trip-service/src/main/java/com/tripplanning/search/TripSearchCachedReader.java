@@ -46,7 +46,7 @@ public class TripSearchCachedReader {
         SearchResult<Long> result =
                 searchSession
                         .search(TripEntity.class)
-                        .select(f -> f.field("id", Long.class))
+                        .select(f -> f.id(Long.class))
                         .where(
                                 f ->
                                         f.bool(
