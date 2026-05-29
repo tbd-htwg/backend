@@ -32,6 +32,7 @@ public class CommentController {
 
     private final CommentRepository commentRepository;
     private final TripServiceClient tripServiceClient;
+    private final TripExistenceCache tripExistenceCache;
     private final FirestoreSocialService firestoreSocialService;
     private final SocialCommentEnricher socialCommentEnricher;
     private final CommunityCacheEvictor communityCacheEvictor;
@@ -41,7 +42,7 @@ public class CommentController {
             @RequestParam Long tripId,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String cursor) {
-        if (!tripServiceClient.tripExists(tripId)) {
+        if (!tripExistenceCache.tripExists(tripId)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Trip not found");
         }
         FirestoreSocialService.CommentPage page =
@@ -101,7 +102,7 @@ public class CommentController {
             @RequestBody Map<String, Object> body,
             @AuthenticationPrincipal Jwt jwt) {
         Long tripId = resolveTripId(body);
-        if (!tripServiceClient.tripExists(tripId)) {
+        if (!tripExistenceCache.tripExists(tripId)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Trip not found");
         }
         Long userId = Long.parseLong(jwt.getSubject());

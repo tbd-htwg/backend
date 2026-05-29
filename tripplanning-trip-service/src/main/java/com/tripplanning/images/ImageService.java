@@ -22,7 +22,6 @@ import org.springframework.stereotype.Service;
 import jakarta.annotation.PostConstruct;
 
 import com.google.auth.oauth2.GoogleCredentials;
-import com.google.auth.oauth2.ImpersonatedCredentials;
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.BlobInfo;
@@ -43,12 +42,10 @@ public class ImageService {
 
     private final Storage storage;
     private final ExecutorService imageSigningExecutor;
+    private final Optional<GoogleCredentials> gcsSigningCredentials;
 
     @Value("${spring.cloud.gcp.storage.bucket-name}")
     private String bucketName;
-
-    @Value("${spring.cloud.gcp.impersonate-service-account:}")
-    private String impersonateServiceAccount;
 
     @PostConstruct
     void trimBucketName() {
@@ -223,25 +220,8 @@ public class ImageService {
             options.add(Storage.SignUrlOption.withContentType());
         }
 
-        String targetServiceAccount = impersonateServiceAccount == null ? "" : impersonateServiceAccount.trim();
-        if (!targetServiceAccount.isEmpty()) {
-            try {
-                GoogleCredentials sourceCredentials = GoogleCredentials.getApplicationDefault()
-                        .createScoped("https://www.googleapis.com/auth/cloud-platform");
-                ImpersonatedCredentials signerCredentials = ImpersonatedCredentials.create(
-                        sourceCredentials,
-                        targetServiceAccount,
-                        null,
-                        List.of("https://www.googleapis.com/auth/cloud-platform"),
-                        300);
-                options.add(Storage.SignUrlOption.signWith(signerCredentials));
-            } catch (Exception e) {
-                throw new IllegalStateException(
-                        "Could not initialize signing credentials for service account impersonation: "
-                                + targetServiceAccount + ". Root cause: " + rootCauseMessage(e),
-                        e);
-            }
-        }
+        gcsSigningCredentials.ifPresent(
+                creds -> options.add(Storage.SignUrlOption.signWith(creds)));
 
         try {
             return storage.signUrl(
