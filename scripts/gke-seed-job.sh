@@ -29,6 +29,8 @@ GHCR_REPO="${GHCR_REPO:-tbd-htwg/backend}"
 SKIP_SYNC=false
 BUILD_PUSH=false
 ASSUME_YES=false
+SKIP_PREFLIGHT=false
+PREFLIGHT_ONLY=false
 
 usage() {
   cat <<EOF
@@ -36,6 +38,10 @@ Usage: $(basename "$0") [options]
 
 Options:
   --skip-sync     Skip gke-sync-sample-images.sh (objects already in GCS)
+  --skip-preflight
+                  Skip cluster preflight checks (valkey, opensearch, postgres, firestore)
+  --preflight-only
+                  Run preflight checks only; do not sync, wipe, or seed
   --build-push    Build seed-job image locally and push to GHCR before running
   --tag TAG       Seed job image tag (default: latest)
   --yes           Skip destructive wipe confirmation prompt
@@ -50,6 +56,8 @@ EOF
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --skip-sync) SKIP_SYNC=true ;;
+    --skip-preflight) SKIP_PREFLIGHT=true ;;
+    --preflight-only) PREFLIGHT_ONLY=true ;;
     --build-push) BUILD_PUSH=true ;;
     --tag) IMAGE_TAG="${2:?--tag requires a value}"; shift ;;
     --yes) ASSUME_YES=true ;;
@@ -136,6 +144,75 @@ maybe_build_push_image() {
   docker push "${image}"
 }
 
+run_preflight_checks() {
+  if [[ "${SKIP_PREFLIGHT}" == "true" ]]; then
+    echo "== Skipping preflight checks (--skip-preflight) =="
+    return 0
+  fi
+
+  echo "== Preflight: backing services =="
+  for component in valkey elasticsearch postgres; do
+    kubectl wait --for=condition=ready pod -l "app.kubernetes.io/component=${component}" \
+      -n "${NS}" --timeout=120s
+  done
+
+  echo "== Preflight: trip-service uses Valkey (not Caffeine) =="
+  local redis_host internal debug_json cache_backend
+  redis_host="$(kubectl get configmap trip-service-config -n "${NS}" \
+    -o jsonpath='{.data.SPRING_DATA_REDIS_HOST}')"
+  if [[ "${redis_host}" != "valkey" ]]; then
+    echo "ERROR: trip-service-config SPRING_DATA_REDIS_HOST=${redis_host:-<unset>} (expected valkey)" >&2
+    exit 1
+  fi
+  internal="$(kubectl get secret trip-service-secrets -n "${NS}" \
+    -o jsonpath='{.data.TRIPPLANNING_INTERNAL_SECRET}' | base64 -d)"
+  debug_json="$(kubectl exec -n "${NS}" deployment/trip-service -- \
+    curl -sS -H "X-Internal-Secret: ${internal}" http://localhost:8080/internal/debug/redis)"
+  cache_backend="$(printf '%s' "${debug_json}" | python3 -c "import sys,json; print(json.load(sys.stdin).get('cacheBackend',''))" 2>/dev/null || true)"
+  if [[ "${cache_backend}" != "redis" ]]; then
+    echo "ERROR: trip-service cacheBackend=${cache_backend:-unknown} (expected redis)" >&2
+    echo "Hint: kubectl rollout restart deployment/trip-service -n ${NS}" >&2
+    exit 1
+  fi
+  echo "   cacheBackend=redis OK"
+
+  echo "== Preflight: OpenSearch / Hibernate Search =="
+  local search_json search_ready
+  search_json="$(kubectl exec -n "${NS}" deployment/trip-service -- \
+    curl -sS -H "X-Internal-Secret: ${internal}" http://localhost:8080/internal/debug/search-index)"
+  search_ready="$(printf '%s' "${search_json}" | python3 -c "import sys,json; print(json.load(sys.stdin).get('ready', False))" 2>/dev/null || true)"
+  if [[ "${search_ready}" != "True" && "${search_ready}" != "true" ]]; then
+    echo "WARN: search index not ready yet: ${search_json}" >&2
+    echo "      Seed job can still run; trip-service restart after seed will reindex." >&2
+  else
+    echo "   search index ready OK"
+  fi
+
+  echo "== Preflight: Postgres credentials =="
+  local pgpass
+  pgpass="$(kubectl get secret trip-service-secrets -n "${NS}" -o jsonpath='{.data.password}' | base64 -d)"
+  kubectl run "pg-preflight-${RANDOM}" -n "${NS}" --rm -i --restart=Never \
+    --image=postgres:15-alpine \
+    --env="PGPASSWORD=${pgpass}" \
+    --command -- psql -h postgres -U tripplanning_app -d tripplanning -c 'SELECT 1' >/dev/null
+  echo "   postgres OK"
+
+  echo "== Preflight: Firestore (real GCP, Workload Identity) =="
+  kubectl get sa default -n "${NS}" -o yaml | grep -q 'iam.gke.io/gcp-service-account' || {
+    echo "ERROR: default ServiceAccount missing Workload Identity annotation" >&2
+    exit 1
+  }
+  kubectl run "fs-preflight-${RANDOM}" -n "${NS}" --rm -i --restart=Never \
+    --image=google/cloud-sdk:slim --command -- bash -lc \
+    'TOKEN=$(curl -sS -H "Metadata-Flavor: Google" "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token" | python3 -c "import sys,json; print(json.load(sys.stdin)[\"access_token\"])"); code=$(curl -sS -o /dev/null -w "%{http_code}" -H "Authorization: Bearer $TOKEN" "https://firestore.googleapis.com/v1/projects/tbd-cloudappdev/databases/tbd-firestore/documents/comments?pageSize=1"); test "$code" = "200"' >/dev/null
+  echo "   firestore API OK"
+
+  echo "== Preflight: GHCR pull secret =="
+  kubectl get secret ghcr-pull -n "${NS}" >/dev/null
+  echo "   ghcr-pull OK"
+  echo "== Preflight passed =="
+}
+
 apply_seed_job() {
   local tenant_values helm_args gateway_name gateway_ns api_host
   tenant_values="$(mktemp)"
@@ -164,7 +241,7 @@ apply_seed_job() {
     || kubectl delete job tripplanning-seed-job -n "${NS}" --ignore-not-found=true
 
   echo "== Apply seed job manifest =="
-  helm "${helm_args[@]}" | kubectl apply -n "${NS}" -f -
+  helm "${helm_args[@]}" --show-only templates/job-seed.yaml | kubectl apply -n "${NS}" -f -
 }
 
 wait_for_seed_job() {
@@ -200,12 +277,17 @@ EOF
 }
 
 main() {
-  if [[ "${SKIP_SYNC}" != "true" ]]; then
+  if [[ "${SKIP_SYNC}" != "true" && "${PREFLIGHT_ONLY}" != "true" ]]; then
     echo "== Sync sample images → gs://tbd-cloudappdev-images-bucket/sample/ =="
     "${SCRIPT_DIR}/gke-sync-sample-images.sh"
   fi
 
   ensure_gke_kubectl_target
+  run_preflight_checks
+  if [[ "${PREFLIGHT_ONLY}" == "true" ]]; then
+    echo "Preflight-only mode; exiting."
+    exit 0
+  fi
   confirm_destructive_wipe
   maybe_build_push_image
   apply_seed_job
