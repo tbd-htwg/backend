@@ -4,6 +4,7 @@ import java.time.Duration;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cache.Cache;
@@ -31,6 +32,9 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 public class CacheConfig implements CachingConfigurer {
 
     private static final Logger log = LoggerFactory.getLogger(CacheConfig.class);
+
+    @Value("${tripplanning.cache.redis-ttl-seconds:10}")
+    private int cacheTtlSeconds;
 
     /** Bump suffix when Redis value serialization changes (invalidates stale keys). */
     private static final String CACHE_GEN = "v4";
@@ -88,7 +92,7 @@ public class CacheConfig implements CachingConfigurer {
                 tripRedisCacheValueSerializer(objectMapper);
         RedisCacheConfiguration defaults =
                 RedisCacheConfiguration.defaultCacheConfig()
-                        .entryTtl(Duration.ofSeconds(10))
+                        .entryTtl(Duration.ofSeconds(cacheTtlSeconds))
                         .disableCachingNullValues()
                         .serializeValuesWith(
                                 RedisSerializationContext.SerializationPair.fromSerializer(
@@ -105,7 +109,7 @@ public class CacheConfig implements CachingConfigurer {
         CaffeineCacheManager manager = new CaffeineCacheManager(CACHE_NAMES);
         manager.setCaffeine(
                 Caffeine.newBuilder()
-                        .expireAfterWrite(Duration.ofSeconds(10))
+                        .expireAfterWrite(Duration.ofSeconds(cacheTtlSeconds))
                         .maximumSize(10_000));
         return manager;
     }

@@ -26,6 +26,8 @@ tripplanning:
     social-base-url: ${TRIPPLANNING_SOCIAL_SERVICE_URL:http://localhost:8081}
     external-info-base-url: ${TRIPPLANNING_EXTERNAL_INFO_SERVICE_URL:http://localhost:8082}
     internal-secret: ${TRIPPLANNING_INTERNAL_SECRET:}
+  cache:
+    redis-ttl-seconds: ${TRIPPLANNING_CACHE_REDIS_TTL_SECONDS:10}
 
 management:
   endpoints:

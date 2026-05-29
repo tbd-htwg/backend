@@ -43,3 +43,5 @@ server:
 tripplanning:
   search:
     readiness-enabled: true
+  cache:
+    redis-ttl-seconds: ${TRIPPLANNING_CACHE_REDIS_TTL_SECONDS:30}
