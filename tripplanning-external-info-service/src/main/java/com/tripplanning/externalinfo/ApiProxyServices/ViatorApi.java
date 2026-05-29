@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
@@ -16,6 +15,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tripplanning.externalinfo.config.ExternalInfoCacheTtls;
+import com.tripplanning.externalinfo.config.ReactiveValkeyCache;
 import com.tripplanning.externalinfo.dto.ExternalInfoDtos.Tour;
 import com.tripplanning.externalinfo.util.HtmlText;
 
@@ -37,14 +38,22 @@ public class ViatorApi {
 
     private final ResourceLoader resourceLoader;
     private final ObjectMapper objectMapper;
+    private final ReactiveValkeyCache valkeyCache;
     
     // In-Memory Speicher für die geladenen IDs aus der JSON-Datei
     private Map<String, String> viatorDestinations = Collections.emptyMap();
 
-    public ViatorApi(WebClient.Builder webClientBuilder, ResourceLoader resourceLoader, ObjectMapper objectMapper) {
+    private static final TypeReference<List<Tour>> TOUR_LIST_TYPE = new TypeReference<>() {};
+
+    public ViatorApi(
+            WebClient.Builder webClientBuilder,
+            ResourceLoader resourceLoader,
+            ObjectMapper objectMapper,
+            ReactiveValkeyCache valkeyCache) {
         this.webClient = webClientBuilder.build();
         this.resourceLoader = resourceLoader;
         this.objectMapper = objectMapper;
+        this.valkeyCache = valkeyCache;
     }
 
     @PostConstruct
@@ -60,11 +69,20 @@ public class ViatorApi {
         }
     }
 
-    @Cacheable(value = "tours", key = "#location + '-' + #countryCode")
     public Mono<List<Tour>> getViatorTours(String location, String countryCode) {
         if (location == null || location.isBlank()) {
             return Mono.just(Collections.emptyList());
         }
+        String cacheKey = location + "-" + countryCode;
+        return valkeyCache.getOrLoad(
+                "tours",
+                cacheKey,
+                TOUR_LIST_TYPE,
+                ExternalInfoCacheTtls.VOLATILE,
+                () -> fetchViatorToursUncached(location, countryCode));
+    }
+
+    private Mono<List<Tour>> fetchViatorToursUncached(String location, String countryCode) {
         String cleanedLocation = location.toLowerCase().trim();
         String viatorDestinationId = "648"; //Boston als Fallback 
         if (viatorDestinations.containsKey(cleanedLocation)) {

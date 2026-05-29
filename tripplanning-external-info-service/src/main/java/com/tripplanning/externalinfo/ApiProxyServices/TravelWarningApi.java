@@ -3,12 +3,13 @@ package com.tripplanning.externalinfo.ApiProxyServices;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.tripplanning.externalinfo.TravelWarningContentParser;
+import com.tripplanning.externalinfo.config.ExternalInfoCacheTtls;
+import com.tripplanning.externalinfo.config.ReactiveValkeyCache;
 import com.tripplanning.externalinfo.dto.ExternalInfoDtos.TravelWarning;
 
 import lombok.extern.slf4j.Slf4j;
@@ -19,10 +20,12 @@ import reactor.core.publisher.Mono;
 public class TravelWarningApi {
 
     private final WebClient webClient;
+    private final ReactiveValkeyCache valkeyCache;
     private final Map<String, String> dynamicCountryMap = new ConcurrentHashMap<>();
 
-    public TravelWarningApi(WebClient.Builder webClientBuilder) {
+    public TravelWarningApi(WebClient.Builder webClientBuilder, ReactiveValkeyCache valkeyCache) {
         this.webClient = webClientBuilder.build();
+        this.valkeyCache = valkeyCache;
     }
 
     private Mono<Map<String, String>> refreshCountryMap() {
@@ -61,12 +64,20 @@ public class TravelWarningApi {
                         });
     }
 
-    @Cacheable(value = "warnings", key = "#countryCode")
     public Mono<TravelWarning> getTravelWarning(String countryCode) {
+        String normalizedCode = countryCode.toUpperCase();
+        return valkeyCache.getOrLoad(
+                "warnings",
+                normalizedCode,
+                TravelWarning.class,
+                ExternalInfoCacheTtls.VOLATILE,
+                () -> fetchTravelWarningUncached(normalizedCode));
+    }
+
+    private Mono<TravelWarning> fetchTravelWarningUncached(String normalizedCode) {
         return refreshCountryMap()
                 .flatMap(
                         map -> {
-                            String normalizedCode = countryCode.toUpperCase();
                             String aaId = map.get(normalizedCode);
                             if (aaId == null) {
                                 return Mono.just(

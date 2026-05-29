@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.io.buffer.DataBufferLimitException;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
@@ -15,6 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
+import com.tripplanning.externalinfo.config.ExternalInfoCacheTtls;
+import com.tripplanning.externalinfo.config.ReactiveValkeyCache;
 import com.tripplanning.externalinfo.dto.ExternalInfoDtos.TransportRouteResult;
 
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +31,7 @@ public class GoogleRoutesDistanceApi {
     private static final Set<String> ALLOWED_MODES = Set.of("DRIVE", "WALK", "BICYCLE", "TRANSIT");
 
     private final WebClient webClient;
+    private final ReactiveValkeyCache valkeyCache;
 
     @Value("${external-api.google.maps.api-key}")
     private String apiKey;
@@ -37,8 +39,10 @@ public class GoogleRoutesDistanceApi {
     @Value("${external-api.google.routes.base-url:https://routes.googleapis.com/directions/v2:computeRoutes}")
     private String routesBaseUrl;
 
-    public GoogleRoutesDistanceApi(WebClient.Builder webClientBuilder) {
+    public GoogleRoutesDistanceApi(
+            WebClient.Builder webClientBuilder, ReactiveValkeyCache valkeyCache) {
         this.webClient = webClientBuilder.build();
+        this.valkeyCache = valkeyCache;
     }
 
     public static String normalizeTravelMode(String mode) {
@@ -49,10 +53,6 @@ public class GoogleRoutesDistanceApi {
         return ALLOWED_MODES.contains(upper) ? upper : null;
     }
 
-    @Cacheable(
-            value = "transportRouteV2",
-            key =
-                    "T(java.lang.String).format('%s-%.4f,%.4f-%.4f,%.4f', #travelMode, #originLat, #originLon, #destLat, #destLon)")
     public Mono<TransportRouteResult> computeRoute(
             double originLat, double originLon, double destLat, double destLon, String travelMode) {
         requireConfiguredKey();
@@ -65,6 +65,25 @@ public class GoogleRoutesDistanceApi {
         if (!hasValidCoords(originLat, originLon) || !hasValidCoords(destLat, destLon)) {
             return Mono.empty();
         }
+        String cacheKey =
+                String.format(
+                        Locale.ROOT,
+                        "%s-%.4f,%.4f-%.4f,%.4f",
+                        mode,
+                        originLat,
+                        originLon,
+                        destLat,
+                        destLon);
+        return valkeyCache.getOrLoad(
+                "transportRouteV2",
+                cacheKey,
+                TransportRouteResult.class,
+                ExternalInfoCacheTtls.VOLATILE,
+                () -> computeRouteUncached(originLat, originLon, destLat, destLon, mode));
+    }
+
+    private Mono<TransportRouteResult> computeRouteUncached(
+            double originLat, double originLon, double destLat, double destLon, String mode) {
         Map<String, Object> body = buildRouteRequest(originLat, originLon, destLat, destLon, mode);
 
         return webClient

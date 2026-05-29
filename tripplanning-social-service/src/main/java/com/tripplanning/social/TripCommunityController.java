@@ -26,6 +26,7 @@ public class TripCommunityController {
 
     private final TripServiceClient tripServiceClient;
     private final TripLikeRepository tripLikeRepository;
+    private final FirestoreSocialService firestoreSocialService;
     private final SocialCommentEnricher socialCommentEnricher;
     private final CommunityCachedReader communityCachedReader;
 
