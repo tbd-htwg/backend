@@ -77,7 +77,7 @@ public class TripSearchCachedReader {
                                                                             "transports.startAddress",
                                                                             "transports.endAddress")
                                                                     .matching(trimmed));
-                                                    b.minimumShouldMatch(1);
+                                                    b.minimumShouldMatchNumber(1);
                                                 }))
                         .fetch(offset, size);
 
