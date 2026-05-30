@@ -8,6 +8,7 @@ tripplanning:
     internal-secret: ${TRIPPLANNING_INTERNAL_SECRET:}
   auth:
     jwt-secret: ${TRIPPLANNING_AUTH_JWT_SECRET:local-dev-only-change-me-32bytes-min!!}
+    test-bearer-token: ${TRIPPLANNING_AUTH_TEST_BEARER_TOKEN:}
 
 management:
   endpoints:

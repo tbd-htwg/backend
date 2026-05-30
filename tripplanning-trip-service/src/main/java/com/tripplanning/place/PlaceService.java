@@ -28,8 +28,9 @@ public class PlaceService {
         if (normalizedId.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "googlePlaceId is required.");
         }
-        PlaceDetailsResult details = requireLiveDetails(normalizedId);
-        return upsert(normalizedId, details);
+        return googlePlaceRepository
+                .findById(normalizedId)
+                .orElseGet(() -> upsert(normalizedId, requireLiveDetails(normalizedId)));
     }
 
     public java.util.Optional<GooglePlaceEntity> findPlaceForRead(String placeId) {

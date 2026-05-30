@@ -22,6 +22,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
+import com.tripplanning.common.auth.TestBearerImpersonationFilter;
 import com.tripplanning.user.UserRepository;
 
 /**
@@ -38,16 +39,18 @@ class TestBearerImpersonationFilterTest {
   @BeforeEach
   void setUp() {
     userRepository = mock(UserRepository.class);
-    filter = new TestBearerImpersonationFilter(TEST_BEARER, userRepository);
+    filter =
+        new TestBearerImpersonationFilter(
+            TEST_BEARER, id -> id == 0L || userRepository.existsById(id));
     SecurityContextHolder.clearContext();
   }
 
   @Test
   void blankToken_throws() {
     org.junit.jupiter.api.Assertions.assertThrows(
-        IllegalStateException.class, () -> new TestBearerImpersonationFilter("", userRepository));
+        IllegalStateException.class, () -> new TestBearerImpersonationFilter(""));
     org.junit.jupiter.api.Assertions.assertThrows(
-        IllegalStateException.class, () -> new TestBearerImpersonationFilter(null, userRepository));
+        IllegalStateException.class, () -> new TestBearerImpersonationFilter(null));
   }
 
   @Test
@@ -171,5 +174,26 @@ class TestBearerImpersonationFilterTest {
     var auth = SecurityContextHolder.getContext().getAuthentication();
     assertThat(auth).isNotNull();
     assertThat(((Jwt) auth.getPrincipal()).getSubject()).isEqualTo("7");
+  }
+
+  @Test
+  void matchingBearerWithAppJwtFactory_replacesAuthorizationHeader() throws Exception {
+    when(userRepository.existsById(42L)).thenReturn(true);
+    TestBearerImpersonationFilter jwtFilter =
+        new TestBearerImpersonationFilter(
+            TEST_BEARER, id -> id == 0L || userRepository.existsById(id), userId -> "signed.app.jwt");
+
+    MockHttpServletRequest request = new MockHttpServletRequest("POST", "/api/v2/trips");
+    request.addHeader(HttpHeaders.AUTHORIZATION, "Bearer " + TEST_BEARER);
+    request.addHeader("X-Act-As-User", "42");
+    MockHttpServletResponse response = new MockHttpServletResponse();
+    FilterChain chain = mock(FilterChain.class);
+
+    jwtFilter.doFilter(request, response, chain);
+
+    ArgumentCaptor<HttpServletRequest> req = ArgumentCaptor.forClass(HttpServletRequest.class);
+    verify(chain, times(1)).doFilter(req.capture(), any());
+    assertThat(req.getValue().getHeader(HttpHeaders.AUTHORIZATION)).isEqualTo("Bearer signed.app.jwt");
+    assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
   }
 }

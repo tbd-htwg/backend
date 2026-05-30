@@ -16,6 +16,7 @@ public class LikeController {
     private final TripLikeRepository likeRepository;
     private final FirestoreSocialService firestoreSocialService;
     private final TripServiceClient tripServiceClient;
+    private final CommunityCacheEvictor communityCacheEvictor;
 
     public record CurrentUserLikeStatus(boolean liked) {}
 
@@ -72,6 +73,7 @@ public class LikeController {
         if (!alreadyLiked) {
             likeRepository.save(new TripLikeDocument(userId, tripId)).block();
             tripServiceClient.evictLikedByFeedCache();
+            communityCacheEvictor.evictForTrip(tripId);
         }
         return ResponseEntity.noContent().build();
     }
@@ -88,6 +90,7 @@ public class LikeController {
                 .then(likeRepository.deleteByUserIdAndTripId(userId, tripId))
                 .block();
         tripServiceClient.evictLikedByFeedCache();
+        communityCacheEvictor.evictForTrip(tripId);
         return ResponseEntity.noContent().build();
     }
 

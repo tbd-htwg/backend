@@ -15,8 +15,6 @@ import org.springframework.web.server.ResponseStatusException;
 import com.tripplanning.social.dto.CommunityDtos.CommunityCommentItem;
 import com.tripplanning.social.dto.CommunityDtos.TripCommentsPageResponse;
 import com.tripplanning.social.dto.CommunityDtos.TripCommunityResponse;
-import com.tripplanning.common.client.TripServiceClient;
-
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -24,12 +22,11 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class TripCommunityController {
 
-    private static final int BUNDLE_COMMENT_PAGE = 10;
-
-    private final TripServiceClient tripServiceClient;
+    private final TripExistenceCache tripExistenceCache;
     private final TripLikeRepository tripLikeRepository;
     private final FirestoreSocialService firestoreSocialService;
     private final SocialCommentEnricher socialCommentEnricher;
+    private final CommunityCachedReader communityCachedReader;
 
     /**
      * Bundled community payload for the trip detail page: counts, optional like status for the
@@ -41,8 +38,10 @@ public class TripCommunityController {
             @PathVariable Long tripId,
             @AuthenticationPrincipal Jwt jwt) {
         requireTrip(tripId);
-        long likeCount = firestoreSocialService.countLikesForTrip(tripId);
-        long totalCommentCount = firestoreSocialService.countCommentsForTrip(tripId);
+        CommunityCachedReader.CommunityBundleCache bundle =
+                communityCachedReader.communityBundleRaw(tripId);
+        long likeCount = bundle.likeCount();
+        long totalCommentCount = bundle.totalCommentCount();
         Boolean likedByCurrentUser = null;
         if (jwt != null) {
             long uid = Long.parseLong(jwt.getSubject());
@@ -54,8 +53,7 @@ public class TripCommunityController {
                                     .defaultIfEmpty(false)
                                     .block());
         }
-        FirestoreSocialService.CommentPage page =
-                firestoreSocialService.fetchCommentPage(tripId, BUNDLE_COMMENT_PAGE, null);
+        FirestoreSocialService.CommentPage page = bundle.commentPage();
         List<CommunityCommentItem> comments = socialCommentEnricher.enrich(page.items());
         return new TripCommunityResponse(
                 likeCount,
@@ -80,7 +78,7 @@ public class TripCommunityController {
     }
 
     private void requireTrip(Long tripId) {
-        if (!tripServiceClient.tripExists(tripId)) {
+        if (!tripExistenceCache.tripExists(tripId)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Trip not found");
         }
     }

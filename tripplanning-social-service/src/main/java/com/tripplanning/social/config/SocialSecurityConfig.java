@@ -4,12 +4,14 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
@@ -17,6 +19,8 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import com.tripplanning.common.auth.AuthProperties;
+import com.tripplanning.common.auth.TestBearerImpersonationFilter;
 import com.tripplanning.common.security.InternalApiAuthFilter;
 
 @Configuration
@@ -33,7 +37,14 @@ public class SocialSecurityConfig {
                         .toList();
         config.setAllowedOrigins(origins);
         config.setAllowedMethods(List.of("GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "Origin", "X-Internal-Secret"));
+        config.setAllowedHeaders(
+                List.of(
+                        "Authorization",
+                        "Content-Type",
+                        "Accept",
+                        "Origin",
+                        "X-Internal-Secret",
+                        TestBearerImpersonationFilter.ACT_AS_HEADER));
         config.setExposedHeaders(List.of("WWW-Authenticate"));
         config.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
@@ -42,8 +53,18 @@ public class SocialSecurityConfig {
     }
 
     @Bean
+    @ConditionalOnExpression("'${tripplanning.auth.test-bearer-token:}'.length() > 0")
+    public TestBearerImpersonationFilter testBearerImpersonationFilter(AuthProperties authProperties) {
+        return new TestBearerImpersonationFilter(authProperties.getTestBearerToken());
+    }
+
+    @Bean
     public SecurityFilterChain socialFilterChain(
-            HttpSecurity http, InternalApiAuthFilter internalApiAuthFilter) throws Exception {
+            HttpSecurity http,
+            InternalApiAuthFilter internalApiAuthFilter,
+            org.springframework.beans.factory.ObjectProvider<TestBearerImpersonationFilter>
+                    testBearerFilterProvider)
+            throws Exception {
         http.sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
@@ -71,6 +92,12 @@ public class SocialSecurityConfig {
                                         .authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
                 .addFilterBefore(internalApiAuthFilter, UsernamePasswordAuthenticationFilter.class);
+
+        TestBearerImpersonationFilter testBearerFilter = testBearerFilterProvider.getIfAvailable();
+        if (testBearerFilter != null) {
+            http.addFilterBefore(testBearerFilter, BearerTokenAuthenticationFilter.class);
+        }
+
         return http.build();
     }
 

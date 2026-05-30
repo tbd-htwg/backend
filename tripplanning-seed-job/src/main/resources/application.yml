@@ -19,7 +19,6 @@ spring:
         database-id: ${GCP_FIRESTORE_DATABASE_ID:(default)}
         emulator:
           enabled: ${SPRING_CLOUD_GCP_FIRESTORE_EMULATOR_ENABLED:false}
-        host-port: ${SPRING_CLOUD_GCP_FIRESTORE_HOST_PORT:}
 
 tripplanning:
   seed:

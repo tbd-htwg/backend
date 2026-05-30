@@ -2,7 +2,7 @@
 
 Spring Boot 3 **microservices** for a **trip planning** course project (HTWG Cloud Application Development): REST APIs for users, trips, **Google Places–backed stops and destinations**, accommodations, transports, **full-text trip search**, **profile and trip images** (Google Cloud Storage), **comments / likes** (Firestore), and **external travel info** (weather, warnings, Viator tours, transport distance). Trip-service caches resolved places in a **`google_places`** table and enriches writes via external-info-service. Domain data lives in **PostgreSQL** with **Flyway** migrations in deployed environments (V10–V14 add Google Places schema); the SPA talks to **`/api/v2`** (Spring Data REST on trip-service) plus dedicated controllers for auth, trip feed, accommodation/transport writes, search, social features, and uploads. Typical deployment: **GKE** (ms2) with Cloud SQL, Elasticsearch, Firestore, and GCS.
 
-**Sibling app:** [../frontend/README.md](../frontend/README.md) (when this repo lives in a monorepo next to `frontend/`). **Infra overview:** [../infrastructure/ms2/docs/README.md](../infrastructure/ms2/docs/README.md) (same). **Local Minikube:** [docs/gettingstarted/README.md](docs/gettingstarted/README.md). **GKE deploy:** [README-GKE.md](README-GKE.md). **Agent-oriented notes:** [AGENTS.md](AGENTS.md).
+**Sibling app:** [../frontend/README.md](../frontend/README.md) (when this repo lives in a monorepo next to `frontend/`). **Infra overview:** [../infrastructure/ms2/docs/README.md](../infrastructure/ms2/docs/README.md) · **GKE architecture:** [../infrastructure/ms2/docs/STATE.md](../infrastructure/ms2/docs/STATE.md) (same). **Local Minikube:** [docs/gettingstarted/README.md](docs/gettingstarted/README.md). **GKE deploy:** [README-GKE.md](README-GKE.md). **Agent-oriented notes:** [AGENTS.md](AGENTS.md).
 
 ## Microservices (multi-module)
 
@@ -14,7 +14,7 @@ Spring Boot 3 **microservices** for a **trip planning** course project (HTWG Clo
 | `tripplanning-seed-job` | — | One-shot perf seed (PostgreSQL + Firestore; see [`tripplanning-seed-job/README.md`](tripplanning-seed-job/README.md)) |
 | `tripplanning-common` | — | Shared clients and config |
 
-**Local minikube:** [docs/gettingstarted/README.md](docs/gettingstarted/README.md) · **GKE deploy:** [../infrastructure/ms2/docs/README.md](../infrastructure/ms2/docs/README.md)
+**Local minikube:** [docs/gettingstarted/README.md](docs/gettingstarted/README.md) · **GKE architecture:** [../infrastructure/ms2/docs/STATE.md](../infrastructure/ms2/docs/STATE.md) · **GKE deploy:** [../infrastructure/ms2/docs/README.md](../infrastructure/ms2/docs/README.md)
 
 **Paths:** Shell commands use the **backend project root** (`pom.xml` here). In a monorepo that folder is often named `backend/` under a top-level directory; if you opened **only** the backend repository, you are already at that root. Relative paths such as `../frontend/` assume the monorepo layout—adjust or ignore if your checkout differs.
 
@@ -108,7 +108,7 @@ Set **`TRIPPLANNING_AUTH_TEST_BEARER_TOKEN`** to a shared secret on `develop` (a
 - **Accommodation / transport writes:** **`POST` / `PUT /api/v2/accommodations`** and **`/api/v2/transports`** (JWT required; SDR `save` disabled on those repositories). Bodies use Google place IDs — see [getting-started API contract](docs/gettingstarted/README.md#8-places--external-info-api-contract).
 - **Trip search:** **`GET /api/search/...`** (see [`TripSearchController`](tripplanning-trip-service/src/main/java/com/tripplanning/search/TripSearchController.java)).
 - **Social:** Firestore-backed **comments** and **likes** on social-service (`com.tripplanning.social`).
-- **External info** (external-info-service, routed at **`/api/v2/external/**`** via ingress): Google Places search (`/details/search`), stop details (`/stop-details`), accommodation tours (`/accommodation-details`), transport route (`/transport/route`), plus deprecated `/details` endpoints. Trip-service calls **`/internal/location-pack`** for place enrichment on writes.
+- **External info** (external-info-service, routed at **`/api/v2/external/**`** via ingress): Google Places search (`/details/search`), stop details (`/stop-details`), accommodation tours (`/accommodation-details`), plus deprecated `/details` endpoints. Transport routes are computed in the **frontend** via Google Routes API. Trip-service calls **`/internal/location-pack`** for place enrichment on writes.
 
 ## Firestore `likes` document IDs
 

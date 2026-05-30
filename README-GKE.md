@@ -1,6 +1,6 @@
 # Backend microservices (GKE)
 
-**GKE / Terraform platform:** [infrastructure/ms2/docs/README.md](../infrastructure/ms2/docs/README.md) · [Terraform dev env](../infrastructure/ms2/terraform/envs/dev/README.md) — includes **Identity / Firebase** for `POST /api/v2/auth/firebase`.
+**GKE / Terraform platform:** [infrastructure/ms2/docs/README.md](../infrastructure/ms2/docs/README.md) · [STATE.md](../infrastructure/ms2/docs/STATE.md) · [Terraform dev env](../infrastructure/ms2/terraform/envs/dev/README.md) — includes **Identity / Firebase** for `POST /api/v2/auth/firebase`.
 
 **Local Minikube (canonical):** [docs/gettingstarted/README.md](docs/gettingstarted/README.md) · [STATE.md](docs/gettingstarted/STATE.md)
 
@@ -62,6 +62,36 @@ Deploy to GKE:
 cd ../infrastructure/ms2/terraform/envs/dev
 # follow Terraform / GitOps deploy for your environment
 ```
+
+## GKE perf dataset (seed job)
+
+Publish images (GitHub Actions → **Docker GKE services**, or build locally):
+
+```bash
+docker build --build-arg SERVICE=seed-job -t ghcr.io/tbd-htwg/backend/tripplanning-seed-job:latest ./backend
+```
+
+Sync sample images to **`gs://tbd-cloudappdev-images-bucket/sample/`** (one-time; ~2.8 GiB):
+
+```bash
+./scripts/gke-sync-sample-images.sh
+# equivalent: ./scripts/sync-sample-images.sh --target prod
+```
+
+Local/Minikube test bucket:
+
+```bash
+./scripts/sync-sample-images.sh --target test
+# equivalent: ./scripts/local-dev.sh sync-sample-images
+```
+
+Run the one-shot seed job against `tripplanning-free` (wipes Postgres + Firestore, copies manifest for Locust):
+
+```bash
+./scripts/gke-seed-job.sh --skip-sync   # if sample images already synced
+```
+
+Locust: `--host=https://k8s.tbd-htwg.de` with `PERF_TEST_BEARER` — see [GKE dev checklist](../infrastructure/ms2/docs/gke-dev-hpa-and-test-bearer-checklist.md).
 
 ### Option B — plain JVM (no Kubernetes)
 

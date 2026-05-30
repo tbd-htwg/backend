@@ -3,11 +3,12 @@ package com.tripplanning.externalinfo.ApiProxyServices;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.tripplanning.externalinfo.config.ExternalInfoCacheTtls;
+import com.tripplanning.externalinfo.config.ReactiveValkeyCache;
 import com.tripplanning.externalinfo.WeatherDescription;
 import com.tripplanning.externalinfo.dto.ExternalInfoDtos.DailyForecast;
 import com.tripplanning.externalinfo.dto.ExternalInfoDtos.WeatherData;
@@ -20,13 +21,24 @@ import reactor.core.publisher.Mono;
 public class WeatherApi {
 
     private final WebClient webClient;
+    private final ReactiveValkeyCache valkeyCache;
 
-    public WeatherApi(WebClient.Builder webClientBuilder) {
+    public WeatherApi(WebClient.Builder webClientBuilder, ReactiveValkeyCache valkeyCache) {
         this.webClient = webClientBuilder.build();
+        this.valkeyCache = valkeyCache;
     }
 
-    @Cacheable(value = "weather", key = "#lat + '-' + #lon")
     public Mono<WeatherData> getWeather(double lat, double lon) {
+        String cacheKey = lat + "-" + lon;
+        return valkeyCache.getOrLoad(
+                "weather",
+                cacheKey,
+                WeatherData.class,
+                ExternalInfoCacheTtls.VOLATILE,
+                () -> fetchWeatherUncached(lat, lon));
+    }
+
+    private Mono<WeatherData> fetchWeatherUncached(double lat, double lon) {
         return webClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .scheme("https")

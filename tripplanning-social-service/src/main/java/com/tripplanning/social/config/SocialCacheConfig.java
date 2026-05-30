@@ -1,4 +1,4 @@
-package com.tripplanning.config;
+package com.tripplanning.social.config;
 
 import java.time.Duration;
 
@@ -29,31 +29,18 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 
 @Configuration
 @EnableCaching
-public class CacheConfig implements CachingConfigurer {
+public class SocialCacheConfig implements CachingConfigurer {
 
-    private static final Logger log = LoggerFactory.getLogger(CacheConfig.class);
+    private static final Logger log = LoggerFactory.getLogger(SocialCacheConfig.class);
 
-    @Value("${tripplanning.cache.redis-ttl-seconds:10}")
+    @Value("${tripplanning.cache.redis-ttl-seconds:30}")
     private int cacheTtlSeconds;
 
-    /** Bump suffix when Redis value serialization changes (invalidates stale keys). */
-    private static final String CACHE_GEN = "v5";
+    private static final String CACHE_GEN = "v1";
 
-    public static final String TRIP_FEED_PAGE = "tripFeedPage" + CACHE_GEN;
-    public static final String TRIP_FEED_BY_USER = "tripFeedByUser" + CACHE_GEN;
-    public static final String TRIP_FEED_LIKED_BY = "tripFeedLikedBy" + CACHE_GEN;
-    public static final String TRIP_DETAIL = "tripDetail" + CACHE_GEN;
-    public static final String TRIP_EXISTS = "tripExists" + CACHE_GEN;
-    public static final String TRIP_TOTAL_COUNT = "tripTotalCount" + CACHE_GEN;
+    public static final String COMMUNITY_BUNDLE = "communityBundle" + CACHE_GEN;
 
-    private static final String[] CACHE_NAMES = {
-        TRIP_FEED_PAGE,
-        TRIP_FEED_BY_USER,
-        TRIP_FEED_LIKED_BY,
-        TRIP_DETAIL,
-        TRIP_EXISTS,
-        TRIP_TOTAL_COUNT
-    };
+    private static final String[] CACHE_NAMES = {COMMUNITY_BUNDLE};
 
     @Override
     public CacheErrorHandler errorHandler() {
@@ -70,7 +57,6 @@ public class CacheConfig implements CachingConfigurer {
                 } catch (RuntimeException evictFailed) {
                     log.warn("Failed to evict corrupt cache entry: {}", evictFailed.getMessage());
                 }
-                // Do not rethrow: Spring treats this as a cache miss and runs the @Cacheable method.
             }
 
             @Override
@@ -80,18 +66,15 @@ public class CacheConfig implements CachingConfigurer {
                         cache.getName(),
                         key,
                         exception.getMessage());
-                // Do not rethrow: the request still succeeds without caching.
             }
         };
     }
 
-    /** Active when {@code spring.data.redis.host} is set; avoid {@code @ConditionalOnBean(RedisConnectionFactory)} (ordering). */
     @Bean
     @ConditionalOnProperty(name = "spring.data.redis.host")
     CacheManager redisCacheManager(
             RedisConnectionFactory connectionFactory, ObjectMapper objectMapper) {
-        GenericJackson2JsonRedisSerializer valueSerializer =
-                tripRedisCacheValueSerializer(objectMapper);
+        GenericJackson2JsonRedisSerializer valueSerializer = cacheValueSerializer(objectMapper);
         RedisCacheConfiguration defaults =
                 RedisCacheConfiguration.defaultCacheConfig()
                         .entryTtl(Duration.ofSeconds(cacheTtlSeconds))
@@ -116,19 +99,12 @@ public class CacheConfig implements CachingConfigurer {
         return manager;
     }
 
-    /**
-     * Redis cache values include records, {@code BigDecimal}, {@code Double}, and collection types. Use
-     * the application {@link ObjectMapper} (JSR-310 module) plus default typing so reads are not
-     * {@link java.util.LinkedHashMap}.
-     */
-    static GenericJackson2JsonRedisSerializer tripRedisCacheValueSerializer(ObjectMapper objectMapper) {
+    static GenericJackson2JsonRedisSerializer cacheValueSerializer(ObjectMapper objectMapper) {
         ObjectMapper redisMapper = objectMapper.copy();
         var typeValidator =
                 BasicPolymorphicTypeValidator.builder()
                         .allowIfSubType("com.tripplanning")
                         .allowIfSubType("java.util")
-                        .allowIfSubType("java.time")
-                        .allowIfSubType("java.math")
                         .allowIfSubType("java.lang")
                         .build();
         redisMapper.activateDefaultTyping(

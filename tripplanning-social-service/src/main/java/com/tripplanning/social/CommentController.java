@@ -32,15 +32,17 @@ public class CommentController {
 
     private final CommentRepository commentRepository;
     private final TripServiceClient tripServiceClient;
+    private final TripExistenceCache tripExistenceCache;
     private final FirestoreSocialService firestoreSocialService;
     private final SocialCommentEnricher socialCommentEnricher;
+    private final CommunityCacheEvictor communityCacheEvictor;
 
     @GetMapping("/search/findByTripIdOrderByCreatedAtDesc")
     public Map<String, Object> getByTrip(
             @RequestParam Long tripId,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String cursor) {
-        if (!tripServiceClient.tripExists(tripId)) {
+        if (!tripExistenceCache.tripExists(tripId)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Trip not found");
         }
         FirestoreSocialService.CommentPage page =
@@ -100,7 +102,7 @@ public class CommentController {
             @RequestBody Map<String, Object> body,
             @AuthenticationPrincipal Jwt jwt) {
         Long tripId = resolveTripId(body);
-        if (!tripServiceClient.tripExists(tripId)) {
+        if (!tripExistenceCache.tripExists(tripId)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Trip not found");
         }
         Long userId = Long.parseLong(jwt.getSubject());
@@ -110,6 +112,7 @@ public class CommentController {
         }
         CommentDocument saved =
                 commentRepository.save(new CommentDocument(tripId, userId, content)).block();
+        communityCacheEvictor.evictForTrip(tripId);
         String base = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
         String userName =
                 tripServiceClient
@@ -144,6 +147,7 @@ public class CommentController {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Nicht berechtigt");
         }
         commentRepository.deleteById(id).block();
+        communityCacheEvictor.evictForTrip(comment.getTripId());
         return ResponseEntity.noContent().build();
     }
 

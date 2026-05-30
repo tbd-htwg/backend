@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import com.tripplanning.trip.TripEntity;
 import com.tripplanning.trip.TripRepository;
 
+import jakarta.annotation.PreDestroy;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import lombok.extern.slf4j.Slf4j;
@@ -108,6 +109,11 @@ public class SearchIndexCoordinationService {
             localIndexing.set(false);
             releaseLock();
         }
+    }
+
+    @PreDestroy
+    void releaseLockOnShutdown() {
+        releaseLock();
     }
 
     private void waitForPeerIndexing() {

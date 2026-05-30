@@ -60,14 +60,6 @@ public final class ExternalInfoDtos {
 
     public record AccommodationExternalInfo(List<Tour> similarPriceTours, List<Tour> otherTours) {}
 
-    public record TransportRouteResult(
-            String mode,
-            int distanceMeters,
-            int durationSeconds,
-            String distanceText,
-            String durationText,
-            String encodedPolyline) {}
-
     public record AccommodationExternalInput(
             String key,
             String placeId,

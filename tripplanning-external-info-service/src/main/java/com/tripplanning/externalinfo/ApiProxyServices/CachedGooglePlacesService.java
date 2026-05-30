@@ -1,8 +1,9 @@
 package com.tripplanning.externalinfo.ApiProxyServices;
 
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
+import com.tripplanning.externalinfo.config.ExternalInfoCacheTtls;
+import com.tripplanning.externalinfo.config.ReactiveValkeyCache;
 import com.tripplanning.externalinfo.dto.ExternalInfoDtos.PlaceDetailsResult;
 
 import lombok.RequiredArgsConstructor;
@@ -13,9 +14,14 @@ import reactor.core.publisher.Mono;
 public class CachedGooglePlacesService {
 
     private final GooglePlacesApi googlePlacesApi;
+    private final ReactiveValkeyCache valkeyCache;
 
-    @Cacheable(value = "places", key = "#placeId")
     public Mono<PlaceDetailsResult> getPlaceDetailsCached(String placeId) {
-        return googlePlacesApi.fetchPlaceDetailsUncached(placeId);
+        return valkeyCache.getOrLoad(
+                "places",
+                placeId,
+                PlaceDetailsResult.class,
+                ExternalInfoCacheTtls.PLACES,
+                () -> googlePlacesApi.fetchPlaceDetailsUncached(placeId));
     }
 }

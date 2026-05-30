@@ -9,16 +9,11 @@ import com.tripplanning.config.CacheConfig;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Single point that knows how to evict the trip-feed/trip-detail caches.
+ * Evicts trip feed, detail, and existence caches.
  *
  * <p>Spring Data REST invokes {@code @RepositoryEventHandler} methods through reflection on the
- * raw bean instance, which bypasses Spring AOP proxies. That means {@code @CacheEvict} placed on a
- * handler method does not fire. Wrapping the eviction logic in this collaborator and calling it
- * from event handlers / controllers gives reliable cache invalidation through plain method calls.
- *
- * <p>This evictor only invalidates the local Caffeine instance. On Cloud Run with several backend
- * containers, peer instances catch up via the 10 s {@code expireAfterWrite} window in
- * {@link CacheConfig}.
+ * raw bean instance, which bypasses Spring AOP proxies. Wrapping eviction in this collaborator gives
+ * reliable invalidation through plain method calls.
  */
 @Component
 @RequiredArgsConstructor
@@ -26,14 +21,15 @@ public class TripCacheEvictor {
 
     private final CacheManager cacheManager;
 
-    /** Evict every paginated feed (whole list, by-user, liked-by). */
+    /** Evict every paginated feed (whole list, by-user, liked-by) and the cached trip total count. */
     public void evictAllFeeds() {
         clear(CacheConfig.TRIP_FEED_PAGE);
         clear(CacheConfig.TRIP_FEED_BY_USER);
         clear(CacheConfig.TRIP_FEED_LIKED_BY);
+        clear(CacheConfig.TRIP_TOTAL_COUNT);
     }
 
-    /** Evict the {@link CacheConfig#TRIP_FEED_LIKED_BY} cache (for like add/remove). */
+    /** Evict the liked-by feed cache (for like add/remove). */
     public void evictLikedByFeeds() {
         clear(CacheConfig.TRIP_FEED_LIKED_BY);
     }
@@ -54,11 +50,22 @@ public class TripCacheEvictor {
         }
     }
 
-    /** Trip CRUD: evict the trip's detail, the existence check, and every feed. */
+    /** Trip CRUD: evict the trip's detail, existence check, total count, and every feed page. */
     public void evictForTripChange(Long tripId) {
         evictTripDetail(tripId);
         evictTripExists(tripId);
         evictAllFeeds();
+    }
+
+    /**
+     * Shared catalog mutations (accommodation/transport lookups) may affect many trip details; clear
+     * the whole detail cache rather than tracking reverse references.
+     */
+    public void evictAllTripDetails() {
+        Cache cache = cacheManager.getCache(CacheConfig.TRIP_DETAIL);
+        if (cache != null) {
+            cache.clear();
+        }
     }
 
     private void clear(String name) {

@@ -22,7 +22,8 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.tripplanning.common.auth.AuthProperties;
-import com.tripplanning.auth.TestBearerImpersonationFilter;
+import com.tripplanning.common.auth.TestBearerImpersonationFilter;
+import com.tripplanning.auth.AppJwtService;
 import com.tripplanning.user.UserRepository;
 
 @Configuration
@@ -40,7 +41,8 @@ public class SecurityConfig {
             .toList();
     config.setAllowedOrigins(origins);
     config.setAllowedMethods(List.of("GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-    config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "Origin"));
+    config.setAllowedHeaders(
+        List.of("Authorization", "Content-Type", "Accept", "Origin", TestBearerImpersonationFilter.ACT_AS_HEADER));
     config.setExposedHeaders(List.of("WWW-Authenticate"));
     config.setAllowCredentials(true);
 
@@ -59,8 +61,21 @@ public class SecurityConfig {
   @Bean
   @ConditionalOnExpression("'${tripplanning.auth.test-bearer-token:}'.length() > 0")
   public TestBearerImpersonationFilter testBearerImpersonationFilter(
-      AuthProperties authProperties, UserRepository userRepository) {
-    return new TestBearerImpersonationFilter(authProperties.getTestBearerToken(), userRepository);
+      AuthProperties authProperties,
+      UserRepository userRepository,
+      AppJwtService appJwtService) {
+    return new TestBearerImpersonationFilter(
+        authProperties.getTestBearerToken(),
+        id -> id == 0L || userRepository.existsById(id),
+        userId -> {
+          if (userId == 0L) {
+            return appJwtService.createToken(0L, "");
+          }
+          return userRepository
+              .findById(userId)
+              .map(user -> appJwtService.createToken(user.getId(), user.getEmail()))
+              .orElse(null);
+        });
   }
 
   @Bean

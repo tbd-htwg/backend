@@ -5,6 +5,11 @@ spring:
     activate:
       on-profile: k8s
 
+  datasource:
+    hikari:
+      maximum-pool-size: 12
+      minimum-idle: 2
+
   elasticsearch:
     restclient:
       sniffer:
@@ -32,6 +37,11 @@ spring:
             # create-or-validate fails when mappings change (e.g. transport type → start/end addresses).
             strategy: create-or-update
 
+server:
+  shutdown: graceful
+
 tripplanning:
   search:
     readiness-enabled: true
+  cache:
+    redis-ttl-seconds: ${TRIPPLANNING_CACHE_REDIS_TTL_SECONDS:30}

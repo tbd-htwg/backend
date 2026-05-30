@@ -4,7 +4,6 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,9 +16,6 @@ import com.tripplanning.externalinfo.ApiProxyServices.GooglePlacesApiException;
 import com.tripplanning.externalinfo.dto.ExternalInfoDtos.AccommodationExternalInfo;
 import com.tripplanning.externalinfo.dto.ExternalInfoDtos.PlaceSearchResult;
 import com.tripplanning.externalinfo.dto.ExternalInfoDtos.StopExternalInfo;
-import com.tripplanning.externalinfo.ApiProxyServices.GoogleRoutesDistanceApi;
-import com.tripplanning.externalinfo.ApiProxyServices.TransportRouteNotFoundException;
-import com.tripplanning.externalinfo.dto.ExternalInfoDtos.TransportRouteResult;
 import com.tripplanning.externalinfo.dto.ExternalInfoDtos.TripExternalInfo;
 
 import lombok.RequiredArgsConstructor;
@@ -53,8 +49,7 @@ public class ExternalPublicApiController {
                 .tripExternalInfo(placeId, lat, lon, countryCode, cityName)
                 .map(ResponseEntity::ok)
                 .switchIfEmpty(Mono.just(ResponseEntity.notFound().build()))
-                .onErrorResume(GooglePlacesApiException.class, e -> Mono.error(placesUnavailable(e)))
-                .onErrorResume(e -> Mono.just(ResponseEntity.internalServerError().build()));
+                .onErrorResume(this::resumeExternalApiError);
     }
 
     /** @deprecated Prefer {@code /stop-details/batch}. */
@@ -73,8 +68,7 @@ public class ExternalPublicApiController {
         return externalDetailsService
                 .tripExternalInfoBatch(inputs)
                 .map(ResponseEntity::ok)
-                .onErrorResume(GooglePlacesApiException.class, e -> Mono.error(placesUnavailable(e)))
-                .onErrorResume(e -> Mono.just(ResponseEntity.internalServerError().build()));
+                .onErrorResume(this::resumeExternalApiError);
     }
 
     @GetMapping("/stop-details")
@@ -88,8 +82,7 @@ public class ExternalPublicApiController {
                 .stopExternalInfo(placeId, lat, lon, countryCode, cityName)
                 .map(ResponseEntity::ok)
                 .switchIfEmpty(Mono.just(ResponseEntity.notFound().build()))
-                .onErrorResume(GooglePlacesApiException.class, e -> Mono.error(placesUnavailable(e)))
-                .onErrorResume(e -> Mono.just(ResponseEntity.internalServerError().build()));
+                .onErrorResume(this::resumeExternalApiError);
     }
 
     @GetMapping("/stop-details/batch")
@@ -107,8 +100,7 @@ public class ExternalPublicApiController {
         return externalDetailsService
                 .stopExternalInfoBatch(inputs)
                 .map(ResponseEntity::ok)
-                .onErrorResume(GooglePlacesApiException.class, e -> Mono.error(placesUnavailable(e)))
-                .onErrorResume(e -> Mono.just(ResponseEntity.internalServerError().build()));
+                .onErrorResume(this::resumeExternalApiError);
     }
 
     @GetMapping("/accommodation-details")
@@ -124,8 +116,7 @@ public class ExternalPublicApiController {
                 .accommodationExternalInfo(placeId, lat, lon, countryCode, cityName, cost, currency)
                 .map(ResponseEntity::ok)
                 .switchIfEmpty(Mono.just(ResponseEntity.notFound().build()))
-                .onErrorResume(GooglePlacesApiException.class, e -> Mono.error(placesUnavailable(e)))
-                .onErrorResume(e -> Mono.just(ResponseEntity.internalServerError().build()));
+                .onErrorResume(this::resumeExternalApiError);
     }
 
     @GetMapping("/accommodation-details/batch")
@@ -147,53 +138,22 @@ public class ExternalPublicApiController {
         return externalDetailsService
                 .accommodationExternalInfoBatch(inputs)
                 .map(ResponseEntity::ok)
-                .onErrorResume(GooglePlacesApiException.class, e -> Mono.error(placesUnavailable(e)))
-                .onErrorResume(e -> Mono.just(ResponseEntity.internalServerError().build()));
+                .onErrorResume(this::resumeExternalApiError);
     }
 
-    @GetMapping("/transport/route")
-    public Mono<ResponseEntity<TransportRouteResult>> getTransportRoute(
-            @RequestParam double originLat,
-            @RequestParam double originLon,
-            @RequestParam double destLat,
-            @RequestParam double destLon,
-            @RequestParam String mode) {
-        if (GoogleRoutesDistanceApi.normalizeTravelMode(mode) == null) {
-            return Mono.error(
-                    new ResponseStatusException(
-                            HttpStatus.BAD_REQUEST,
-                            "Invalid mode. Allowed: DRIVE, WALK, BICYCLE, TRANSIT"));
+    @SuppressWarnings("unchecked")
+    private <T> Mono<ResponseEntity<T>> resumeExternalApiError(Throwable error) {
+        if (error instanceof ResponseStatusException rse) {
+            return Mono.error(rse);
         }
-        return externalDetailsService
-                .transportRoute(originLat, originLon, destLat, destLon, mode)
-                .map(ResponseEntity::ok)
-                .onErrorMap(
-                        TransportRouteNotFoundException.class,
-                        e -> new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage()))
-                .onErrorMap(
-                        IllegalArgumentException.class,
-                        e -> new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage()))
-                .onErrorMap(
-                        GooglePlacesApiException.class,
-                        ExternalPublicApiController::mapTransportRouteServiceError)
-                .onErrorMap(
-                        e -> !(e instanceof ResponseStatusException),
-                        e -> new ResponseStatusException(
-                                HttpStatus.INTERNAL_SERVER_ERROR,
-                                "Transport route request failed",
-                                e));
+        if (error instanceof GooglePlacesApiException gpe) {
+            return Mono.error(placesUnavailable(gpe));
+        }
+        return Mono.just((ResponseEntity<T>) ResponseEntity.internalServerError().build());
     }
 
     private static ResponseStatusException placesUnavailable(GooglePlacesApiException e) {
-        return new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, e.getMessage(), e);
-    }
-
-    /** Only true outages (missing key, Routes API disabled) are 503; not “no route for this mode”. */
-    private static ResponseStatusException mapTransportRouteServiceError(GooglePlacesApiException e) {
-        String msg = e.getMessage() != null ? e.getMessage() : "";
-        if (msg.contains("not configured") || msg.contains("Routes API") || msg.contains("API key")) {
-            return placesUnavailable(e);
-        }
-        return new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, msg, e);
+        return new ResponseStatusException(
+                org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE, e.getMessage(), e);
     }
 }

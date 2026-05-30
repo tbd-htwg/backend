@@ -2,7 +2,7 @@
 
 Reference for the **local ms2-shaped** stack on Minikube: in-cluster components, localhost access, and the small set of GCP services still used (Identity Platform, GCS, Google Places / Routes APIs).
 
-**Scope:** `kubectl` context `minikube`, namespace `tripplanning`. For setup/teardown, see [README.md](README.md). For GKE / Terraform inventory, see [ms2 overview](../../../infrastructure/ms2/docs/overview.md) and [Terraform dev env](../../../infrastructure/ms2/terraform/envs/dev/README.md).
+**Scope:** `kubectl` context `minikube`, namespace `tripplanning`. For setup/teardown, see [README.md](README.md). For GKE architecture and inventory, see [ms2 STATE.md](../../../infrastructure/ms2/docs/STATE.md); setup/runbook: [ms2 overview](../../../infrastructure/ms2/docs/overview.md) and [Terraform dev env](../../../infrastructure/ms2/terraform/envs/dev/README.md).
 
 ---
 
@@ -22,7 +22,7 @@ Reference for the **local ms2-shaped** stack on Minikube: in-cluster components,
 |-----------|----------------|----------|
 | **trip-service** | Spring Boot, PostgreSQL + OpenSearch + Valkey | [`k8s/local/chart/templates/deployments/trip-deployment.yaml`](../../k8s/local/chart/templates/deployments/trip-deployment.yaml) |
 | **social-service** | Spring Boot, Firestore emulator | [`k8s/local/chart/templates/deployments/social-deployment.yaml`](../../k8s/local/chart/templates/deployments/social-deployment.yaml) |
-| **external-info-service** | Spring Boot, Valkey + Caffeine cache | [`k8s/local/chart/templates/deployments/external-info-deployment.yaml`](../../k8s/local/chart/templates/deployments/external-info-deployment.yaml) |
+| **external-info-service** | Spring Boot, Valkey cache | [`k8s/local/chart/templates/deployments/external-info-deployment.yaml`](../../k8s/local/chart/templates/deployments/external-info-deployment.yaml) |
 | **PostgreSQL** | Postgres 16, StatefulSet + PVC | [`k8s/local/chart/templates/backing/postgres-*.yaml`](../../k8s/local/chart/templates/backing/) |
 | **Valkey** | Official Helm subchart (`valkey-io/valkey-helm`) | [`k8s/local/chart/Chart.yaml`](../../k8s/local/chart/Chart.yaml) |
 | **OpenSearch** | Official Helm subchart 2.x (`opensearch-project/helm-charts`), single-node + 5Gi PVC | [`k8s/local/chart/Chart.yaml`](../../k8s/local/chart/Chart.yaml) |
@@ -245,8 +245,8 @@ flowchart TB
 | Service | SQL | OpenSearch | Valkey | Firestore | GCS | Other HTTP |
 |---------|:---:|:-------------:|:-----:|:---------:|:---:|------------|
 | **trip-service** | PostgreSQL + `google_places` (JPA, Flyway V1–V14) | Hibernate Search `tripentity-local` | Cache 10s TTL; search-index lock/status | — | Signed uploads | social, external-info (`/internal/location-pack`) |
-| **social-service** | — | — | — | Emulator `(default)` | — | trip-service |
-| **external-info-service** | — | — | Present in cluster; reactive `@Cacheable` uses **Caffeine** | — | — | Google Places + Routes, AA, Open-Meteo, Viator; `/internal/**` uses `X-Internal-Secret` |
+| **social-service** | — | — | Cache 30s TTL (likes/comments reads) | Emulator `(default)` | — | trip-service |
+| **external-info-service** | — | — | Reactive Valkey cache (places 7d, weather/warnings/tours/transport 1d) | — | — | Google Places + Routes, AA, Open-Meteo, Viator; `/internal/**` uses `X-Internal-Secret` |
 
 **In-cluster DNS:**
 
@@ -278,22 +278,22 @@ flowchart LR
   end
 
   subgraph ExtFlow["external-info-service"]
-    Req2[details] --> CCache{Caffeine cache?}
-    CCache -->|miss| APIs[Google Places Routes AA Meteo Viator]
-    APIs --> CCache
+    Req2[details] --> VCache{Valkey cache?}
+    VCache -->|miss| APIs[Google Places Routes AA Meteo Viator]
+    APIs --> VCache
   end
 ```
 
 | System | Used by | Purpose |
 |--------|---------|---------|
 | **OpenSearch** | trip-service (`local,k8s` profile) | Index `tripentity-local`; official Helm subchart, single-node 2.x + 5Gi PVC; `HIBERNATE_SEARCH_BACKEND_VERSION=opensearch:2.19` |
-| **Valkey** | trip-service, external-info-service | Trip feed cache; **SearchIndexCoordinationService** lock/status (`tripplanning:search:index:*`); Caffeine fallback if Valkey host unset (JVM-only) |
+| **Valkey** | trip-service, social-service, external-info-service | Trip feed cache; social read cache (30s); external-info reactive cache; **SearchIndexCoordinationService** lock/status (`tripplanning:search:index:*`); no cache if Valkey host unset (JVM-only dev) |
 
 **SearchIndexCoordinationService** (trip-service): on cold start, coordinates Hibernate Search mass indexing across pods via a Valkey lock (`tripplanning:search:index:lock`). Readiness includes `searchIndex` health — pods may stay **Not Ready** for 1–3+ minutes until indexing completes. Debug: `GET /internal/debug/search-index` via ingress.
 
 **trip-service Valkey cache names** (10s TTL): `tripFeedPage`, `tripFeedByUser`, `tripFeedLikedBy`, `tripDetail`, `tripExists`.
 
-**external-info-service Caffeine cache names** (reactive `@Cacheable`): `places` (7d), `warnings`, `weather`, `tours`, `transportRoute` (1d TTL).
+**external-info-service Valkey cache namespaces** (via `ReactiveValkeyCache`): `places` (7d TTL), `warnings`, `weather`, `tours`, `transportRoute` (1d TTL each for volatile namespaces). When `SPRING_DATA_REDIS_HOST` is unset (JVM-only dev outside k8s), external-info skips caching and calls upstream APIs directly.
 
 ---
 
@@ -343,7 +343,25 @@ Minikube trip-service stores SQL data in the **postgres StatefulSet PVC**. Host 
 
 ---
 
-## 10. Key source files
+## 10. Local vs GKE (quick reference)
+
+Full GKE inventory: [infrastructure/ms2/docs/STATE.md](../../../infrastructure/ms2/docs/STATE.md).
+
+| Aspect | Local (this doc) | GKE dev (`tripplanning-free`) |
+|--------|------------------|-------------------------------|
+| **Namespace** | `tripplanning` | `tripplanning-free` |
+| **Deploy** | `./scripts/local-dev.sh` + Helm local chart | Terraform + Flux + ms2 Helm chart |
+| **API entry** | nginx Ingress → `localhost:8080` port-forward | `https://k8s.tbd-htwg.de/api/*` (frontend LB → api-router) + `https://api.k8s.tbd-htwg.de` (Gateway) |
+| **api-router** | No — Ingress routes directly | Yes — nginx splits trip/user social paths |
+| **Firestore** | In-cluster emulator | Managed `tbd-firestore` |
+| **Postgres** | In-cluster Postgres 16 | In-cluster Postgres 15 |
+| **Search DNS** | `opensearch:9200`, index `tripentity-local` | `elasticsearch:9200`, index `tripentity` |
+| **Secrets** | `docs/gettingstarted/.env` → K8s secrets | GCP Secret Manager → External Secrets |
+| **Images** | `tripplanning-*-service:local` | `ghcr.io/tbd-htwg/backend/...:latest` |
+
+---
+
+## 11. Key source files
 
 | Topic | Path |
 |-------|------|
@@ -357,5 +375,5 @@ Minikube trip-service stores SQL data in the **postgres StatefulSet PVC**. Host 
 | Perf seed job | [`tripplanning-seed-job/README.md`](../../tripplanning-seed-job/README.md) |
 | Flyway (Postgres) | `tripplanning-trip-service/src/main/resources/db/migration/V10__*.sql` … `V14__*.sql` |
 | Spring local + k8s profiles | `tripplanning-*/src/main/resources/application-local.yml`, `application-k8s.yml`, `application-postgres.yml` |
-| GKE counterpart | [ms2 overview](../../../infrastructure/ms2/docs/overview.md) |
+| GKE counterpart | [ms2 STATE.md](../../../infrastructure/ms2/docs/STATE.md) · [overview](../../../infrastructure/ms2/docs/overview.md) |
 | Frontend API client | [`frontend/src/api/client.ts`](../../../frontend/src/api/client.ts) |

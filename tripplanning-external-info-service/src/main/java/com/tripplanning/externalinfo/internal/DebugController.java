@@ -1,18 +1,16 @@
 package com.tripplanning.externalinfo.internal;
 
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.Cache;
-import org.springframework.cache.CacheManager;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ReactiveStringRedisTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.tripplanning.externalinfo.config.ReactiveValkeyCache;
 
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
@@ -22,13 +20,10 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class DebugController {
 
-    private final CacheManager cacheManager;
+    private final ReactiveValkeyCache valkeyCache;
 
     @Autowired(required = false)
-    private StringRedisTemplate redisTemplate;
-
-    @Autowired(required = false)
-    private RedisConnectionFactory redisConnectionFactory;
+    private ReactiveStringRedisTemplate redisTemplate;
 
     @GetMapping
     public Mono<Map<String, Object>> overview() {
@@ -53,16 +48,16 @@ public class DebugController {
 
     private Map<String, Object> buildRedisSection() {
         Map<String, Object> body = new LinkedHashMap<>();
-        body.put("cacheBackend", redisConnectionFactory != null ? "redis" : "caffeine");
-        body.put("springCaches", describeSpringCaches());
-        if (redisTemplate != null) {
+        body.put("cacheBackend", valkeyCache.isEnabled() ? "valkey" : "none");
+        if (valkeyCache.isEnabled() && redisTemplate != null) {
             try {
                 Long keyCount =
                         redisTemplate
                                 .getConnectionFactory()
-                                .getConnection()
+                                .getReactiveConnection()
                                 .serverCommands()
-                                .dbSize();
+                                .dbSize()
+                                .block();
                 body.put("keyCount", keyCount);
             } catch (Exception e) {
                 body.put("keyCountError", e.getMessage());
@@ -70,19 +65,11 @@ public class DebugController {
         }
         body.put(
                 "sampleKeyPatterns",
-                List.of("places*", "weather*", "warnings*", "tours*", "transportRouteV2*"));
+                List.of(
+                        "extinfo:v1:places:*",
+                        "extinfo:v1:weather:*",
+                        "extinfo:v1:warnings:*",
+                        "extinfo:v1:tours:*"));
         return body;
-    }
-
-    private List<Map<String, Object>> describeSpringCaches() {
-        List<Map<String, Object>> caches = new ArrayList<>();
-        for (String name : cacheManager.getCacheNames()) {
-            Cache cache = cacheManager.getCache(name);
-            Map<String, Object> entry = new LinkedHashMap<>();
-            entry.put("name", name);
-            entry.put("type", cache != null ? cache.getClass().getSimpleName() : "unknown");
-            caches.add(entry);
-        }
-        return caches;
     }
 }
