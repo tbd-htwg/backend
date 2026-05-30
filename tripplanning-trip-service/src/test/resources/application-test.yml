@@ -53,5 +53,10 @@ tripplanning:
   search:
     elasticsearch-index-name: tripentity-test
     readiness-enabled: false
+    mlt:
+      min-term-freq: 1
+      min-doc-freq: 1
+      max-query-terms: 25
+      min-score: 0
   services:
     external-info-base-url: http://localhost:8082

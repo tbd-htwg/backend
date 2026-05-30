@@ -13,6 +13,7 @@ import com.tripplanning.common.client.RestSocialServiceClient;
 import com.tripplanning.common.client.ServiceClientConfig;
 import com.tripplanning.common.client.SocialServiceClient;
 import com.tripplanning.common.config.ServiceClientProperties;
+import com.tripplanning.search.TripSimilarityMltProperties;
 
 @SpringBootApplication(scanBasePackages = {"com.tripplanning", "com.tripplanning.common"})
 @EntityScan(basePackages = {
@@ -31,7 +32,7 @@ import com.tripplanning.common.config.ServiceClientProperties;
     "com.tripplanning.tripLocation",
     "com.tripplanning.place"
 })
-@EnableConfigurationProperties({AuthProperties.class, ServiceClientProperties.class})
+@EnableConfigurationProperties({AuthProperties.class, ServiceClientProperties.class, TripSimilarityMltProperties.class})
 @org.springframework.context.annotation.Import(ServiceClientConfig.class)
 public class TripServiceApplication {
 

@@ -1,12 +1,14 @@
 package com.tripplanning.search;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.hibernate.search.backend.elasticsearch.ElasticsearchExtension;
 import org.hibernate.search.engine.search.query.SearchResult;
 import org.hibernate.search.mapper.orm.Search;
 import org.hibernate.search.mapper.orm.session.SearchSession;
+import org.hibernate.search.util.common.SearchException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.data.domain.Page;
@@ -23,21 +25,22 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Elasticsearch-backed "More Like This" implementation for all non-local profiles.
+ * Elasticsearch/OpenSearch-backed "More Like This" for {@code k8s} (minikube, GKE).
  * Sends a native MLT JSON query via {@link ElasticsearchExtension}.
  */
 @Service
-@Profile("!local")
+@Profile("k8s")
 @RequiredArgsConstructor
 @Slf4j
 public class TripSimilarityServiceEs implements TripSimilarityPort {
 
+    /** Plain fields only — nested {@code tripLocations.*} collapse multi-anchor MLT to zero hits. */
     private static final String[] MLT_FIELDS = {
-            "title", "shortDescription", "destination",
-            "tripLocations.placeName", "tripLocations.cityName"
+        "destination", "title", "shortDescription"
     };
 
     private final EntityManager entityManager;
+    private final TripSimilarityMltProperties mltProperties;
 
     @Value("${tripplanning.search.elasticsearch-index-name:tripentity}")
     private String indexName;
@@ -56,81 +59,147 @@ public class TripSimilarityServiceEs implements TripSimilarityPort {
 
         log.debug("MLT query for referenceIds={}: {}", referenceIds, queryJson);
 
-        int offset = Math.toIntExact(pageable.getOffset());
-        SearchResult<TripEntity> result = searchSession.search(TripEntity.class)
-                .extension(ElasticsearchExtension.get())
-                .where(f -> f.fromJson(queryJson))
-                .fetch(offset, size);
+        try {
+            int offset = Math.toIntExact(pageable.getOffset());
+            SearchResult<TripEntity> result = searchSession.search(TripEntity.class)
+                    .extension(ElasticsearchExtension.get())
+                    .where(f -> f.fromJson(queryJson))
+                    .fetch(offset, size);
 
-        List<TripSearchDto> content = result.hits().stream()
-                .map(this::toDto)
-                .collect(Collectors.toList());
+            long totalHits = result.total().hitCount();
+            if (totalHits == 0) {
+                log.info(
+                        "MLT returned no hits for referenceIds={} (readIndex={})",
+                        referenceIds,
+                        readIndexName());
+            }
 
-        return new PageImpl<>(content, pageable, result.total().hitCount());
+            List<TripSearchDto> content = result.hits().stream()
+                    .map(this::toDto)
+                    .collect(Collectors.toList());
+
+            return new PageImpl<>(content, pageable, totalHits);
+        } catch (SearchException e) {
+            log.warn("MLT query failed for referenceIds={}: {}", referenceIds, e.getMessage());
+            return Page.empty(pageable);
+        }
     }
 
     /**
-     * Builds the native Elasticsearch "more_like_this" JSON query.
-     * Reference documents are identified by index name + string ID (Hibernate Search default).
-     * Reference IDs are also excluded via a must_not ids filter.
+     * Hibernate Search exposes {@code {indexName}-read} / {@code {indexName}-write} aliases; MLT
+     * {@code like} document references must use the read alias, not the logical index name alone.
+     */
+    private String readIndexName() {
+        return indexName + "-read";
+    }
+
+    /**
+     * Builds the native Elasticsearch "more_like_this" JSON query. Field boosts are applied via
+     * optional {@code should} destination matches — caret boosts in MLT {@code fields} break
+     * OpenSearch MLT on our cluster (zero hits).
      */
     private String buildMltQueryJson(List<Long> referenceIds, List<Long> excludeIds) {
         String fieldsJson = buildFieldsJson();
         String likeJson = buildLikeJson(referenceIds);
-        String mustNotJson = (excludeIds != null && !excludeIds.isEmpty())
-                ? buildMustNotJson(excludeIds)
-                : "";
+        String mltClause =
+                """
+                {
+                  "more_like_this": {
+                    "fields": %s,
+                    "like": %s,
+                    "min_term_freq": %d,
+                    "min_doc_freq": %d,
+                    "max_query_terms": %d
+                  }
+                }
+                """
+                        .formatted(
+                                fieldsJson,
+                                likeJson,
+                                mltProperties.getMinTermFreq(),
+                                mltProperties.getMinDocFreq(),
+                                mltProperties.getMaxQueryTerms());
 
-        if (mustNotJson.isEmpty()) {
-            return """
-                    {
-                      "more_like_this": {
-                        "fields": %s,
-                        "like": %s,
-                        "min_term_freq": 1,
-                        "min_doc_freq": 1,
-                        "max_query_terms": 25
-                      }
-                    }
-                    """.formatted(fieldsJson, likeJson);
+        String destinationShould = buildDestinationShouldJson(referenceIds);
+        boolean hasExclude = excludeIds != null && !excludeIds.isEmpty();
+        boolean hasDestinationBoost = !destinationShould.isEmpty();
+
+        if (!hasExclude && !hasDestinationBoost) {
+            return mltClause;
+        }
+
+        StringBuilder boolInner = new StringBuilder();
+        boolInner.append("\"must\": ").append(mltClause);
+        if (hasExclude) {
+            boolInner.append(", \"must_not\": ").append(buildMustNotJson(excludeIds));
+        }
+        if (hasDestinationBoost) {
+            boolInner.append(", \"should\": ").append(destinationShould);
+            boolInner.append(", \"minimum_should_match\": 0");
         }
 
         return """
                 {
                   "bool": {
-                    "must": {
-                      "more_like_this": {
-                        "fields": %s,
-                        "like": %s,
-                        "min_term_freq": 1,
-                        "min_doc_freq": 1,
-                        "max_query_terms": 25
-                      }
-                    },
-                    "must_not": %s
+                    %s
                   }
                 }
-                """.formatted(fieldsJson, likeJson, mustNotJson);
+                """
+                .formatted(boolInner);
     }
 
-    private String buildFieldsJson() {
+    private static String buildFieldsJson() {
         return "[" + java.util.Arrays.stream(MLT_FIELDS)
                 .map(f -> "\"" + f + "\"")
                 .collect(Collectors.joining(", ")) + "]";
     }
 
     private String buildLikeJson(List<Long> ids) {
+        String readIndex = readIndexName();
         String docs = ids.stream()
-                .map(id -> "{ \"_index\": \"%s\", \"_id\": \"%d\" }".formatted(indexName, id))
+                .map(id -> "{ \"_index\": \"%s\", \"_id\": \"%d\" }".formatted(readIndex, id))
                 .collect(Collectors.joining(", "));
         return "[" + docs + "]";
     }
 
+    /** Optional destination match boost derived from anchor trips. */
+    private String buildDestinationShouldJson(List<Long> referenceIds) {
+        List<String> destinations =
+                referenceIds.stream()
+                        .map(id -> entityManager.find(TripEntity.class, id))
+                        .filter(Objects::nonNull)
+                        .map(TripEntity::getDestination)
+                        .filter(d -> d != null && !d.isBlank())
+                        .distinct()
+                        .toList();
+
+        if (destinations.isEmpty()) {
+            return "";
+        }
+
+        String matches =
+                destinations.stream()
+                        .map(
+                                d ->
+                                        "{ \"match\": { \"destination\": { \"query\": \""
+                                                + escapeJson(d)
+                                                + "\", \"boost\": "
+                                                + mltProperties.getDestinationBoost()
+                                                + " } } }")
+                        .collect(Collectors.joining(", "));
+        return "[" + matches + "]";
+    }
+
     private static String buildMustNotJson(List<Long> excludeIds) {
-        String values = excludeIds.stream()
-                .map(id -> "\"" + id + "\"")
-                .collect(Collectors.joining(", "));
-        return "{ \"ids\": { \"values\": [" + values + "] } }";
+        String values =
+                excludeIds.stream()
+                        .map(id -> "\"" + id + "\"")
+                        .collect(Collectors.joining(", "));
+        return "[{ \"ids\": { \"values\": [" + values + "] } }]";
+    }
+
+    private static String escapeJson(String value) {
+        return value.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 
     private TripSearchDto toDto(TripEntity trip) {

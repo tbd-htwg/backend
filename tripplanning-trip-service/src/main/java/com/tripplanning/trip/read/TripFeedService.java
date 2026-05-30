@@ -7,7 +7,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.tripplanning.common.client.SocialServiceClient;
@@ -27,6 +29,7 @@ import com.tripplanning.trip.read.TripFeedDtos.TripFeedItem;
 import com.tripplanning.trip.read.TripFeedDtos.TripFeedPage;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Public read API for the SPA feed and trip detail. Pulls the cached SQL-only payload from
@@ -37,7 +40,12 @@ import lombok.RequiredArgsConstructor;
  */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class TripFeedService {
+
+    static final String SOURCE_LATEST = "latest";
+    static final String SOURCE_RECOMMENDED = "recommended";
+    static final String SOURCE_LATEST_FALLBACK = "latest-fallback";
 
     private static final int MAX_PAGE_SIZE = 50;
     /** Maximum number of reference trips fed into the MLT query. */
@@ -50,7 +58,7 @@ public class TripFeedService {
     private final TripSimilarityPort tripSimilarityPort;
 
     public TripFeedPage<TripFeedItem> feed(int page, int size) {
-        return materialise(cachedReader.feedRaw(safePage(page), safeSize(size)));
+        return materialise(cachedReader.feedRaw(safePage(page), safeSize(size)), SOURCE_LATEST);
     }
 
     public TripFeedPage<TripFeedItem> feedByUser(long userId, int page, int size) {
@@ -71,61 +79,110 @@ public class TripFeedService {
 
     /**
      * Returns a personalised feed based on Elasticsearch "More Like This".
-     * Uses the user's own trips and liked trips as similarity anchors.
-     * Falls back to the chronological {@link #feed} when the user has no anchors.
+     * Uses the user's liked trips (preferred) or own trips as similarity anchors.
+     * Falls back to the chronological {@link #feed} when the user has no anchors or MLT is empty.
      *
      * @param userId the authenticated user's ID
      * @param page   zero-based page index
      * @param size   page size
      */
     public TripFeedPage<TripFeedItem> recommendedFeed(long userId, int page, int size) {
-        List<Long> ownIds = tripRepository
-                .findByUserId(userId, Pageable.unpaged())
-                .stream()
-                .map(t -> t.getId())
-                .collect(Collectors.toList());
-
         List<Long> likedIds = socialServiceClient.getLikedTripIdsForUser(userId);
-        if (likedIds == null) likedIds = List.of();
+        if (likedIds == null) {
+            likedIds = List.of();
+        }
 
-        // Deduplicate and cap at MAX_REFERENCE_TRIPS (most recent liked first, then own)
-        Set<Long> seen = new LinkedHashSet<>();
-        seen.addAll(likedIds);
-        seen.addAll(ownIds);
-        List<Long> referenceIds = seen.stream().limit(MAX_REFERENCE_TRIPS).collect(Collectors.toList());
+        List<Long> recentOwnIds =
+                tripRepository
+                        .findByUserId(
+                                userId,
+                                PageRequest.of(
+                                        0, MAX_REFERENCE_TRIPS, Sort.by(Sort.Direction.DESC, "id")))
+                        .stream()
+                        .map(t -> t.getId())
+                        .collect(Collectors.toList());
+
+        List<Long> allOwnIds =
+                tripRepository.findByUserId(userId, Pageable.unpaged()).stream()
+                        .map(t -> t.getId())
+                        .collect(Collectors.toList());
+
+        Set<Long> excludeIds = new LinkedHashSet<>();
+        excludeIds.addAll(likedIds);
+        excludeIds.addAll(allOwnIds);
+
+        List<Long> referenceIds = new ArrayList<>();
+        if (!likedIds.isEmpty()) {
+            for (Long id : likedIds) {
+                if (referenceIds.size() >= MAX_REFERENCE_TRIPS) {
+                    break;
+                }
+                referenceIds.add(id);
+            }
+        } else {
+            referenceIds.addAll(recentOwnIds);
+        }
 
         if (referenceIds.isEmpty()) {
-            // No taste signal yet – fall back to latest
-            return feed(page, size);
+            log.info(
+                    "recommendedFeed userId={} referenceIds=[] mltTotalHits=0 fallback=true reason=no-anchors",
+                    userId);
+            return withSource(feed(page, size), SOURCE_LATEST_FALLBACK);
         }
 
-        Page<TripSearchDto> similar = tripSimilarityPort.findSimilar(
-                referenceIds, referenceIds, safePage(page), safeSize(size));
+        List<Long> excludeList = new ArrayList<>(excludeIds);
+        Page<TripSearchDto> similar =
+                tripSimilarityPort.findSimilar(
+                        referenceIds, excludeList, safePage(page), safeSize(size));
 
         if (similar.isEmpty()) {
-            return feed(page, size);
+            log.info(
+                    "recommendedFeed userId={} referenceIds={} mltTotalHits=0 fallback=true",
+                    userId,
+                    referenceIds);
+            return withSource(feed(page, size), SOURCE_LATEST_FALLBACK);
         }
 
-        List<TripFeedItem> items = similar.getContent().stream()
-                .map(this::searchDtoToFeedItem)
-                .collect(Collectors.toList());
+        log.info(
+                "recommendedFeed userId={} referenceIds={} mltTotalHits={} fallback=false",
+                userId,
+                referenceIds,
+                similar.getTotalElements());
+
+        List<TripFeedItem> items =
+                similar.getContent().stream()
+                        .map(this::searchDtoToFeedItem)
+                        .collect(Collectors.toList());
 
         return new TripFeedPage<>(
                 items,
                 similar.getNumber(),
                 similar.getSize(),
                 similar.getTotalElements(),
-                similar.getTotalPages());
+                similar.getTotalPages(),
+                SOURCE_RECOMMENDED);
+    }
+
+    private static TripFeedPage<TripFeedItem> withSource(
+            TripFeedPage<TripFeedItem> page, String source) {
+        return new TripFeedPage<>(
+                page.items(),
+                page.page(),
+                page.size(),
+                page.totalItems(),
+                page.totalPages(),
+                source);
     }
 
     /** Converts a {@link TripSearchDto} (from MLT) into a {@link TripFeedItem}. */
     private TripFeedItem searchDtoToFeedItem(TripSearchDto dto) {
         // Author profile image is not available from the search index;
         // pass null – the SPA must handle a missing profileImageUrl gracefully.
-        TripFeedAuthor author = new TripFeedAuthor(
-                dto.getUserId() != null ? dto.getUserId() : 0L,
-                dto.getAuthor(),
-                null);
+        TripFeedAuthor author =
+                new TripFeedAuthor(
+                        dto.getUserId() != null ? dto.getUserId() : 0L,
+                        dto.getAuthor(),
+                        null);
         return new TripFeedItem(
                 dto.getId(),
                 dto.getTitle(),
@@ -139,6 +196,10 @@ public class TripFeedService {
     }
 
     private TripFeedPage<TripFeedItem> materialise(TripFeedPageRaw raw) {
+        return materialise(raw, null);
+    }
+
+    private TripFeedPage<TripFeedItem> materialise(TripFeedPageRaw raw, String source) {
         List<TripFeedItemRaw> rawItems = raw.items();
         List<String> authorPaths = new ArrayList<>(rawItems.size());
         for (TripFeedItemRaw item : rawItems) {
@@ -164,7 +225,7 @@ public class TripFeedService {
                             item.accommodationNames(),
                             item.transportRoutes()));
         }
-        return new TripFeedPage<>(items, raw.page(), raw.size(), raw.totalItems(), raw.totalPages());
+        return new TripFeedPage<>(items, raw.page(), raw.size(), raw.totalItems(), raw.totalPages(), source);
     }
 
     private TripFeedDetail materialiseDetail(TripFeedDetailRaw raw) {

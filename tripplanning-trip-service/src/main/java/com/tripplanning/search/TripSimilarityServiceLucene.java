@@ -8,13 +8,12 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import org.apache.lucene.analysis.en.EnglishAnalyzer;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.queries.mlt.MoreLikeThis;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.Query;
-import org.apache.lucene.search.TermInSetQuery;
-import org.apache.lucene.util.BytesRef;
 import org.hibernate.search.backend.lucene.LuceneExtension;
 import org.hibernate.search.engine.search.query.SearchResult;
 import org.hibernate.search.mapper.orm.Search;
@@ -35,19 +34,18 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Lucene-backed "More Like This" implementation for the {@code local} profile.
- * Uses Apache Lucene's {@link MoreLikeThis} with text content extracted from the
- * reference entities. The IndexReader is obtained via {@link EntityManagerFactory}
- * (HS7-compatible; SearchSession.extension() was removed in HS7).
+ * Lucene-backed "More Like This" for JVM-only local ({@code local & !k8s}) and {@code test}.
+ * Minikube/GKE use OpenSearch via {@link TripSimilarityServiceEs} instead.
  */
 @Service
-@Profile("local")
+@Profile({"test", "local & !k8s"})
 @RequiredArgsConstructor
 @Slf4j
 public class TripSimilarityServiceLucene implements TripSimilarityPort {
 
     private final EntityManager entityManager;
     private final EntityManagerFactory entityManagerFactory;
+    private final TripSimilarityMltProperties mltProperties;
 
     @Override
     @Transactional(readOnly = true)
@@ -76,14 +74,21 @@ public class TripSimilarityServiceLucene implements TripSimilarityPort {
                 .openIndexReader()) {
 
             Query mltQuery = buildMltQuery(indexReader, refs);
-            Query finalQuery = excludeIds == null || excludeIds.isEmpty()
-                    ? mltQuery
-                    : wrapWithExclusion(mltQuery, excludeIds);
 
             int offset = Math.toIntExact(pageable.getOffset());
             SearchResult<TripEntity> result = searchSession.search(TripEntity.class)
-                    .extension(LuceneExtension.get())
-                    .where(f -> f.fromLuceneQuery(finalQuery))
+                    .where(f -> {
+                        var mlt = f.extension(LuceneExtension.get()).fromLuceneQuery(mltQuery);
+                        if (excludeIds == null || excludeIds.isEmpty()) {
+                            return mlt;
+                        }
+                        var bool = f.bool();
+                        bool.must(mlt);
+                        for (Long excludeId : excludeIds) {
+                            bool.mustNot(f.id().matching(excludeId));
+                        }
+                        return bool;
+                    })
                     .fetch(offset, size);
 
             List<TripSearchDto> content = result.hits().stream()
@@ -103,12 +108,13 @@ public class TripSimilarityServiceLucene implements TripSimilarityPort {
      * Uses {@link MoreLikeThis#like(Map)} with extracted text content instead of
      * Lucene doc IDs – avoids the need to resolve internal document numbers.
      */
-    private static Query buildMltQuery(IndexReader indexReader, List<TripEntity> refs) throws IOException {
+    private Query buildMltQuery(IndexReader indexReader, List<TripEntity> refs) throws IOException {
         MoreLikeThis mlt = new MoreLikeThis(indexReader);
+        mlt.setAnalyzer(new EnglishAnalyzer());
         mlt.setFieldNames(new String[]{"title", "shortDescription", "destination"});
-        mlt.setMinTermFreq(1);
-        mlt.setMinDocFreq(1);
-        mlt.setMaxQueryTerms(25);
+        mlt.setMinTermFreq(mltProperties.getMinTermFreq());
+        mlt.setMinDocFreq(mltProperties.getMinDocFreq());
+        mlt.setMaxQueryTerms(mltProperties.getMaxQueryTerms());
 
         BooleanQuery.Builder builder = new BooleanQuery.Builder();
         for (TripEntity ref : refs) {
@@ -126,21 +132,15 @@ public class TripSimilarityServiceLucene implements TripSimilarityPort {
         if (ref.getTitle() != null)            doc.put("title",            List.of(ref.getTitle()));
         if (ref.getShortDescription() != null) doc.put("shortDescription", List.of(ref.getShortDescription()));
         if (ref.getDestination() != null)      doc.put("destination",      List.of(ref.getDestination()));
+        ref.getTripLocations().stream()
+                .map(tl -> tl.getPlaceName())
+                .filter(name -> name != null && !name.isBlank())
+                .forEach(name -> doc.merge("tripLocations.placeName", List.of(name), (a, b) -> {
+                    List<Object> merged = new java.util.ArrayList<>(a);
+                    merged.addAll(b);
+                    return merged;
+                }));
         return doc;
-    }
-
-    /**
-     * Wraps the MLT query in a boolean MUST + MUST_NOT to exclude the reference trips themselves.
-     */
-    private static Query wrapWithExclusion(Query mltQuery, List<Long> excludeIds) {
-        List<BytesRef> excludeTerms = excludeIds.stream()
-                .map(id -> new BytesRef(id.toString()))
-                .collect(Collectors.toList());
-
-        return new BooleanQuery.Builder()
-                .add(mltQuery, BooleanClause.Occur.MUST)
-                .add(new TermInSetQuery("id", excludeTerms), BooleanClause.Occur.MUST_NOT)
-                .build();
     }
 
     private TripSearchDto toDto(TripEntity trip) {
@@ -160,4 +160,3 @@ public class TripSimilarityServiceLucene implements TripSimilarityPort {
                 .build();
     }
 }
-
