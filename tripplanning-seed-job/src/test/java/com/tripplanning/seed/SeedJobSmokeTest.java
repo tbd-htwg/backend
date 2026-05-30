@@ -31,7 +31,12 @@ class SeedJobSmokeTest {
 
         String sampleTitle =
                 jdbc.queryForObject("SELECT title FROM trips ORDER BY id LIMIT 1", String.class);
-        assertThat(sampleTitle).contains("#").doesNotContain("Perf trip");
+        assertThat(sampleTitle).doesNotContain("#").doesNotContain("Perf trip").doesNotContain("—");
+
+        String sampleLong =
+                jdbc.queryForObject(
+                        "SELECT long_description FROM trips ORDER BY id LIMIT 1", String.class);
+        assertThat(sampleLong).contains("Seed dataset trip #");
 
         String sampleStop =
                 jdbc.queryForObject(

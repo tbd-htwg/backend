@@ -10,6 +10,7 @@ public final class SeedContext {
 
     private final Map<Long, List<Long>> tripIdsByUser = new HashMap<>();
     private final List<Long> allTripIds = new ArrayList<>();
+    private final List<Long> viralTripIds = new ArrayList<>();
     private long tripIdMin = Long.MAX_VALUE;
     private long tripIdMax = Long.MIN_VALUE;
 
@@ -20,12 +21,21 @@ public final class SeedContext {
         tripIdMax = Math.max(tripIdMax, tripId);
     }
 
+    public void setViralTripIds(List<Long> tripIds) {
+        viralTripIds.clear();
+        viralTripIds.addAll(tripIds);
+    }
+
     public Map<Long, List<Long>> tripIdsByUser() {
         return tripIdsByUser;
     }
 
     public List<Long> allTripIds() {
         return allTripIds;
+    }
+
+    public List<Long> viralTripIds() {
+        return List.copyOf(viralTripIds);
     }
 
     public long tripIdMin() {

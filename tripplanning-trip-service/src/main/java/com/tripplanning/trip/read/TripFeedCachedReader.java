@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -116,18 +117,36 @@ public class TripFeedCachedReader {
         int to = Math.min(allLikedTripIds.size(), from + size);
         List<Long> pageIds = allLikedTripIds.subList(from, to);
         List<TripHeaderRow> headers =
-                entityManager
-                        .createQuery(
-                                "SELECT new com.tripplanning.trip.read.TripFeedCachedReader$TripHeaderRow("
-                                        + "t.id, t.title, t.destination, t.startDate, t.shortDescription,"
-                                        + " u.id, u.name, u.imagePath)"
-                                        + " FROM TripEntity t JOIN t.user u"
-                                        + " WHERE t.id IN :ids"
-                                        + " ORDER BY t.id DESC",
-                                TripHeaderRow.class)
-                        .setParameter("ids", pageIds)
-                        .getResultList();
+                orderHeadersByTripIds(
+                        pageIds,
+                        entityManager
+                                .createQuery(
+                                        "SELECT new com.tripplanning.trip.read.TripFeedCachedReader$TripHeaderRow("
+                                                + "t.id, t.title, t.destination, t.startDate, t.shortDescription,"
+                                                + " u.id, u.name, u.imagePath)"
+                                                + " FROM TripEntity t JOIN t.user u"
+                                                + " WHERE t.id IN :ids",
+                                        TripHeaderRow.class)
+                                .setParameter("ids", pageIds)
+                                .getResultList());
         return assembleRawPage(headers, page, size, totalItems);
+    }
+
+    /** Preserves like order (newest like first) instead of sorting by trip id. */
+    private static List<TripHeaderRow> orderHeadersByTripIds(
+            List<Long> tripIds, List<TripHeaderRow> headers) {
+        Map<Long, TripHeaderRow> byId = new HashMap<>(headers.size());
+        for (TripHeaderRow header : headers) {
+            byId.put(header.id(), header);
+        }
+        List<TripHeaderRow> ordered = new ArrayList<>(tripIds.size());
+        for (Long tripId : tripIds) {
+            TripHeaderRow header = byId.get(tripId);
+            if (header != null) {
+                ordered.add(header);
+            }
+        }
+        return ordered;
     }
 
     @Cacheable(value = CacheConfig.TRIP_DETAIL, key = "#tripId")

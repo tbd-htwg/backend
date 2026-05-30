@@ -6,19 +6,21 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tripplanning.seed.assets.DatasetSpec;
+import com.tripplanning.seed.assets.PlaceSeedCategory;
+import com.tripplanning.seed.assets.PlaceSeedSupport;
 import com.tripplanning.seed.assets.PrefetchedPlace;
 import com.tripplanning.seed.assets.SampleImageRow;
 import com.tripplanning.seed.assets.SeedAssetLoader;
+import com.tripplanning.seed.assets.SeedImageCatalog;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,8 +30,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class TripSqlSeeder {
 
-    /** Radii tried in order until at least two places are found near the anchor. */
-    private static final double[] TRANSPORT_RADIUS_KM = {80, 150, 300};
+    /** Radii tried in order until the trip pool is large enough. */
+    private static final double[] TRIP_RADIUS_KM = {15, 30, 50, 80};
 
     private final JdbcTemplate jdbc;
     private final SeedAssetLoader assetLoader;
@@ -47,6 +49,9 @@ public class TripSqlSeeder {
         }
 
         Random rng = new Random(42);
+        PlaceIndex placeIndex = new PlaceIndex(places);
+        SeedImageCatalog imageCatalog = new SeedImageCatalog(images);
+
         insertGooglePlaces(places);
         insertUsers(spec.totalUsers());
         resetSequence("users", spec.totalUsers());
@@ -60,8 +65,6 @@ public class TripSqlSeeder {
                         spec.tripsPerUserMax(),
                         rng);
 
-        Map<String, List<String>> imagesByCategory = groupImagesByCategory(images);
-        List<String> categories = new ArrayList<>(imagesByCategory.keySet());
         int tripCounter = 0;
 
         for (int userIdx = 0; userIdx < spec.totalUsers(); userIdx++) {
@@ -69,48 +72,45 @@ public class TripSqlSeeder {
             int numTrips = tripsPerUser.get(userIdx);
             for (int t = 0; t < numTrips; t++) {
                 tripCounter++;
-                PrefetchedPlace dest = places.get(rng.nextInt(places.size()));
                 PerfSeedText.TripTopic topic = PerfSeedText.pickTripTopic(rng);
-                String title = PerfSeedText.tripTitle(topic, tripCounter);
+                PrefetchedPlace dest =
+                        placeIndex.pickDestinationForTopic(
+                                PerfSeedText.preferredCountryCodes(topic), rng);
+                List<PrefetchedPlace> tripPool = buildTripPool(placeIndex.all(), dest);
+
+                String title = PerfSeedText.tripTitle(topic);
                 long tripId =
                         insertTrip(
                                 userId,
                                 title,
                                 topic.shortDescription(),
-                                PerfSeedText.tripLongDescription(rng),
+                                PerfSeedText.tripLongDescription(rng, topic, dest, tripCounter),
                                 dest,
                                 LocalDate.now().plusDays(7 + (tripCounter % 90)));
                 ctx.addTrip(userId, tripId);
 
-                List<String> stopLines =
-                        PerfSeedText.stopDescriptions(rng, spec.tripLocationsPerTrip());
+                Set<PlaceSeedCategory> preferred = PerfSeedText.preferredStopCategories(topic);
                 for (int s = 0; s < spec.tripLocationsPerTrip(); s++) {
-                    PrefetchedPlace stop = places.get(rng.nextInt(places.size()));
+                    PrefetchedPlace stop = pickStop(placeIndex, tripPool, preferred, dest, rng);
+                    PlaceSeedCategory stopCategory = PlaceSeedSupport.resolveCategory(stop);
                     long stopId =
                             insertTripLocation(
                                     tripId,
                                     stop,
-                                    stopLines.get(s),
+                                    PerfSeedText.stopDescription(rng, stopCategory, stop.placeName()),
                                     LocalDateTime.now().plusDays(s).plusHours(10),
                                     LocalDateTime.now().plusDays(s + 1).plusHours(18));
-                    attachImages(
-                            stopId,
-                            imagesByCategory,
-                            categories,
-                            tripCounter,
-                            s,
-                            spec,
-                            rng);
+                    attachImages(stopId, stopCategory, stop.countryCode(), imageCatalog, spec, rng);
                 }
 
                 for (int a = 0; a < spec.accommodationsPerTrip(); a++) {
-                    PrefetchedPlace hotel = places.get(rng.nextInt(places.size()));
+                    PrefetchedPlace hotel = placeIndex.pickFromPool(placeIndex.lodgingInPool(tripPool), rng);
                     long accomId = insertAccommodation(hotel, tripCounter + a);
                     linkTripAccommodation(tripId, accomId);
                 }
 
                 for (int tr = 0; tr < spec.transportsPerTrip(); tr++) {
-                    PrefetchedPlace[] endpoints = pickTransportEndpoints(places, dest, rng);
+                    PrefetchedPlace[] endpoints = pickTwoDistinct(tripPool, rng);
                     long transportId = insertTransport(endpoints[0], endpoints[1]);
                     linkTripTransport(tripId, transportId);
                 }
@@ -128,6 +128,59 @@ public class TripSqlSeeder {
                 spec.totalUsers(),
                 ctx.allTripIds().size());
         return ctx;
+    }
+
+    private PrefetchedPlace pickStop(
+            PlaceIndex placeIndex,
+            List<PrefetchedPlace> tripPool,
+            Set<PlaceSeedCategory> preferred,
+            PrefetchedPlace dest,
+            Random rng) {
+        List<PrefetchedPlace> poiInPool = placeIndex.poiInPool(tripPool);
+        if (!preferred.isEmpty()) {
+            List<PrefetchedPlace> preferredPool = filterByCategories(poiInPool, preferred);
+            if (!preferredPool.isEmpty()) {
+                return placeIndex.pickFromPool(preferredPool, rng);
+            }
+        }
+        if (!poiInPool.isEmpty()) {
+            return placeIndex.pickFromPool(poiInPool, rng);
+        }
+        List<PrefetchedPlace> near = placeIndex.poiNear(dest, rng);
+        if (!near.isEmpty()) {
+            return placeIndex.pickFromPool(near, rng);
+        }
+        return placeIndex.pickFromPool(tripPool, rng);
+    }
+
+    private static List<PrefetchedPlace> filterByCategories(
+            List<PrefetchedPlace> places, Set<PlaceSeedCategory> categories) {
+        List<PrefetchedPlace> out = new ArrayList<>();
+        for (PrefetchedPlace place : places) {
+            if (categories.contains(PlaceSeedSupport.resolveCategory(place))) {
+                out.add(place);
+            }
+        }
+        return out;
+    }
+
+    private List<PrefetchedPlace> buildTripPool(List<PrefetchedPlace> places, PrefetchedPlace anchor) {
+        for (double radiusKm : TRIP_RADIUS_KM) {
+            List<PrefetchedPlace> nearby = placesWithinRadius(places, anchor, radiusKm);
+            if (nearby.size() >= 3) {
+                return nearby;
+            }
+        }
+        List<PrefetchedPlace> sameCountry = new ArrayList<>();
+        for (PrefetchedPlace place : places) {
+            if (anchor.countryCode().equals(place.countryCode())) {
+                sameCountry.add(place);
+            }
+        }
+        if (sameCountry.size() >= 3) {
+            return sameCountry;
+        }
+        return places;
     }
 
     private void insertGooglePlaces(List<PrefetchedPlace> places) {
@@ -274,28 +327,19 @@ public class TripSqlSeeder {
 
     private void attachImages(
             long stopId,
-            Map<String, List<String>> imagesByCategory,
-            List<String> categories,
-            int tripIdx,
-            int stopOffset,
+            PlaceSeedCategory stopCategory,
+            String countryCode,
+            SeedImageCatalog imageCatalog,
             DatasetSpec spec,
             Random rng) {
-        if (categories.isEmpty()) {
-            return;
-        }
-        String category = categories.get((tripIdx * 31 + stopOffset * 7) % categories.size());
-        List<String> pool = imagesByCategory.get(category);
-        if (pool == null || pool.isEmpty()) {
-            return;
-        }
         int count =
                 spec.imagePathsPerStopMin()
                         + rng.nextInt(
                                 Math.max(
                                         1,
                                         spec.imagePathsPerStopMax() - spec.imagePathsPerStopMin() + 1));
-        for (int i = 0; i < count; i++) {
-            String path = pool.get(rng.nextInt(pool.size()));
+        List<String> paths = imageCatalog.pickPaths(stopCategory, countryCode, count, rng);
+        for (String path : paths) {
             jdbc.update(
                     "INSERT INTO trip_location_images (trip_location_id, image_path) VALUES (?, ?)",
                     stopId,
@@ -346,27 +390,6 @@ public class TripSqlSeeder {
         jdbc.update("INSERT INTO trip_transport (trip_id, transport_id) VALUES (?, ?)", tripId, transportId);
     }
 
-    /** Picks two distinct places close enough for Google Routes to return a real route. */
-    private PrefetchedPlace[] pickTransportEndpoints(
-            List<PrefetchedPlace> places, PrefetchedPlace anchor, Random rng) {
-        for (double radiusKm : TRANSPORT_RADIUS_KM) {
-            List<PrefetchedPlace> nearby = placesWithinRadius(places, anchor, radiusKm);
-            if (nearby.size() >= 2) {
-                return pickTwoDistinct(nearby, rng);
-            }
-        }
-        List<PrefetchedPlace> sameCountry = new ArrayList<>();
-        for (PrefetchedPlace place : places) {
-            if (anchor.countryCode().equals(place.countryCode())) {
-                sameCountry.add(place);
-            }
-        }
-        if (sameCountry.size() >= 2) {
-            return pickTwoDistinct(sameCountry, rng);
-        }
-        return pickTwoDistinct(places, rng);
-    }
-
     private List<PrefetchedPlace> placesWithinRadius(
             List<PrefetchedPlace> places, PrefetchedPlace anchor, double radiusKm) {
         List<PrefetchedPlace> nearby = new ArrayList<>();
@@ -406,14 +429,6 @@ public class TripSqlSeeder {
         double sinLon = Math.sin(dLon / 2);
         double h = sinLat * sinLat + Math.cos(lat1) * Math.cos(lat2) * sinLon * sinLon;
         return 6371.0 * 2 * Math.asin(Math.min(1.0, Math.sqrt(h)));
-    }
-
-    private Map<String, List<String>> groupImagesByCategory(List<SampleImageRow> images) {
-        Map<String, List<String>> out = new HashMap<>();
-        for (SampleImageRow row : images) {
-            out.computeIfAbsent(row.category(), k -> new ArrayList<>()).add(row.imagePath());
-        }
-        return out;
     }
 
     private long maxId(String table) {

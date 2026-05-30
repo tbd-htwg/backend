@@ -14,6 +14,8 @@ Maven **multi-module** Spring Boot 3 backend:
 | `tripplanning-social-service` | 8081 | Firestore comments / likes |
 | `tripplanning-external-info-service` | 8082 | Google Places search, Google Routes transport distance, weather, warnings, Viator tours |
 | `tripplanning-seed-job` | — | One-shot perf seed (PostgreSQL + Firestore; `./scripts/local-dev.sh seed-job`) |
+
+After **any** perf seed (`local-dev.sh seed-job` or `gke-seed-job.sh`), run **`./scripts/reset-search-index.sh`** if search was not reset automatically. Seed inserts via JDBC bypass Hibernate Search; trip-service skips mass reindex when OpenSearch doc counts already match PostgreSQL (stale index content). Both seed scripts call `reset-search-index.sh` by default; use `--skip-search-reset` only when debugging.
 | `tripplanning-common` | — | Shared clients and auth config |
 
 > Ignore repo-root `external-info-service/` — the supported module is `tripplanning-external-info-service`.

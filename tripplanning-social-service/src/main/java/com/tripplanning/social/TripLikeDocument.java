@@ -19,6 +19,7 @@ public class TripLikeDocument {
         this.id = documentId(userId, tripId);
         this.userId = userId;
         this.tripId = tripId;
+        this.createdAt = System.currentTimeMillis();
     }
 
     @DocumentId
@@ -26,4 +27,6 @@ public class TripLikeDocument {
 
     private Long userId;
     private Long tripId;
+    /** Epoch millis when the like was created (newest-first feeds). */
+    private Long createdAt;
 }

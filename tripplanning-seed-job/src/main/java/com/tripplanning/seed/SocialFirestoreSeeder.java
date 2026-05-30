@@ -67,11 +67,45 @@ public class SocialFirestoreSeeder {
             likeDocIds.add(likeId);
         }
 
+        seedViralTrips(ctx, spec, rng, commentIdsByUser, likeDocIds);
+
         log.info(
                 "Firestore seed complete: comments~={}, likes~={}",
                 commentIdsByUser.values().stream().mapToInt(List::size).sum(),
                 likeDocIds.size());
         return commentIdsByUser;
+    }
+
+    private void seedViralTrips(
+            SeedContext ctx,
+            DatasetSpec spec,
+            Random rng,
+            Map<Long, List<String>> commentIdsByUser,
+            Set<String> likeDocIds)
+            throws Exception {
+        int interval = spec.viralTripIntervalOrDefault();
+        int likeTarget = spec.viralLikesOrDefault();
+        int commentTarget = spec.viralCommentsOrDefault();
+        List<Long> viralTrips = ViralTripSupport.viralTripIds(ctx.allTripIds(), interval);
+        ctx.setViralTripIds(viralTrips);
+
+        for (Long tripId : viralTrips) {
+            for (long liker : ViralTripSupport.sampleDistinctUserIds(spec.totalUsers(), likeTarget, rng)) {
+                likeDocIds.add(writeLike(liker, tripId));
+            }
+            for (long commenter :
+                    ViralTripSupport.sampleDistinctUserIds(spec.totalUsers(), commentTarget, rng)) {
+                String commentId =
+                        writeComment(commenter, tripId, PerfSeedText.comment(rng, tripId, commenter));
+                commentIdsByUser.computeIfAbsent(commenter, k -> new ArrayList<>()).add(commentId);
+            }
+        }
+
+        log.info(
+                "Viral trip seed: trips={}, likesPerTrip~={}, commentsPerTrip~={}",
+                viralTrips.size(),
+                likeTarget,
+                commentTarget);
     }
 
     private static List<Long> selectSocialTrips(List<Long> allTrips, double fraction, Random rng) {
@@ -108,6 +142,7 @@ public class SocialFirestoreSeeder {
         Map<String, Object> doc = new HashMap<>();
         doc.put("userId", userId);
         doc.put("tripId", tripId);
+        doc.put("createdAt", System.currentTimeMillis());
         firestore.collection("likes").document(docId).set(doc).get();
         return docId;
     }

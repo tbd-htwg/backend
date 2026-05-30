@@ -158,7 +158,8 @@ public class ExternalDetailsService {
                             "",
                             lat,
                             lon,
-                            countryCode.trim().toUpperCase()));
+                            countryCode.trim().toUpperCase(),
+                            ""));
         }
         if (placeId == null || placeId.isBlank()) {
             return Mono.empty();

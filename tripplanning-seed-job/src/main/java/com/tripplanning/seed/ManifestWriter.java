@@ -36,6 +36,15 @@ public class ManifestWriter {
         root.put("trip_count", ctx.allTripIds().size());
         root.put("perf_requirements", true);
 
+        List<Long> viralTripIds = ctx.viralTripIds();
+        if (viralTripIds.isEmpty()) {
+            viralTripIds = ViralTripSupport.viralTripIds(ctx.allTripIds(), spec.viralTripIntervalOrDefault());
+        }
+        if (!viralTripIds.isEmpty()) {
+            root.put("viral_trip_ids", viralTripIds);
+            root.put("viral_trip_id", ViralTripSupport.canonicalViralTripId(viralTripIds));
+        }
+
         Map<String, Object> users = new HashMap<>();
         for (long userId = 1; userId <= spec.totalUsers(); userId++) {
             Map<String, Object> entry = new LinkedHashMap<>();
