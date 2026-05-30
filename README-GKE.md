@@ -1,6 +1,6 @@
 # Backend microservices (GKE)
 
-**GKE / Terraform platform:** [infrastructure/ms2/docs/README.md](../infrastructure/ms2/docs/README.md) · [Terraform dev env](../infrastructure/ms2/terraform/envs/dev/README.md) — includes **Identity / Firebase** for `POST /api/v2/auth/firebase`.
+**GKE / Terraform platform:** [infrastructure/ms2/docs/README.md](../infrastructure/ms2/docs/README.md) · [STATE.md](../infrastructure/ms2/docs/STATE.md) · [Terraform dev env](../infrastructure/ms2/terraform/envs/dev/README.md) — includes **Identity / Firebase** for `POST /api/v2/auth/firebase`.
 
 **Local Minikube (canonical):** [docs/gettingstarted/README.md](docs/gettingstarted/README.md) · [STATE.md](docs/gettingstarted/STATE.md)
 

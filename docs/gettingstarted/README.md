@@ -2,7 +2,7 @@
 
 **Paths:** This guide assumes the **backend** git tree root (`pom.xml` here). Commands use `docs/gettingstarted`, `scripts/local-dev.sh`, and `k8s/local`. In a monorepo, run from `backend/` (e.g. `cd backend` before `./scripts/local-dev.sh`).
 
-For the **GKE / Terraform** stack, see [infrastructure/ms2/docs/README.md](../../../infrastructure/ms2/docs/README.md) and [Terraform dev env](../../../infrastructure/ms2/terraform/envs/dev/README.md). Architecture reference for this environment: [STATE.md](STATE.md).
+For the **GKE / Terraform** stack, see [infrastructure/ms2/docs/STATE.md](../../../infrastructure/ms2/docs/STATE.md) (architecture), [infrastructure/ms2/docs/README.md](../../../infrastructure/ms2/docs/README.md), and [Terraform dev env](../../../infrastructure/ms2/terraform/envs/dev/README.md). Architecture reference for this environment: [STATE.md](STATE.md).
 
 ## TL;DR
 
@@ -500,4 +500,4 @@ cd ../infrastructure/ms2/terraform/envs/dev
 ./scripts/local-dev.sh verify
 ```
 
-**Compare with GKE:** [ms2 overview](../../../infrastructure/ms2/docs/overview.md) · [ms2 docs README](../../../infrastructure/ms2/docs/README.md)
+**Compare with GKE:** [ms2 STATE.md](../../../infrastructure/ms2/docs/STATE.md) · [ms2 overview](../../../infrastructure/ms2/docs/overview.md) · [ms2 docs README](../../../infrastructure/ms2/docs/README.md)
