@@ -21,6 +21,16 @@ tripplanning:
     readiness-enabled: ${TRIPPLANNING_SEARCH_READINESS_ENABLED:true}
     lock-key: tripplanning:search:index:lock
     status-key: tripplanning:search:index:status
+    mlt:
+      min-term-freq: ${TRIPPLANNING_SEARCH_MLT_MIN_TERM_FREQ:1}
+      min-doc-freq: ${TRIPPLANNING_SEARCH_MLT_MIN_DOC_FREQ:4}
+      max-query-terms: ${TRIPPLANNING_SEARCH_MLT_MAX_QUERY_TERMS:15}
+      min-score: ${TRIPPLANNING_SEARCH_MLT_MIN_SCORE:0.01}
+      destination-boost: ${TRIPPLANNING_SEARCH_MLT_DESTINATION_BOOST:3}
+      place-name-boost: ${TRIPPLANNING_SEARCH_MLT_PLACE_NAME_BOOST:2}
+      city-name-boost: ${TRIPPLANNING_SEARCH_MLT_CITY_NAME_BOOST:2}
+      title-boost: ${TRIPPLANNING_SEARCH_MLT_TITLE_BOOST:1.5}
+      short-description-boost: ${TRIPPLANNING_SEARCH_MLT_SHORT_DESCRIPTION_BOOST:1}
   services:
     trip-base-url: ${TRIPPLANNING_TRIP_SERVICE_URL:http://localhost:8080}
     social-base-url: ${TRIPPLANNING_SOCIAL_SERVICE_URL:http://localhost:8081}

@@ -23,6 +23,7 @@ import org.springframework.context.annotation.Import;
 
 import com.tripplanning.TestClientsConfig;
 import com.tripplanning.TripServiceApplication;
+import com.tripplanning.auth.AppJwtService;
 import com.tripplanning.accommodation.AccomEntity;
 import com.tripplanning.accommodation.AccomRepository;
 import com.tripplanning.config.CacheConfig;
@@ -51,6 +52,7 @@ class TripFeedControllerIntegrationTest {
     @Autowired private TripFeedService tripFeedService;
     @Autowired private TripCacheEvictor tripCacheEvictor;
     @Autowired private CacheManager cacheManager;
+    @Autowired private AppJwtService appJwtService;
 
     private UserEntity author;
     private TripEntity trip;
@@ -180,6 +182,41 @@ class TripFeedControllerIntegrationTest {
     @Test
     void detail_returns404ForUnknownTrip() throws Exception {
         mockMvc.perform(get("/api/v2/trips/999999/detail")).andExpect(status().isNotFound());
+    }
+
+    @Test
+    void feed_withLatestModeParam_stillWorksWithoutAuth() throws Exception {
+        mockMvc.perform(
+                        get("/api/v2/trips/feed")
+                                .param("mode", "latest")
+                                .param("page", "0")
+                                .param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalItems").value(1));
+    }
+
+    @Test
+    void feedRecommended_withoutToken_returns401() throws Exception {
+        mockMvc.perform(
+                        get("/api/v2/trips/feed")
+                                .param("mode", "recommended")
+                                .param("page", "0")
+                                .param("size", "10"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void feedRecommended_withOwnTripOnly_fallsBackToLatest() throws Exception {
+        String token = appJwtService.createToken(author.getId(), author.getEmail());
+        mockMvc.perform(
+                        get("/api/v2/trips/feed")
+                                .param("mode", "recommended")
+                                .param("page", "0")
+                                .param("size", "10")
+                                .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalItems").value(1))
+                .andExpect(jsonPath("$.items[0].id").value(trip.getId()));
     }
 
     @Test

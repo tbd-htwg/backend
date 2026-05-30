@@ -92,7 +92,16 @@ public final class TripFeedDtos {
      * uses 0-based {@code page}/{@code size}/{@code totalItems}/{@code totalPages} explicitly so it
      * does not depend on the deprecated {@code PageImpl} JSON shape and stays cache-friendly as a
      * record.
+     *
+     * <p>{@code source} is set on feed endpoints: {@code latest}, {@code recommended}, or
+     * {@code latest-fallback} when personalised ranking had no anchors or empty MLT results.
      */
     public record TripFeedPage<T>(
-            List<T> items, int page, int size, long totalItems, int totalPages) {}
+            List<T> items, int page, int size, long totalItems, int totalPages, String source) {
+
+        /** Backward-compatible constructor when feed source is not applicable. */
+        public TripFeedPage(List<T> items, int page, int size, long totalItems, int totalPages) {
+            this(items, page, size, totalItems, totalPages, null);
+        }
+    }
 }

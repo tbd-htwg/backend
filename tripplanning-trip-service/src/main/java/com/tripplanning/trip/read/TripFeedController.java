@@ -1,10 +1,14 @@
 package com.tripplanning.trip.read;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.tripplanning.trip.read.TripFeedDtos.TripFeedDetail;
 import com.tripplanning.trip.read.TripFeedDtos.TripFeedItem;
@@ -31,8 +35,15 @@ public class TripFeedController {
 
     @GetMapping("/feed")
     public TripFeedPage<TripFeedItem> feed(
+            @RequestParam(name = "mode", defaultValue = "latest") String mode,
             @RequestParam(name = "page", defaultValue = "0") int page,
-            @RequestParam(name = "size", defaultValue = "10") int size) {
+            @RequestParam(name = "size", defaultValue = "10") int size,
+            Authentication authentication) {
+
+        if ("recommended".equalsIgnoreCase(mode)) {
+            long userId = resolveUserId(authentication);
+            return tripFeedService.recommendedFeed(userId, page, size);
+        }
         return tripFeedService.feed(page, size);
     }
 
@@ -55,5 +66,21 @@ public class TripFeedController {
     @GetMapping("/{id}/detail")
     public TripFeedDetail detail(@PathVariable("id") long id) {
         return tripFeedService.detail(id);
+    }
+
+    /**
+     * Extracts the user ID from the JWT principal.
+     * Throws 401 when no valid authentication is present (guards the recommended mode).
+     */
+    private static long resolveUserId(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+                    "mode=recommended requires authentication");
+        }
+        if (authentication.getPrincipal() instanceof Jwt jwt) {
+            return Long.parseLong(jwt.getSubject());
+        }
+        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+                "mode=recommended requires a JWT token");
     }
 }
