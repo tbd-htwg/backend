@@ -33,6 +33,75 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 BACKEND_DIR = SCRIPT_DIR.parent
 OUT_PATH = BACKEND_DIR / "tripplanning-seed-job" / "src" / "main" / "resources" / "seed" / "google-places.json"
 
+POI_CITY_ANCHORS = [
+    "Paris France",
+    "London United Kingdom",
+    "Berlin Germany",
+    "Rome Italy",
+    "Barcelona Spain",
+    "Amsterdam Netherlands",
+    "Vienna Austria",
+    "Prague Czech Republic",
+    "Zurich Switzerland",
+    "Tokyo Japan",
+    "Kyoto Japan",
+    "Seoul South Korea",
+    "Bangkok Thailand",
+    "Singapore",
+    "Sydney Australia",
+    "New York USA",
+    "San Francisco USA",
+    "Los Angeles USA",
+    "Chicago USA",
+    "Toronto Canada",
+    "Mexico City Mexico",
+    "Buenos Aires Argentina",
+    "Rio de Janeiro Brazil",
+    "Cape Town South Africa",
+    "Marrakech Morocco",
+    "Dubai UAE",
+    "Istanbul Turkey",
+    "Athens Greece",
+    "Lisbon Portugal",
+    "Copenhagen Denmark",
+    "Stockholm Sweden",
+    "Oslo Norway",
+    "Helsinki Finland",
+    "Dublin Ireland",
+    "Edinburgh United Kingdom",
+    "Brussels Belgium",
+    "Munich Germany",
+    "Milan Italy",
+    "Venice Italy",
+    "Madrid Spain",
+    "Hong Kong",
+    "Taipei Taiwan",
+    "Hanoi Vietnam",
+    "Ho Chi Minh City Vietnam",
+    "Kuala Lumpur Malaysia",
+    "Jakarta Indonesia",
+    "Manila Philippines",
+    "Auckland New Zealand",
+    "Honolulu Hawaii",
+    "Boston USA",
+    "Seattle USA",
+    "Montreal Canada",
+    "Lima Peru",
+    "Santiago Chile",
+    "Reykjavik Iceland",
+    "Budapest Hungary",
+    "Warsaw Poland",
+    "Krakow Poland",
+    "Dubrovnik Croatia",
+    "Florence Italy",
+    "Nice France",
+    "Chamonix France",
+    "Interlaken Switzerland",
+    "Nara Japan",
+    "Siem Reap Cambodia",
+    "Chiang Mai Thailand",
+]
+
 # Destinations and lodging cities from performance/seeding_example/seed_example_data.py (subset + extras).
 SEARCH_QUERIES = [
     "Zurich Switzerland",
@@ -759,19 +828,120 @@ SEARCH_QUERIES = [
 ]
 
 
+def infer_seed_category(query: str) -> str:
+    haystack = query.lower()
+    if any(x in haystack for x in ("hotel", "hostel", "resort", "riad", " lodge", " inn", "suites", "ger camp")):
+        return "LODGING"
+    if any(x in haystack for x in ("museum", "gallery", "exhibition")):
+        return "MUSEUM"
+    if any(x in haystack for x in ("café", "cafe", "coffee", "espresso", "bakery")):
+        return "CAFE"
+    if any(x in haystack for x in ("restaurant", "bistro", "brasserie", "ramen", "dim sum", "gastronomy", "seafood")):
+        return "RESTAURANT"
+    if any(x in haystack for x in ("national park", " park", "garden", "trail", "forest", "hiking")):
+        return "PARK"
+    if any(x in haystack for x in ("viewpoint", "lookout", "observation deck", "summit", " vista")):
+        return "VIEWPOINT"
+    if any(
+        x in haystack
+        for x in (
+            "tower",
+            "monument",
+            "cathedral",
+            "church",
+            "mosque",
+            "temple",
+            "palace",
+            "castle",
+            "memorial",
+            "falls",
+            "bridge",
+            "market",
+            "square",
+            "old town",
+            "fort",
+            "ruins",
+            "island",
+            "beach",
+            "canyon",
+            "reef",
+            "volcano",
+            "louvre",
+            "eiffel",
+            "angkor",
+            "machu picchu",
+            "basilica",
+            "abbey",
+            "colosseum",
+            "cruise",
+            "cirque",
+            "peak",
+            "matterhorn",
+            "fjord",
+            "lagoon",
+            "blue lagoon",
+            "grand palace",
+            "night market",
+        )
+    ):
+        return "TOURIST_ATTRACTION"
+    return "CITY"
+
+
+def map_primary_type(primary_type: str | None) -> str | None:
+    if not primary_type:
+        return None
+    mapping = {
+        "cafe": "CAFE",
+        "coffee_shop": "CAFE",
+        "bakery": "CAFE",
+        "restaurant": "RESTAURANT",
+        "museum": "MUSEUM",
+        "art_gallery": "MUSEUM",
+        "park": "PARK",
+        "tourist_attraction": "TOURIST_ATTRACTION",
+        "lodging": "LODGING",
+        "hotel": "LODGING",
+    }
+    return mapping.get(primary_type.lower())
+
+
+def build_search_entries() -> list[dict[str, str]]:
+    entries: list[dict[str, str]] = []
+    for query in SEARCH_QUERIES:
+        entries.append({"query": query, "seedCategory": infer_seed_category(query)})
+    for city in POI_CITY_ANCHORS:
+        city_label = city.split()[0]
+        entries.extend(
+            [
+                {"query": f"cafe {city}", "seedCategory": "CAFE"},
+                {"query": f"museum {city}", "seedCategory": "MUSEUM"},
+                {"query": f"restaurant {city}", "seedCategory": "RESTAURANT"},
+                {"query": f"tourist attraction {city_label}", "seedCategory": "TOURIST_ATTRACTION"},
+                {"query": f"park {city_label}", "seedCategory": "PARK"},
+                {"query": f"viewpoint {city_label}", "seedCategory": "VIEWPOINT"},
+            ]
+        )
+    return entries
+
+
 def synthetic_places(count: int) -> list[dict]:
     places: list[dict] = []
+    categories = ["CITY", "LODGING", "CAFE", "RESTAURANT", "MUSEUM", "TOURIST_ATTRACTION", "PARK", "VIEWPOINT"]
     for i in range(count):
         pid = f"ChIJ_SeedPlace{i:04d}"
+        city_idx = i % 40
+        category = categories[i % len(categories)]
         places.append(
             {
                 "googlePlaceId": pid,
-                "placeName": f"Seed Place {i}",
-                "cityName": f"Seed City {i % 120}",
-                "formattedAddress": f"{i} Seed Street, Seed City",
-                "latitude": 40.0 + (i % 50) * 0.1,
-                "longitude": -74.0 + (i % 50) * 0.1,
-                "countryCode": "US" if i % 3 == 0 else ("CH" if i % 3 == 1 else "FR"),
+                "placeName": f"Seed {category.title()} {i}",
+                "cityName": f"Seed City {city_idx}",
+                "formattedAddress": f"{i} Seed Street, Seed City {city_idx}",
+                "latitude": 40.0 + city_idx * 0.08 + (i % 7) * 0.01,
+                "longitude": -74.0 + city_idx * 0.08 + (i % 5) * 0.01,
+                "countryCode": "US" if city_idx % 3 == 0 else ("CH" if city_idx % 3 == 1 else "FR"),
+                "seedCategory": category,
             }
         )
     return places
@@ -795,10 +965,14 @@ def normalize_place_id(place_id: str) -> str:
     return trimmed
 
 
-def place_row_from_location_pack(details: dict[str, Any], place_id: str, query: str) -> dict:
+def place_row_from_location_pack(
+    details: dict[str, Any], place_id: str, query: str, seed_category: str
+) -> dict:
     """Map ``PlaceDetailsResult`` from ``/internal/location-pack``."""
     lat = details.get("lat", details.get("latitude"))
     lon = details.get("lon", details.get("longitude"))
+    primary_type = details.get("primaryType")
+    resolved_category = map_primary_type(primary_type) or seed_category
     return {
         "googlePlaceId": normalize_place_id(place_id),
         "placeName": (details.get("placeName") or "").strip() or query,
@@ -807,10 +981,11 @@ def place_row_from_location_pack(details: dict[str, Any], place_id: str, query: 
         "latitude": float(lat if lat is not None else 0.0),
         "longitude": float(lon if lon is not None else 0.0),
         "countryCode": (details.get("countryCode") or "XX").strip().upper() or "XX",
+        "seedCategory": resolved_category,
     }
 
 
-def place_row_from_search_hit(hit: dict[str, Any], query: str) -> dict:
+def place_row_from_search_hit(hit: dict[str, Any], query: str, seed_category: str) -> dict:
     """Fallback when location-pack is unavailable (search has no country/city)."""
     place_id = hit.get("placeId") or hit.get("googlePlaceId") or hit.get("id") or ""
     return {
@@ -821,6 +996,7 @@ def place_row_from_search_hit(hit: dict[str, Any], query: str) -> dict:
         "latitude": float(hit.get("lat", hit.get("latitude", 0.0)) or 0.0),
         "longitude": float(hit.get("lon", hit.get("longitude", 0.0)) or 0.0),
         "countryCode": "XX",
+        "seedCategory": seed_category,
     }
 
 
@@ -840,7 +1016,7 @@ def fetch_live(
     api_base: str,
     internal_base: str,
     internal_secret: str,
-    queries: list[str],
+    entries: list[dict[str, str]],
     *,
     min_places: int = 100,
 ) -> list[dict]:
@@ -853,10 +1029,12 @@ def fetch_live(
 
     print(f"Search API:    {search_base}/external/details/search")
     print(f"Details API:   {internal_origin}/internal/location-pack")
-    print(f"Queries:       {len(queries)}")
+    print(f"Queries:       {len(entries)}")
     print("-" * 72)
 
-    for idx, q in enumerate(queries, start=1):
+    for idx, entry in enumerate(entries, start=1):
+        q = entry["query"]
+        seed_category = entry["seedCategory"]
         enc = urllib.parse.quote(q)
         search_url = f"{search_base}/external/details/search?q={enc}"
         try:
@@ -895,7 +1073,7 @@ def fetch_live(
                 pack_url, headers={"X-Internal-Secret": internal_secret}
             )
             if isinstance(details, dict) and details:
-                row = place_row_from_location_pack(details, normalized_id, q)
+                row = place_row_from_location_pack(details, normalized_id, q, seed_category)
         except urllib.error.HTTPError as e:
             body = ""
             try:
@@ -909,7 +1087,7 @@ def fetch_live(
             source = "search-fallback"
 
         if row is None:
-            row = place_row_from_search_hit(first, q)
+            row = place_row_from_search_hit(first, q, seed_category)
             if source != "search-fallback":
                 source = "search-fallback"
 
@@ -965,13 +1143,14 @@ def main() -> int:
         for i, row in enumerate(places, start=1):
             print_place_row(i, f"synthetic-{i}", row, "synthetic")
     else:
-        queries = SEARCH_QUERIES[:10] if args.test else SEARCH_QUERIES
+        all_entries = build_search_entries()
+        entries = all_entries[:10] if args.test else all_entries
         min_places = 10 if args.test else 100
         places = fetch_live(
             args.api_base,
             args.internal_base,
             args.internal_secret,
-            queries,
+            entries,
             min_places=min_places,
         )
 

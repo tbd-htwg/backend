@@ -1,5 +1,6 @@
 package com.tripplanning.social.internal;
 
+import java.util.Comparator;
 import java.util.List;
 
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,15 +23,16 @@ public class InternalSocialController {
 
     @GetMapping("/users/{userId}/liked-trip-ids")
     public LikedTripIdsResponse likedTripIds(@PathVariable long userId) {
-        List<Long> tripIds =
-                tripLikeRepository
-                        .findByUserId(userId)
-                        .map(TripLikeDocument::getTripId)
-                        .collectList()
-                        .block();
-        if (tripIds == null) {
-            tripIds = List.of();
-        }
+        List<TripLikeDocument> likes =
+                tripLikeRepository.findByUserId(userId).collectList().blockOptional().orElse(List.of());
+        likes.sort(
+                Comparator.comparing(
+                                TripLikeDocument::getCreatedAt,
+                                Comparator.nullsLast(Comparator.reverseOrder()))
+                        .thenComparing(
+                                TripLikeDocument::getTripId,
+                                Comparator.nullsLast(Comparator.reverseOrder())));
+        List<Long> tripIds = likes.stream().map(TripLikeDocument::getTripId).toList();
         return new LikedTripIdsResponse(tripIds);
     }
 }

@@ -304,8 +304,10 @@ For the **5k users / 15k trips** perf dataset (PostgreSQL + Firestore likes/comm
 
 ```bash
 ./scripts/local-dev.sh sync-sample-images   # one-time: upload sample images to GCS
-./scripts/local-dev.sh seed-job               # wipe + seed; writes perf_seed_manifest.json
+./scripts/local-dev.sh seed-job               # wipe + seed; resets OpenSearch; writes perf_seed_manifest.json
 ```
+
+`seed-job` runs [`scripts/reset-search-index.sh`](../../scripts/reset-search-index.sh) after seed so trip search matches PostgreSQL (seed JDBC bypasses Hibernate Search). Manual reset: `./scripts/local-dev.sh reset-search-index`.
 
 Output manifest: `performance/seeding_example/perf_seed_manifest.json` (used by Locust). See [`tripplanning-seed-job/README.md`](../../tripplanning-seed-job/README.md).
 

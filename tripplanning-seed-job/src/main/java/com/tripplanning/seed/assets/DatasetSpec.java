@@ -16,4 +16,20 @@ public record DatasetSpec(
         int transportsPerTrip,
         int imagePathsPerStopMin,
         int imagePathsPerStopMax,
-        String gcsImagePrefix) {}
+        String gcsImagePrefix,
+        Integer viralTripInterval,
+        Integer viralLikes,
+        Integer viralComments) {
+
+    public int viralTripIntervalOrDefault() {
+        return viralTripInterval != null && viralTripInterval > 0 ? viralTripInterval : 1000;
+    }
+
+    public int viralLikesOrDefault() {
+        return viralLikes != null && viralLikes > 0 ? viralLikes : 100;
+    }
+
+    public int viralCommentsOrDefault() {
+        return viralComments != null && viralComments > 0 ? viralComments : 20;
+    }
+}

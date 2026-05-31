@@ -11,5 +11,8 @@
   "transportsPerTrip": 1,
   "imagePathsPerStopMin": 1,
   "imagePathsPerStopMax": 3,
-  "gcsImagePrefix": "sample"
+  "gcsImagePrefix": "sample",
+  "viralTripInterval": 1000,
+  "viralLikes": 100,
+  "viralComments": 20
 }

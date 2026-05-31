@@ -54,7 +54,13 @@ public class SeedAssetLoader {
                 }
                 rows.add(
                         new SampleImageRow(
-                                parts[0], parts[1], parts[2], parts[3], parts[4], parts[5]));
+                                parts[0],
+                                parts[1],
+                                parts[2],
+                                parts[3],
+                                parts[4],
+                                parts[5],
+                                parts.length > 6 ? parts[6] : PlaceSeedSupport.REGION_GENERIC));
             }
         }
         return rows;

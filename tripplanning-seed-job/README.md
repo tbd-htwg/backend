@@ -7,18 +7,29 @@ One-shot Spring Boot job that seeds the **performance dataset** (5000 users, 150
 | File | Source |
 |------|--------|
 | `dataset-spec.json` | Hand-maintained counts and fractions |
-| `sample-images.csv` | [`scripts/extract-seed-assets.py`](../scripts/extract-seed-assets.py) from `_sample_images/` |
-| `google-places.json` | [`scripts/fetch-google-places.py`](../scripts/fetch-google-places.py) (or `--synthetic` for offline) |
+| `sample-images.csv` | [`scripts/extract-seed-assets.py`](../scripts/extract-seed-assets.py) from `_sample_images/` (includes `regionTag`) |
+| `google-places.json` | [`scripts/fetch-google-places.py`](../scripts/fetch-google-places.py) (or `--synthetic` for offline); each row has `seedCategory` |
+| `sample-image-regions.csv` | Optional sidecar for per-image `regionTag` overrides (used by extract script) |
 
 Regenerate assets after changing sample images or place lists:
 
 ```bash
 python3 backend/scripts/extract-seed-assets.py
+python3 backend/scripts/tag-google-places.py   # re-apply seedCategory heuristics to existing JSON
 # Terminal 1: ./scripts/local-dev.sh port-forward
 # Terminal 2: kubectl port-forward -n tripplanning svc/external-info-service 8082:8082
 python3 backend/scripts/fetch-google-places.py --test --api-base http://localhost:8080
 python3 backend/scripts/fetch-google-places.py --api-base http://localhost:8080   # or --synthetic
 ```
+
+### Seed data shape
+
+- **Trips** pick a destination city, then cluster stops, lodging, and transport within ~15–80 km.
+- **Stop descriptions** match POI type (`cafe`, `museum`, `tourist_attraction`, …) via `seedCategory` on each place.
+- **Stop images** match POI type and coarse region (`europe`, `asia`, …) from `sample-images.csv`.
+- **Trip copy**: title/short/long text share a topic; seed trip number appears in `longDescription` only.
+- **Viral trips**: every `viralTripInterval` trips (default **1000**) receive ~100 likes and ~20 comments in Firestore.
+- **Manifest** includes `viral_trip_id` / `viral_trip_ids` for `locustfile_viral_trip.py`.
 
 ## Run locally (Maven)
 
@@ -43,6 +54,8 @@ Prerequisites: cluster up (`./scripts/local-dev.sh setup`), sample images in GCS
 ```
 
 Each run **wipes and recreates** PostgreSQL (Flyway schema) and Firestore (`comments`, `likes`). GCS sample images under `gs://…/sample/` are **not** deleted.
+
+After seed completes, **`local-dev.sh` resets the OpenSearch index** (`scripts/reset-search-index.sh`) so `/api/search` matches PostgreSQL. Seed inserts use JDBC and bypass Hibernate Search; a trip-service restart alone is not enough when document counts already match. Opt out: `./scripts/local-dev.sh seed-job --skip-search-reset`. Manual reset: `./scripts/local-dev.sh reset-search-index`.
 
 Writes `performance/seeding_example/perf_seed_manifest.json` for Locust (`PERF_USER_ID_MIN`/`MAX`, per-user `tripIds`).
 
@@ -70,6 +83,8 @@ Wipe + seed (syncs sample images unless `--skip-sync`):
 ```
 
 Writes `performance/seeding_example/perf_seed_manifest.json` for Locust. Uses real Firestore (`tbd-firestore`), not the emulator.
+
+After seed, **`gke-seed-job.sh` resets the OpenSearch index** by default (same JDBC/stale-index issue as Minikube). Opt out: `--skip-search-reset`. Manual reset: `SEARCH_RESET_NAMESPACE=tripplanning-free ./scripts/reset-search-index.sh`.
 
 See also [GKE dev checklist](../../infrastructure/ms2/docs/gke-dev-hpa-and-test-bearer-checklist.md).
 

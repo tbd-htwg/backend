@@ -44,6 +44,10 @@ public class TripFeedController {
             long userId = resolveUserId(authentication);
             return tripFeedService.recommendedFeed(userId, page, size);
         }
+        if ("liked".equalsIgnoreCase(mode)) {
+            long userId = resolveUserId(authentication, "liked");
+            return tripFeedService.feedLikedBy(userId, page, size);
+        }
         return tripFeedService.feed(page, size);
     }
 
@@ -68,19 +72,23 @@ public class TripFeedController {
         return tripFeedService.detail(id);
     }
 
+    private static long resolveUserId(Authentication authentication) {
+        return resolveUserId(authentication, "recommended");
+    }
+
     /**
      * Extracts the user ID from the JWT principal.
-     * Throws 401 when no valid authentication is present (guards the recommended mode).
+     * Throws 401 when no valid authentication is present (guards personalised feed modes).
      */
-    private static long resolveUserId(Authentication authentication) {
+    private static long resolveUserId(Authentication authentication, String mode) {
         if (authentication == null || !authentication.isAuthenticated()) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
-                    "mode=recommended requires authentication");
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED, "mode=" + mode + " requires authentication");
         }
         if (authentication.getPrincipal() instanceof Jwt jwt) {
             return Long.parseLong(jwt.getSubject());
         }
-        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
-                "mode=recommended requires a JWT token");
+        throw new ResponseStatusException(
+                HttpStatus.UNAUTHORIZED, "mode=" + mode + " requires a JWT token");
     }
 }

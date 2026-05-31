@@ -10,4 +10,5 @@ public record PrefetchedPlace(
         String formattedAddress,
         double latitude,
         double longitude,
-        String countryCode) {}
+        String countryCode,
+        String seedCategory) {}

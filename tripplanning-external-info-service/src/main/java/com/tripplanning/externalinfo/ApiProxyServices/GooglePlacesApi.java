@@ -24,7 +24,7 @@ public class GooglePlacesApi {
     private static final String SEARCH_FIELD_MASK =
             "places.id,places.displayName,places.formattedAddress,places.location";
     private static final String DETAILS_FIELD_MASK =
-            "id,displayName,formattedAddress,location,addressComponents";
+            "id,displayName,formattedAddress,location,addressComponents,primaryType";
 
     private final WebClient webClient;
 
@@ -138,13 +138,15 @@ public class GooglePlacesApi {
             cityName = placeName != null ? placeName : "Unknown";
         }
         String countryCode = extractComponent(components, "country");
+        String primaryType = (String) place.get("primaryType");
         return new PlaceDetailsResult(
                 placeName != null ? placeName : "",
                 cityName,
                 formattedAddress != null ? formattedAddress : "",
                 lat,
                 lon,
-                countryCode.toUpperCase());
+                countryCode.toUpperCase(),
+                primaryType != null ? primaryType : "");
     }
 
     @SuppressWarnings("unchecked")

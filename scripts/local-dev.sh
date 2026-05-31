@@ -19,7 +19,8 @@
 #   setup-gcs     Apply GCS images-bucket CORS for browser uploads (§11)
 #   setup-gcs-iam One-time signer SA + bucket IAM + user impersonation (tbd-cloudappdev)
 #   sync-sample-images  Rsync _sample_images/ → gs://…/sample/ (manual; not part of deploy)
-#   seed-job            Wipe PostgreSQL + Firestore, run tripplanning-seed-job, write perf_seed_manifest.json
+#   seed-job            Wipe PostgreSQL + Firestore, run tripplanning-seed-job, reset OpenSearch index
+#   reset-search-index  Drop stale Hibernate Search indices and reindex trip-service (after seed-job)
 #   status        Mode, context, pods
 #   port-forward  Forward ingress :8080 (API gateway) or per-service ports for debugging
 #   logs [svc]    Tail deployment logs (trip-service|social-service|external-info-service)
@@ -97,6 +98,52 @@ require_cmd() {
     }
   done
 }
+
+# Maven needs a full JDK (javac), not a JRE-only java-XX-openjdk install.
+jdk_home_valid() {
+  [[ -n "${1:-}" && -x "${1}/bin/java" && -x "${1}/bin/javac" ]]
+}
+
+ensure_java_home() {
+  if jdk_home_valid "${JAVA_HOME:-}"; then
+    return 0
+  fi
+  local candidate previous="${JAVA_HOME:-}"
+  for candidate in \
+    /usr/lib/jvm/java-21-openjdk \
+    /usr/lib/jvm/java-21-temurin-jdk \
+    /usr/lib/jvm/temurin-21-jdk \
+    /usr/lib/jvm/java-25-temurin-jdk \
+    /usr/lib/jvm/temurin-25-jdk \
+    /usr/lib/jvm/java-17-openjdk \
+    /usr/lib/jvm/java-17-temurin-jdk \
+    /usr/lib/jvm/temurin-17-jdk; do
+    if jdk_home_valid "${candidate}"; then
+      export JAVA_HOME="${candidate}"
+      if [[ -n "${previous}" && "${previous}" != "${JAVA_HOME}" ]]; then
+        echo "WARN: JAVA_HOME was invalid (${previous}); using ${JAVA_HOME}"
+      fi
+      return 0
+    fi
+  done
+  local javac_bin
+  javac_bin="$(command -v javac 2>/dev/null || true)"
+  if [[ -n "${javac_bin}" ]]; then
+    javac_bin="$(readlink -f "${javac_bin}")"
+    export JAVA_HOME="${javac_bin%/bin/javac}"
+    if jdk_home_valid "${JAVA_HOME}"; then
+      if [[ -n "${previous}" && "${previous}" != "${JAVA_HOME}" ]]; then
+        echo "WARN: JAVA_HOME was invalid (${previous}); using ${JAVA_HOME} from PATH (javac)"
+      fi
+      return 0
+    fi
+  fi
+  echo "ERROR: no full JDK found (need java + javac). JAVA_HOME was (${previous:-unset})."
+  echo "Install e.g. java-21-openjdk-devel or temurin-21-jdk, or fix PATH (broken java-21-openjdk entries are common on Fedora)."
+  exit 1
+}
+
+ensure_java_home
 
 load_state() {
   MODE=""
@@ -469,7 +516,29 @@ helm_upgrade_local() {
     "$@"
 }
 
+cmd_reset_search_index() {
+  require_cmd kubectl
+  ensure_local_kubectl_target
+  "${SCRIPT_DIR}/reset-search-index.sh" --namespace "${NS}" "$@"
+}
+
 cmd_seed_job() {
+  local skip_search_reset=false
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --skip-search-reset) skip_search_reset=true ;;
+      *)
+        echo "Unknown seed-job option: $1" >&2
+        echo "Usage: ./scripts/local-dev.sh seed-job [--skip-search-reset]" >&2
+        exit 1
+        ;;
+    esac
+    shift
+  done
+  if [[ "${SEED_SKIP_SEARCH_RESET:-false}" == "true" ]]; then
+    skip_search_reset=true
+  fi
+
   require_cmd mvn docker helm kubectl
   ensure_local_kubectl_target
   apply_local_secrets
@@ -508,17 +577,51 @@ cmd_seed_job() {
   kubectl rollout status deployment/trip-service -n "${NS}" --timeout=600s || true
 
   echo "== Waiting for seed job =="
+  local manifest_dest="${REPO_ROOT}/performance/seeding_example/perf_seed_manifest.json"
+  rm -f "${manifest_dest}"
+  # kubectl cp fails once the pod reaches Succeeded — copy while the container is still running.
+  (
+    while [[ ! -f "${manifest_dest}" ]]; do
+      local pod phase
+      pod="$(kubectl get pods -n "${NS}" -l job-name=tripplanning-seed-job -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)"
+      phase="$(kubectl get pod -n "${NS}" "${pod}" -o jsonpath='{.status.phase}' 2>/dev/null || true)"
+      if [[ "${phase}" == "Running" ]] \
+        && kubectl exec -n "${NS}" "${pod}" -c seed-job -- test -f /tmp/perf_seed_manifest.json 2>/dev/null; then
+        kubectl cp "${NS}/${pod}:/tmp/perf_seed_manifest.json" "${manifest_dest}" -c seed-job 2>/dev/null || true
+      fi
+      if [[ "${phase}" == "Succeeded" || "${phase}" == "Failed" ]]; then
+        break
+      fi
+      sleep 2
+    done
+  ) &
+  local manifest_copy_pid=$!
+
   kubectl wait --for=condition=complete job/tripplanning-seed-job -n "${NS}" --timeout=3600s
+  wait "${manifest_copy_pid}" 2>/dev/null || true
+
   local pod
   pod="$(kubectl get pods -n "${NS}" -l job-name=tripplanning-seed-job -o jsonpath='{.items[0].metadata.name}')"
   kubectl logs -n "${NS}" "${pod}" --tail=80
-  local manifest_dest="${REPO_ROOT}/performance/seeding_example/perf_seed_manifest.json"
-  kubectl cp "${NS}/${pod}:/tmp/perf_seed_manifest.json" "${manifest_dest}"
+
+  if [[ ! -f "${manifest_dest}" ]]; then
+    echo "ERROR: failed to copy perf_seed_manifest.json (pod completed before kubectl cp)" >&2
+    exit 1
+  fi
   echo "Copied manifest to ${manifest_dest}"
 
-  echo "Restart trip/social after seed (search index + DB connections)..."
-  kubectl rollout restart deployment/trip-service deployment/social-service -n "${NS}" || true
-  kubectl rollout status deployment/trip-service -n "${NS}" --timeout=600s || true
+  echo "Restart social-service after seed..."
+  kubectl rollout restart deployment/social-service -n "${NS}" || true
+  kubectl rollout status deployment/social-service -n "${NS}" --timeout=600s || true
+
+  if [[ "${skip_search_reset}" == "true" ]]; then
+    echo "WARN: --skip-search-reset: restarting trip-service without OpenSearch wipe (index may stay stale)."
+    kubectl rollout restart deployment/trip-service -n "${NS}" || true
+    kubectl rollout status deployment/trip-service -n "${NS}" --timeout=600s || true
+  else
+    echo "== Reset OpenSearch index (seed inserts bypass Hibernate Search) =="
+    "${SCRIPT_DIR}/reset-search-index.sh" --namespace "${NS}"
+  fi
 }
 
 cmd_deploy() {
@@ -582,7 +685,7 @@ cmd_setup() {
   echo "  Frontend: cd ../frontend && npm run dev:minikube"
   echo "  Image uploads: ./scripts/local-dev.sh setup-gcs-iam && setup-gcs  (once, after ADC login)"
   echo "  Sample images: ./scripts/local-dev.sh sync-sample-images  (optional; skipped on deploy by default)"
-  echo "  Perf dataset:    ./scripts/local-dev.sh seed-job  (PostgreSQL + Firestore; needs sync-sample-images first)"
+  echo "  Perf dataset:    ./scripts/local-dev.sh seed-job  (PostgreSQL + Firestore; sample image sync optional)"
   echo "  Return to GKE: ./scripts/local-dev.sh use-gke"
 }
 
@@ -656,7 +759,8 @@ main() {
   case "${cmd}" in
     use-gke) cmd_use_gke ;;
     sync-sample-images) cmd_sync_sample_images ;;
-    seed-job) cmd_seed_job ;;
+    seed-job) cmd_seed_job "$@" ;;
+    reset-search-index) cmd_reset_search_index "$@" ;;
     help|-h|--help) usage ;;
     *)
       ensure_local_kubectl_target

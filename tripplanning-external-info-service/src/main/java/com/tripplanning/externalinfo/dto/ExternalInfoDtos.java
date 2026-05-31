@@ -13,7 +13,8 @@ public final class ExternalInfoDtos {
         String formattedAddress,
         double lat,
         double lon,
-        String countryCode
+        String countryCode,
+        String primaryType
     ) {}
 
     /** Compact search hit with explicit Google place id (details use {@link PlaceDetailsResult}). */

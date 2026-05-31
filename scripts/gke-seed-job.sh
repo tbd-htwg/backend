@@ -3,7 +3,7 @@
 # copy perf_seed_manifest.json for Locust.
 #
 # Usage:
-#   ./scripts/gke-seed-job.sh [--skip-sync] [--build-push] [--tag TAG] [--yes]
+#   ./scripts/gke-seed-job.sh [--skip-sync] [--build-push] [--tag TAG] [--yes] [--skip-search-reset]
 #
 # Prerequisites:
 #   - kubectl context: tripplanning-gke
@@ -31,6 +31,7 @@ BUILD_PUSH=false
 ASSUME_YES=false
 SKIP_PREFLIGHT=false
 PREFLIGHT_ONLY=false
+SKIP_SEARCH_RESET=false
 
 usage() {
   cat <<EOF
@@ -44,6 +45,8 @@ Options:
                   Run preflight checks only; do not sync, wipe, or seed
   --build-push    Build seed-job image locally and push to GHCR before running
   --tag TAG       Seed job image tag (default: latest)
+  --skip-search-reset
+                  Skip OpenSearch index wipe + trip-service reindex after seed (not recommended)
   --yes           Skip destructive wipe confirmation prompt
   -h, --help      Show this help
 
@@ -59,6 +62,7 @@ while [[ $# -gt 0 ]]; do
     --skip-preflight) SKIP_PREFLIGHT=true ;;
     --preflight-only) PREFLIGHT_ONLY=true ;;
     --build-push) BUILD_PUSH=true ;;
+    --skip-search-reset) SKIP_SEARCH_RESET=true ;;
     --tag) IMAGE_TAG="${2:?--tag requires a value}"; shift ;;
     --yes) ASSUME_YES=true ;;
     -h | --help) usage; exit 0 ;;
@@ -183,7 +187,7 @@ run_preflight_checks() {
   search_ready="$(printf '%s' "${search_json}" | python3 -c "import sys,json; print(json.load(sys.stdin).get('ready', False))" 2>/dev/null || true)"
   if [[ "${search_ready}" != "True" && "${search_ready}" != "true" ]]; then
     echo "WARN: search index not ready yet: ${search_json}" >&2
-    echo "      Seed job can still run; trip-service restart after seed will reindex." >&2
+    echo "      Seed job can still run; reset-search-index runs after seed by default." >&2
   else
     echo "   search index ready OK"
   fi
@@ -256,10 +260,19 @@ wait_for_seed_job() {
 }
 
 restart_services() {
-  echo "== Restart trip/social after seed (search index + DB connections) =="
-  kubectl rollout restart deployment/trip-service deployment/social-service -n "${NS}"
-  kubectl rollout status deployment/trip-service -n "${NS}" --timeout=600s
+  echo "== Restart social-service after seed =="
+  kubectl rollout restart deployment/social-service -n "${NS}"
   kubectl rollout status deployment/social-service -n "${NS}" --timeout=600s || true
+
+  if [[ "${SKIP_SEARCH_RESET}" == "true" || "${SEED_SKIP_SEARCH_RESET:-false}" == "true" ]]; then
+    echo "WARN: --skip-search-reset: restarting trip-service without OpenSearch wipe (index may stay stale)."
+    kubectl rollout restart deployment/trip-service -n "${NS}"
+    kubectl rollout status deployment/trip-service -n "${NS}" --timeout=600s
+    return 0
+  fi
+
+  echo "== Reset OpenSearch index (seed inserts bypass Hibernate Search) =="
+  SEARCH_RESET_NAMESPACE="${NS}" "${SCRIPT_DIR}/reset-search-index.sh"
 }
 
 print_locust_next_steps() {
