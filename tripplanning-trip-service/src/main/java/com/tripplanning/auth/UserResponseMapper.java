@@ -6,7 +6,7 @@ import com.tripplanning.images.ImageService;
 import com.tripplanning.user.UserEntity;
 
 @Component
-final class UserResponseMapper {
+public class UserResponseMapper {
 
   private final ImageService imageService;
 
@@ -14,7 +14,7 @@ final class UserResponseMapper {
     this.imageService = imageService;
   }
 
-  AuthDtos.UserResponseDto fromEntity(UserEntity e) {
+  public AuthDtos.UserResponseDto fromEntity(UserEntity e) {
     String imageUrl = imageService.createSignedReadUrlIfAuthenticated(e.getImagePath());
     return new AuthDtos.UserResponseDto(
         e.getId(),

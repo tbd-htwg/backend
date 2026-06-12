@@ -29,39 +29,74 @@ public class GoogleUserProvisioningService {
     if (email == null || email.isBlank()) {
       throw new IllegalArgumentException("Identity token did not include an email");
     }
+    String name = deriveDisplayName(payload, email);
+    String picture = stringClaim(payload, "picture");
+    return findOrCreateFromIdentity(sub, email, name, picture);
+  }
 
-    Optional<UserEntity> bySub = userRepository.findByGoogleSub(sub);
-    if (bySub.isPresent()) {
-      return bySub.get();
+  @Transactional
+  public UserEntity findOrCreateFromIdentity(String sub, String email, String name, String picture) {
+    if (email == null || email.isBlank()) {
+      throw new IllegalArgumentException("email is required");
+    }
+    if (sub != null && !sub.isBlank()) {
+      Optional<UserEntity> bySub = userRepository.findByGoogleSub(sub);
+      if (bySub.isPresent()) {
+        return bySub.get();
+      }
     }
 
     Optional<UserEntity> byEmail = userRepository.findByEmail(email);
     if (byEmail.isPresent()) {
       UserEntity user = byEmail.get();
-      user.setGoogleSub(sub);
-      applyProfileFromPayload(user, payload);
+      if (sub != null && !sub.isBlank()) {
+        user.setGoogleSub(sub);
+      }
+      if (picture != null
+          && !picture.isBlank()
+          && (user.getImagePath() == null || user.getImagePath().isBlank())) {
+        user.setImagePath(truncate(picture, 500));
+      }
       return userRepository.save(user);
     }
 
-    String baseName = deriveDisplayName(payload, email);
+    String baseName = name != null && !name.isBlank() ? name.trim() : deriveNameFromEmail(email);
     String uniqueName = allocateUniqueName(sanitizeName(baseName));
-    String imageUrl = stringClaim(payload, "picture");
     UserEntity created =
         UserEntity.builder()
             .email(email.trim())
             .name(uniqueName)
-            .imagePath(imageUrl != null ? truncate(imageUrl, 500) : "")
+            .imagePath(picture != null ? truncate(picture, 500) : "")
             .description("")
-            .googleSub(sub)
+            .googleSub(sub != null ? sub : "")
             .build();
     return userRepository.save(created);
   }
 
-  private void applyProfileFromPayload(UserEntity user, Jwt payload) {
-    String picture = stringClaim(payload, "picture");
-    if (picture != null && !picture.isBlank() && (user.getImagePath() == null || user.getImagePath().isBlank())) {
-      user.setImagePath(truncate(picture, 500));
+  @Transactional
+  public UserEntity findOrCreateDevUser(String email, String name) {
+    if (email == null || email.isBlank()) {
+      throw new IllegalArgumentException("email is required");
     }
+    return userRepository
+        .findByEmail(email.trim())
+        .orElseGet(
+            () -> {
+              String displayName =
+                  name != null && !name.isBlank() ? name.trim() : deriveNameFromEmail(email);
+              return userRepository.save(
+                  UserEntity.builder()
+                      .email(email.trim())
+                      .name(allocateUniqueName(sanitizeName(displayName)))
+                      .imagePath("")
+                      .description("")
+                      .build());
+            });
+  }
+
+  private static String deriveNameFromEmail(String email) {
+    int at = email.indexOf('@');
+    return (at > 0 ? email.substring(0, at) : email).trim();
   }
 
   private static String deriveDisplayName(Jwt payload, String email) {

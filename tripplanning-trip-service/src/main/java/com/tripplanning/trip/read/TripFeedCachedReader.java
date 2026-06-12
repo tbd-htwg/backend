@@ -55,13 +55,17 @@ public class TripFeedCachedReader {
     @Autowired @Lazy
     private TripFeedCachedReader self;
 
-    @Cacheable(value = CacheConfig.TRIP_EXISTS, key = "#tripId")
+    @Cacheable(
+            value = CacheConfig.TRIP_EXISTS,
+            key = "@tenantCacheKeyPrefix.qualifyTrip(#tripId)")
     @Transactional(readOnly = true)
     public boolean tripExists(long tripId) {
         return tripRepository.existsById(tripId);
     }
 
-    @Cacheable(value = CacheConfig.TRIP_FEED_PAGE, key = "T(java.util.List).of(#page, #size)")
+    @Cacheable(
+            value = CacheConfig.TRIP_FEED_PAGE,
+            key = "@tenantCacheKeyPrefix.qualifyPage(#page, #size)")
     @Transactional(readOnly = true)
     public TripFeedPageRaw feedRaw(int page, int size) {
         long totalItems = self.countAllCached();
@@ -81,7 +85,9 @@ public class TripFeedCachedReader {
         return assembleRawPage(headers, page, size, totalItems);
     }
 
-    @Cacheable(value = CacheConfig.TRIP_FEED_BY_USER, key = "T(java.util.List).of(#userId, #page, #size)")
+    @Cacheable(
+            value = CacheConfig.TRIP_FEED_BY_USER,
+            key = "@tenantCacheKeyPrefix.qualifyUserPage(#userId, #page, #size)")
     @Transactional(readOnly = true)
     public TripFeedPageRaw feedByUserRaw(long userId, int page, int size) {
         long totalItems = countByUser(userId);
@@ -102,7 +108,9 @@ public class TripFeedCachedReader {
         return assembleRawPage(headers, page, size, totalItems);
     }
 
-    @Cacheable(value = CacheConfig.TRIP_FEED_LIKED_BY, key = "T(java.util.List).of(#userId, #page, #size)")
+    @Cacheable(
+            value = CacheConfig.TRIP_FEED_LIKED_BY,
+            key = "@tenantCacheKeyPrefix.qualifyUserPage(#userId, #page, #size)")
     @Transactional(readOnly = true)
     public TripFeedPageRaw feedLikedByRaw(long userId, int page, int size) {
         List<Long> allLikedTripIds = socialServiceClient.getLikedTripIdsForUser(userId);
@@ -149,7 +157,9 @@ public class TripFeedCachedReader {
         return ordered;
     }
 
-    @Cacheable(value = CacheConfig.TRIP_DETAIL, key = "#tripId")
+    @Cacheable(
+            value = CacheConfig.TRIP_DETAIL,
+            key = "@tenantCacheKeyPrefix.qualifyTrip(#tripId)")
     @Transactional(readOnly = true)
     public TripFeedDetailRaw detailRaw(long tripId) {
         TripDetailHeaderRow header;
@@ -308,7 +318,9 @@ public class TripFeedCachedReader {
                 .getSingleResult();
     }
 
-    @Cacheable(value = CacheConfig.TRIP_TOTAL_COUNT, key = "'all'")
+    @Cacheable(
+            value = CacheConfig.TRIP_TOTAL_COUNT,
+            key = "@tenantCacheKeyPrefix.qualifyAll()")
     @Transactional(readOnly = true)
     public long countAllCached() {
         return countAll();

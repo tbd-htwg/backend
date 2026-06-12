@@ -9,7 +9,6 @@ import org.hibernate.search.engine.search.query.SearchResult;
 import org.hibernate.search.mapper.orm.Search;
 import org.hibernate.search.mapper.orm.session.SearchSession;
 import org.hibernate.search.util.common.SearchException;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -18,6 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tripplanning.tenant.TenantSearchIndexResolver;
 import com.tripplanning.trip.TripEntity;
 
 import jakarta.persistence.EntityManager;
@@ -41,9 +41,7 @@ public class TripSimilarityServiceEs implements TripSimilarityPort {
 
     private final EntityManager entityManager;
     private final TripSimilarityMltProperties mltProperties;
-
-    @Value("${tripplanning.search.elasticsearch-index-name:tripentity}")
-    private String indexName;
+    private final TenantSearchIndexResolver tenantSearchIndexResolver;
 
     @Override
     @Transactional(readOnly = true)
@@ -90,7 +88,7 @@ public class TripSimilarityServiceEs implements TripSimilarityPort {
      * {@code like} document references must use the read alias, not the logical index name alone.
      */
     private String readIndexName() {
-        return indexName + "-read";
+        return tenantSearchIndexResolver.currentIndex() + "-read";
     }
 
     /**

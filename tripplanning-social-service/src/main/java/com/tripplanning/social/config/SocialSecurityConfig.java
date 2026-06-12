@@ -22,6 +22,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import com.tripplanning.common.auth.AuthProperties;
 import com.tripplanning.common.auth.TestBearerImpersonationFilter;
 import com.tripplanning.common.security.InternalApiAuthFilter;
+import com.tripplanning.social.TenantContextFilter;
 
 @Configuration
 public class SocialSecurityConfig {
@@ -62,6 +63,7 @@ public class SocialSecurityConfig {
     public SecurityFilterChain socialFilterChain(
             HttpSecurity http,
             InternalApiAuthFilter internalApiAuthFilter,
+            TenantContextFilter tenantContextFilter,
             org.springframework.beans.factory.ObjectProvider<TestBearerImpersonationFilter>
                     testBearerFilterProvider)
             throws Exception {
@@ -91,6 +93,7 @@ public class SocialSecurityConfig {
                                         .anyRequest()
                                         .authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
+                .addFilterBefore(tenantContextFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(internalApiAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         TestBearerImpersonationFilter testBearerFilter = testBearerFilterProvider.getIfAvailable();

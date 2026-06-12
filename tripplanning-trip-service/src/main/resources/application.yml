@@ -31,6 +31,13 @@ tripplanning:
       city-name-boost: ${TRIPPLANNING_SEARCH_MLT_CITY_NAME_BOOST:2}
       title-boost: ${TRIPPLANNING_SEARCH_MLT_TITLE_BOOST:1.5}
       short-description-boost: ${TRIPPLANNING_SEARCH_MLT_SHORT_DESCRIPTION_BOOST:1}
+  tenant:
+    datasource-routing:
+      enabled: ${TRIPPLANNING_TENANT_DATASOURCE_ROUTING:false}
+  platform:
+    host-base: ${TRIPPLANNING_PLATFORM_HOST_BASE:k8s.tbd-htwg.de}
+    base-url: ${TRIPPLANNING_PLATFORM_BASE_URL:http://localhost:8083}
+    bootstrap-admin-email: ${TRIPPLANNING_PLATFORM_BOOTSTRAP_ADMIN_EMAIL:admin@platform.demo}
   services:
     trip-base-url: ${TRIPPLANNING_TRIP_SERVICE_URL:http://localhost:8080}
     social-base-url: ${TRIPPLANNING_SOCIAL_SERVICE_URL:http://localhost:8081}

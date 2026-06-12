@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.ReactiveStringRedisTemplate;
 import org.springframework.stereotype.Component;
 
+import com.tripplanning.common.tenant.TenantContextHolder;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -95,7 +97,9 @@ public class ReactiveValkeyCache {
     }
 
     private String redisKey(String namespace, String key) {
-        return KEY_PREFIX + namespace + ":" + key;
+        String slug = TenantContextHolder.slugOrDefault();
+        String tenantPart = "free".equals(slug) ? "" : slug + ":";
+        return KEY_PREFIX + tenantPart + namespace + ":" + key;
     }
 
     private String serialize(Object value) {
