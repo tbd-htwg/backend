@@ -26,6 +26,9 @@ tripplanning:
       jdbc-url: ${TRIPPLANNING_STANDARD_POSTGRES_JDBC_URL:}
       username: ${TRIPPLANNING_STANDARD_POSTGRES_USERNAME:}
       password: ${TRIPPLANNING_STANDARD_POSTGRES_PASSWORD:}
+    opensearch:
+      hosts: ${TRIPPLANNING_PLATFORM_OPENSEARCH_HOSTS:}
+      protocol: ${TRIPPLANNING_PLATFORM_OPENSEARCH_PROTOCOL:http}
 
 management:
   endpoints:

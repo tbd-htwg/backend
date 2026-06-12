@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.tripplanning.platform.tenant.TenantEntity;
+import com.tripplanning.platform.tenant.TenantNaming;
 import com.tripplanning.platform.tenant.TenantRepository;
 import com.tripplanning.platform.tenant.TenantStatus;
 
@@ -16,7 +17,13 @@ import com.tripplanning.platform.tenant.TenantStatus;
 public class InternalTenantController {
 
   public record TenantRuntimeDto(
-      String slug, String tier, String status, String dbName, String searchIndex) {}
+      String slug,
+      String tier,
+      String status,
+      String dbName,
+      String searchIndex,
+      String gcsBucket,
+      String objectPrefix) {}
 
   private final TenantRepository tenantRepository;
 
@@ -39,6 +46,8 @@ public class InternalTenantController {
         entity.getTier().name(),
         entity.getStatus().name(),
         entity.getDbName(),
-        entity.getSearchIndex());
+        entity.getSearchIndex(),
+        entity.getGcsBucket(),
+        TenantNaming.objectPrefix(entity.getSlug(), entity.getTier()));
   }
 }

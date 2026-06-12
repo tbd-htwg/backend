@@ -47,7 +47,7 @@ Installed by [`scripts/local-dev.sh`](../../scripts/local-dev.sh) → `helm upgr
 
 | Service | Used by | Local behavior |
 |---------|---------|----------------|
-| **Identity Platform / Firebase** | trip-service (`POST /api/v2/auth/firebase`) | Real project; optional if using dev-login only |
+| **Identity Platform / Firebase** | platform-service (`POST /api/v2/auth/firebase`) | Real project; optional if using dev-login only |
 | **GCS images bucket** | trip-service signed uploads | Real bucket via ADC + SA impersonation in `application-local.yml` |
 | **Google Places API (New)** | external-info-service | Place search and details via `GOOGLE_MAPS_API_KEY` |
 | **Google Routes API** | external-info-service | Transport route (distance, duration, polyline per mode) |
@@ -71,6 +71,7 @@ flowchart TB
 
   subgraph Minikube["minikube / tripplanning"]
     GW[nginx Ingress]
+    Platform[platform-service]
     Trip[trip-service]
     Social[social-service]
     Ext[external-info-service]
@@ -89,6 +90,7 @@ flowchart TB
 
   Browser --> Vite
   Vite -->|port-forward ingress :8080| GW
+  GW --> Platform
   GW --> Trip
   GW --> Social
   GW --> Ext
@@ -100,7 +102,7 @@ flowchart TB
   Social -->|internal| Trip
   Trip -->|internal| Social
   Trip -->|location-pack| Ext
-  Trip -->|verify ID token| IdP
+  Platform -->|verify ID token| IdP
   Trip -->|signed URLs| GCS
   Ext --> Places
   Ext --> Routes
@@ -126,7 +128,8 @@ The SPA uses **one** base URL (`VITE_API_BASE_URL=http://localhost:8080` or Vite
 | `/internal/debug` | trip-service (search-index / Valkey debug) |
 | `/debug/valkey/` | Valkey Admin (use trailing slash; ingress redirects bare `/debug/valkey`) |
 | `/debug/opensearch` | OpenSearch Dashboards |
-| `/api/search`, `/api/v2` (catch-all), `/actuator`, auth | trip-service |
+| `/api/v2/auth`, `/api/v2/admin`, `/api/v2/tenants` | platform-service |
+| `/api/search`, `/api/v2` (catch-all), `/actuator` | trip-service |
 | `/swagger-ui`, `/v3` | trip-service (OpenAPI / Swagger UI) |
 
 With `ingressDebugRoutes: true` (default in `values-local.yaml`), separate ingress resources also expose `/debug/valkey`, `/debug/opensearch`, and `/debug/external`.
@@ -186,7 +189,8 @@ flowchart LR
 
 | Service | Container port | K8s Service port | Role |
 |---------|----------------|------------------|------|
-| trip-service | 8080 | 8080 | Trips, users, Google Places stops, auth, search, liked-trips feed |
+| platform-service | 8083 | 8083 | Auth, tenant admin, provisioning |
+| trip-service | 8080 | 8080 | Trips, users, Google Places stops, search, liked-trips feed |
 | social-service | 8081 | 8081 | Likes & comments (Firestore emulator) |
 | external-info-service | 8082 | 8082 | Google Places search, weather, warnings, Viator tours, transport distance (`/api/v2/external`) |
 

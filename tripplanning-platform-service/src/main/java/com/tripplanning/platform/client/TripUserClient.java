@@ -1,9 +1,11 @@
 package com.tripplanning.platform.client;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -54,6 +56,28 @@ public class TripUserClient {
         .block(Duration.ofSeconds(10));
   }
 
+  public List<TenantDtos.TenantUserDto> listUsers(String forwardedHost) {
+    return webClient
+        .get()
+        .uri("/internal/users")
+        .header("X-Internal-Secret", internalSecret)
+        .header("X-Forwarded-Host", forwardedHost != null ? forwardedHost : "")
+        .retrieve()
+        .bodyToMono(new ParameterizedTypeReference<List<TenantDtos.TenantUserDto>>() {})
+        .block(Duration.ofSeconds(10));
+  }
+
+  public void deleteUser(String forwardedHost, long userId) {
+    webClient
+        .delete()
+        .uri("/internal/users/{id}", userId)
+        .header("X-Internal-Secret", internalSecret)
+        .header("X-Forwarded-Host", forwardedHost != null ? forwardedHost : "")
+        .retrieve()
+        .toBodilessEntity()
+        .block(Duration.ofSeconds(10));
+  }
+
   private TenantDtos.UserResponseDto post(String path, String forwardedHost, Map<String, String> body) {
     try {
       return webClient
@@ -69,5 +93,23 @@ public class TripUserClient {
       throw new IllegalStateException(
           "Trip user provisioning failed: " + e.getStatusCode() + " " + e.getResponseBodyAsString(), e);
     }
+  }
+
+  /** Extract host header value from tenant host URL, e.g. https://acme.k8s... → acme.k8s... */
+  public static String hostHeaderFromUrl(String hostUrl) {
+    if (hostUrl == null || hostUrl.isBlank()) {
+      return "";
+    }
+    String trimmed = hostUrl.trim();
+    if (trimmed.startsWith("https://")) {
+      trimmed = trimmed.substring("https://".length());
+    } else if (trimmed.startsWith("http://")) {
+      trimmed = trimmed.substring("http://".length());
+    }
+    int slash = trimmed.indexOf('/');
+    if (slash >= 0) {
+      trimmed = trimmed.substring(0, slash);
+    }
+    return trimmed;
   }
 }

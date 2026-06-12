@@ -53,6 +53,14 @@ public final class TenantNaming {
     return tier == TenantTier.ENTERPRISE ? "tripplanning-ent-" + slug + "-images" : null;
   }
 
+  /** Object key prefix within a shared bucket (Standard tier). */
+  public static String objectPrefix(String slug, TenantTier tier) {
+    if (tier == TenantTier.STANDARD) {
+      return "std/" + slug + "/";
+    }
+    return "";
+  }
+
   public static String imageTag(String slug, TenantTier tier) {
     return tier == TenantTier.ENTERPRISE ? "enterprise-" + slug : null;
   }

@@ -100,7 +100,9 @@ public class TenantService {
             .imageTag(TenantNaming.imageTag(slug, tier))
             .gcsBucket(TenantNaming.gcsBucket(slug, tier))
             .provisioningStepsJson(
-                provisioningJson.writeSteps(ProvisioningStepDefinitions.initialSteps(tier)))
+                provisioningJson.writeSteps(
+                    ProvisioningStepDefinitions.initialSteps(
+                        tier, platformProperties.getProvisioning().isUseStubs())))
             .build();
 
     tenantRepository.save(entity);

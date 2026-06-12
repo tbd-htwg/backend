@@ -7,7 +7,9 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tripplanning.platform.config.PlatformProperties;
 import com.tripplanning.platform.infra.IdentityPlatformClient;
+import com.tripplanning.platform.infra.StandardDataProvisioner;
 import com.tripplanning.platform.infra.TenantDispatchPayload;
 import com.tripplanning.platform.infra.TenantInfrastructureProvisioner;
 import com.tripplanning.platform.tenant.ProvisioningJson;
@@ -29,6 +31,8 @@ public class TenantProvisioningService {
   private final ProvisioningJson provisioningJson;
   private final IdentityPlatformClient identityPlatformClient;
   private final TenantInfrastructureProvisioner infrastructureProvisioner;
+  private final StandardDataProvisioner standardDataProvisioner;
+  private final PlatformProperties platformProperties;
 
   @Async
   public void provisionAsync(String tenantId) {
@@ -57,7 +61,8 @@ public class TenantProvisioningService {
     tenant.setStatus(TenantStatus.PROVISIONING);
     tenant.setProvisioningError(null);
     tenant.setProvisioningStepsJson(
-        provisioningJson.writeSteps(ProvisioningStepDefinitions.initialSteps(tenant.getTier())));
+        provisioningJson.writeSteps(
+            ProvisioningStepDefinitions.initialSteps(tenant.getTier(), useStubLabels())));
     tenant.setUpdatedAt(Instant.now());
     tenantRepository.save(tenant);
     provisionAsync(tenantId);
@@ -65,8 +70,9 @@ public class TenantProvisioningService {
 
   private void runProvisioning(TenantEntity tenant) {
     TenantTier tier = tenant.getTier();
+    boolean stubMode = useStubLabels();
 
-    updateStep(tenant.getId(), tier, 0, null);
+    updateStep(tenant.getId(), tier, 0, null, stubMode);
     var idp =
         identityPlatformClient.createTenant(tenant.getSlug(), tenant.getDisplayName());
     tenant = reload(tenant.getId());
@@ -74,24 +80,40 @@ public class TenantProvisioningService {
     tenant.setEnabledAuthProvidersJson(provisioningJson.writeProviders(idp.enabledProviders()));
     tenantRepository.save(tenant);
 
-    updateStep(tenant.getId(), tier, 1, null);
+    updateStep(tenant.getId(), tier, 1, null, stubMode);
     TenantDispatchPayload payload = toDispatchPayload(reload(tenant.getId()));
 
     if (tier == TenantTier.STANDARD) {
       infrastructureProvisioner.triggerStandardTenant(payload);
-      updateStep(tenant.getId(), tier, 2, null);
-      updateStep(tenant.getId(), tier, 3, null);
-      updateStep(tenant.getId(), tier, 4, null);
-      complete(tenant.getId(), tier);
+      updateStep(tenant.getId(), tier, 2, null, stubMode);
+
+      if (stubMode) {
+        simulateStandardData(tenant.getId());
+        updateStep(tenant.getId(), tier, 3, null, stubMode);
+        updateStep(tenant.getId(), tier, 4, null, stubMode);
+        complete(tenant.getId(), tier, stubMode);
+      } else {
+        log.info(
+            "Tenant {} awaiting infra workflow completion (use-stubs=false)",
+            tenant.getSlug());
+      }
       return;
     }
 
     if (tier == TenantTier.ENTERPRISE) {
       infrastructureProvisioner.triggerEnterpriseTenant(payload);
-      updateStep(tenant.getId(), tier, 2, null);
-      updateStep(tenant.getId(), tier, 3, null);
-      updateStep(tenant.getId(), tier, 4, null);
-      updateStep(tenant.getId(), tier, 5, null);
+      updateStep(tenant.getId(), tier, 2, null, stubMode);
+
+      if (!stubMode) {
+        log.info(
+            "Tenant {} awaiting infra workflow completion (use-stubs=false)",
+            tenant.getSlug());
+        return;
+      }
+
+      updateStep(tenant.getId(), tier, 3, null, stubMode);
+      updateStep(tenant.getId(), tier, 4, null, stubMode);
+      updateStep(tenant.getId(), tier, 5, null, stubMode);
 
       tenant = reload(tenant.getId());
       if (tenant.getFirestoreDatabase() == null || tenant.getFirestoreDatabase().isBlank()) {
@@ -102,9 +124,19 @@ public class TenantProvisioningService {
       }
       tenantRepository.save(tenant);
 
-      updateStep(tenant.getId(), tier, 6, null);
-      complete(tenant.getId(), tier);
+      updateStep(tenant.getId(), tier, 6, null, stubMode);
+      complete(tenant.getId(), tier, stubMode);
     }
+  }
+
+  private void simulateStandardData(String tenantId) {
+    TenantEntity tenant = reload(tenantId);
+    standardDataProvisioner.createDatabase(tenant.getDbName());
+    standardDataProvisioner.createSearchIndex(tenant.getSearchIndex());
+  }
+
+  private boolean useStubLabels() {
+    return platformProperties.getProvisioning().isUseStubs();
   }
 
   private TenantDispatchPayload toDispatchPayload(TenantEntity tenant) {
@@ -122,22 +154,23 @@ public class TenantProvisioningService {
         tenant.getGcsBucket());
   }
 
-  private void updateStep(String tenantId, TenantTier tier, int doneThrough, String failedKey) {
+  private void updateStep(
+      String tenantId, TenantTier tier, int doneThrough, String failedKey, boolean stubLabels) {
     TenantEntity tenant = reload(tenantId);
     List<com.tripplanning.platform.tenant.TenantDtos.ProvisioningStepDto> steps =
         tier == TenantTier.ENTERPRISE
-            ? ProvisioningStepDefinitions.enterpriseSteps(doneThrough, failedKey)
-            : ProvisioningStepDefinitions.standardSteps(doneThrough, failedKey);
+            ? ProvisioningStepDefinitions.enterpriseSteps(doneThrough, failedKey, stubLabels)
+            : ProvisioningStepDefinitions.standardSteps(doneThrough, failedKey, stubLabels);
     tenant.setProvisioningStepsJson(provisioningJson.writeSteps(steps));
     tenant.setUpdatedAt(Instant.now());
     tenantRepository.save(tenant);
   }
 
-  private void complete(String tenantId, TenantTier tier) {
+  private void complete(String tenantId, TenantTier tier, boolean stubLabels) {
     TenantEntity tenant = reload(tenantId);
     tenant.setStatus(TenantStatus.ACTIVE);
     tenant.setProvisioningStepsJson(
-        provisioningJson.writeSteps(ProvisioningStepDefinitions.completed(tier)));
+        provisioningJson.writeSteps(ProvisioningStepDefinitions.completed(tier, stubLabels)));
     tenant.setUpdatedAt(Instant.now());
     tenantRepository.save(tenant);
   }

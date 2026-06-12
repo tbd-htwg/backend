@@ -4,12 +4,15 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
+import java.util.Map;
 import java.util.Locale;
 import java.util.concurrent.ExecutionException;
 
 import com.google.api.gax.rpc.ApiException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.cloud.firestore.DocumentReference;
+import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.cloud.firestore.FieldPath;
 import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.Query;
@@ -138,16 +141,7 @@ public class FirestoreSocialService {
     }
 
     private static CommentRow fromSnapshot(QueryDocumentSnapshot doc) {
-        Long tripId = doc.getLong("tripId");
-        Long userId = doc.getLong("userId");
-        String content = doc.getString("content");
-        Long createdAt = doc.getLong("createdAt");
-        return new CommentRow(
-                doc.getId(),
-                tripId != null ? tripId : 0L,
-                userId != null ? userId : 0L,
-                content != null ? content : "",
-                createdAt != null ? createdAt : 0L);
+        return fromSnapshot((DocumentSnapshot) doc);
     }
 
     private String encodeCursor(Long createdAtMillis, String documentId) {
@@ -182,6 +176,135 @@ public class FirestoreSocialService {
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid cursor");
         }
+    }
+
+    public CommentRow saveComment(long tripId, long userId, String content) {
+        long createdAt = System.currentTimeMillis();
+        DocumentReference ref =
+                firestore.collection(commentsCollection()).document();
+        try {
+            ref.set(
+                                    Map.of(
+                                            "tripId", tripId,
+                                            "userId", userId,
+                                            "content", content,
+                                            "createdAt", createdAt))
+                            .get();
+            return new CommentRow(ref.getId(), tripId, userId, content, createdAt);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR, "Firestore write interrupted");
+        } catch (ExecutionException e) {
+            throw firestoreWriteFailed(e);
+        }
+    }
+
+    public CommentRow findCommentById(String id) {
+        try {
+            DocumentSnapshot doc = firestore.collection(commentsCollection()).document(id).get().get();
+            if (!doc.exists()) {
+                return null;
+            }
+            return fromSnapshot(doc);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR, "Firestore read interrupted");
+        } catch (ExecutionException e) {
+            throw firestoreWriteFailed(e);
+        }
+    }
+
+    public void deleteComment(String id) {
+        try {
+            firestore.collection(commentsCollection()).document(id).delete().get();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR, "Firestore delete interrupted");
+        } catch (ExecutionException e) {
+            throw firestoreWriteFailed(e);
+        }
+    }
+
+    public boolean likeExists(long userId, long tripId) {
+        try {
+            DocumentSnapshot doc =
+                    firestore
+                            .collection(likesCollection())
+                            .document(TripLikeDocument.documentId(userId, tripId))
+                            .get()
+                            .get();
+            return doc.exists();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR, "Firestore read interrupted");
+        } catch (ExecutionException e) {
+            throw firestoreWriteFailed(e);
+        }
+    }
+
+    public void saveLike(long userId, long tripId) {
+        String docId = TripLikeDocument.documentId(userId, tripId);
+        try {
+            firestore
+                    .collection(likesCollection())
+                    .document(docId)
+                    .set(
+                            Map.of(
+                                    "userId", userId,
+                                    "tripId", tripId,
+                                    "createdAt", System.currentTimeMillis()))
+                    .get();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR, "Firestore write interrupted");
+        } catch (ExecutionException e) {
+            throw firestoreWriteFailed(e);
+        }
+    }
+
+    public void deleteLike(long userId, long tripId) {
+        String docId = TripLikeDocument.documentId(userId, tripId);
+        try {
+            firestore.collection(likesCollection()).document(docId).delete().get();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR, "Firestore delete interrupted");
+        } catch (ExecutionException e) {
+            throw firestoreWriteFailed(e);
+        }
+    }
+
+    private String commentsCollection() {
+        return TenantFirestoreCollections.comments(TenantContextHolder.slugOrDefault());
+    }
+
+    private String likesCollection() {
+        return TenantFirestoreCollections.likes(TenantContextHolder.slugOrDefault());
+    }
+
+    private static ResponseStatusException firestoreWriteFailed(ExecutionException e) {
+        Throwable c = e.getCause() != null ? e.getCause() : e;
+        return new ResponseStatusException(
+                HttpStatus.INTERNAL_SERVER_ERROR, "Firestore operation failed: " + c.getMessage());
+    }
+
+    private static CommentRow fromSnapshot(DocumentSnapshot doc) {
+        Long tripId = doc.getLong("tripId");
+        Long userId = doc.getLong("userId");
+        String content = doc.getString("content");
+        Long createdAt = doc.getLong("createdAt");
+        return new CommentRow(
+                doc.getId(),
+                tripId != null ? tripId : 0L,
+                userId != null ? userId : 0L,
+                content != null ? content : "",
+                createdAt != null ? createdAt : 0L);
     }
 
     public record CommentPage(List<CommentRow> items, String nextCursor, boolean hasMore) {}

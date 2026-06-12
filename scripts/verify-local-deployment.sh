@@ -80,7 +80,7 @@ else
 fi
 
 if [[ "${SMOKE_DEV_LOGIN}" == "true" && -n "${API_PF}" ]]; then
-  echo "== Dev login (via API gateway) =="
+  echo "== Dev login (via API entry / nginx ingress) =="
   TOKEN_JSON="$(curl -sf -X POST "${API_BASE_URL}/api/v2/auth/dev-login" \
     -H "Content-Type: application/json" \
     -d '{"email":"verify@local.dev","name":"Verify"}' || true)"
@@ -88,22 +88,22 @@ if [[ "${SMOKE_DEV_LOGIN}" == "true" && -n "${API_PF}" ]]; then
     echo "dev-login OK"
     ACCESS_TOKEN="$(echo "${TOKEN_JSON}" | sed -n 's/.*"accessToken":"\([^"]*\)".*/\1/p')"
     if [[ -n "${ACCESS_TOKEN}" ]]; then
-      echo "== External details via gateway (JWT) =="
+      echo "== External details via API entry (JWT) =="
       code="$(curl -s -o /dev/null -w '%{http_code}' \
         "${API_BASE_URL}/api/v2/external/details?location=Paris&countryCode=FR&lat=48.85&lon=2.35" \
         -H "Authorization: Bearer ${ACCESS_TOKEN}")"
       if [[ "${code}" == "200" ]]; then
-        echo "external-info via gateway OK"
+        echo "external-info via API entry OK"
       else
-        note_fail "external-info via gateway returned HTTP ${code} (expected 200)"
+        note_fail "external-info via API entry returned HTTP ${code} (expected 200)"
       fi
-      echo "== Social countLikes via gateway =="
+      echo "== Social countLikes via API entry =="
       code="$(curl -s -o /dev/null -w '%{http_code}' \
         "${API_BASE_URL}/api/v2/trips/search/countLikes?tripId=1")"
       if [[ "${code}" == "200" || "${code}" == "404" ]]; then
-        echo "social countLikes via gateway OK (HTTP ${code})"
+        echo "social countLikes via API entry OK (HTTP ${code})"
       else
-        note_fail "social countLikes via gateway returned HTTP ${code}"
+        note_fail "social countLikes via API entry returned HTTP ${code}"
       fi
     fi
   else
