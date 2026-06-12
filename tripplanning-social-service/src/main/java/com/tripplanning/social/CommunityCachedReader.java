@@ -19,7 +19,9 @@ public class CommunityCachedReader {
 
     private final FirestoreSocialService firestoreSocialService;
 
-    @Cacheable(value = SocialCacheConfig.COMMUNITY_BUNDLE, key = "#tripId")
+    @Cacheable(
+            value = SocialCacheConfig.COMMUNITY_BUNDLE,
+            key = "@tenantCacheKeyPrefix.qualifyTrip(#tripId)")
     public CommunityBundleCache communityBundleRaw(long tripId) {
         long likeCount = firestoreSocialService.countLikesForTrip(tripId);
         long totalCommentCount = firestoreSocialService.countCommentsForTrip(tripId);

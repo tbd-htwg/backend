@@ -4,6 +4,7 @@ import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Component;
 
+import com.tripplanning.common.tenant.TenantCacheKeyPrefix;
 import com.tripplanning.config.CacheConfig;
 
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 public class TripCacheEvictor {
 
     private final CacheManager cacheManager;
+    private final TenantCacheKeyPrefix tenantCacheKeyPrefix;
 
     /** Evict every paginated feed (whole list, by-user, liked-by) and the cached trip total count. */
     public void evictAllFeeds() {
@@ -38,7 +40,7 @@ public class TripCacheEvictor {
     public void evictTripDetail(Long tripId) {
         Cache cache = cacheManager.getCache(CacheConfig.TRIP_DETAIL);
         if (cache != null && tripId != null) {
-            cache.evict(tripId);
+            cache.evict(tenantCacheKeyPrefix.qualifyTrip(tripId.longValue()));
         }
     }
 
@@ -46,7 +48,7 @@ public class TripCacheEvictor {
     public void evictTripExists(Long tripId) {
         Cache cache = cacheManager.getCache(CacheConfig.TRIP_EXISTS);
         if (cache != null && tripId != null) {
-            cache.evict(tripId);
+            cache.evict(tenantCacheKeyPrefix.qualifyTrip(tripId.longValue()));
         }
     }
 

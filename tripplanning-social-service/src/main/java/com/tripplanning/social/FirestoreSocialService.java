@@ -16,6 +16,9 @@ import com.google.cloud.firestore.Query;
 import com.google.cloud.firestore.QueryDocumentSnapshot;
 import com.google.cloud.firestore.QuerySnapshot;
 
+import com.tripplanning.common.tenant.TenantContextHolder;
+import com.tripplanning.common.tenant.TenantFirestoreCollections;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -30,8 +33,6 @@ import org.springframework.web.server.ResponseStatusException;
 @RequiredArgsConstructor
 public class FirestoreSocialService {
 
-    private static final String LIKES = "likes";
-    private static final String COMMENTS = "comments";
     private static final int MAX_PAGE_SIZE = 50;
     private static final int DEFAULT_PAGE_SIZE = 10;
 
@@ -39,12 +40,19 @@ public class FirestoreSocialService {
     private final ObjectMapper objectMapper;
 
     public long countLikesForTrip(long tripId) {
-        Query q = firestore.collection(LIKES).whereEqualTo("tripId", tripId);
+        Query q =
+                firestore
+                        .collection(TenantFirestoreCollections.likes(TenantContextHolder.slugOrDefault()))
+                        .whereEqualTo("tripId", tripId);
         return runCount(q);
     }
 
     public long countCommentsForTrip(long tripId) {
-        Query q = firestore.collection(COMMENTS).whereEqualTo("tripId", tripId);
+        Query q =
+                firestore
+                        .collection(
+                                TenantFirestoreCollections.comments(TenantContextHolder.slugOrDefault()))
+                        .whereEqualTo("tripId", tripId);
         return runCount(q);
     }
 
@@ -75,7 +83,8 @@ public class FirestoreSocialService {
 
         Query q =
                 firestore
-                        .collection(COMMENTS)
+                        .collection(
+                                TenantFirestoreCollections.comments(TenantContextHolder.slugOrDefault()))
                         .whereEqualTo("tripId", tripId)
                         .orderBy("createdAt", Query.Direction.DESCENDING)
                         .orderBy(FieldPath.documentId(), Query.Direction.DESCENDING)

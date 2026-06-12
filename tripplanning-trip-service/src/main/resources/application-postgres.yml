@@ -22,3 +22,8 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: false
+
+tripplanning:
+  tenant:
+    datasource-routing:
+      enabled: true

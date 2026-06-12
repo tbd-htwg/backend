@@ -25,6 +25,14 @@ public class AppJwtService {
   }
 
   public String createToken(long userId, String email) {
+    return createToken(userId, email, "");
+  }
+
+  public String createToken(long userId, String email, String tenantSlug) {
+    return createToken(userId, email, tenantSlug, false);
+  }
+
+  public String createToken(long userId, String email, String tenantSlug, boolean platformAdmin) {
     Instant now = Instant.now();
     Instant exp = now.plusSeconds(authProperties.getJwtExpirationSeconds());
     JwtClaimsSet claims =
@@ -34,6 +42,8 @@ public class AppJwtService {
             .issuedAt(now)
             .expiresAt(exp)
             .claim("email", email != null ? email : "")
+            .claim("tenant_slug", tenantSlug != null ? tenantSlug : "")
+            .claim("platform_admin", platformAdmin)
             .build();
     JwsHeader header = JwsHeader.with(MacAlgorithm.HS256).build();
     return jwtEncoder.encode(JwtEncoderParameters.from(header, claims)).getTokenValue();

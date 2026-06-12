@@ -2,7 +2,6 @@ package com.tripplanning.auth;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -30,8 +29,6 @@ class AuthSecurityIntegrationTest {
 
   @Autowired private MockMvc mockMvc;
   @Autowired private UserRepository userRepository;
-  @Autowired private AppJwtService appJwtService;
-
   private UserEntity alice;
 
   @BeforeEach
@@ -45,21 +42,6 @@ class AuthSecurityIntegrationTest {
                 .imagePath("")
                 .description("")
                 .build());
-  }
-
-  @Test
-  void authMe_withoutToken_returns401() throws Exception {
-    mockMvc.perform(get("/api/v2/auth/me")).andExpect(status().isUnauthorized());
-  }
-
-  @Test
-  void authMe_withValidJwt_returns200() throws Exception {
-    String token = appJwtService.createToken(alice.getId(), alice.getEmail());
-    mockMvc
-        .perform(get("/api/v2/auth/me").header("Authorization", "Bearer " + token))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.email").value("alice@example.com"))
-        .andExpect(jsonPath("$.name").value("Alice"));
   }
 
   @Test

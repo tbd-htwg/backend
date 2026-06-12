@@ -1,0 +1,69 @@
+package com.tripplanning.platform.auth;
+
+import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
+import org.springframework.security.oauth2.core.OAuth2Error;
+import org.springframework.security.oauth2.core.OAuth2TokenValidator;
+import org.springframework.security.oauth2.core.OAuth2TokenValidatorResult;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtValidators;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
+import org.springframework.stereotype.Component;
+
+import com.tripplanning.common.auth.AuthProperties;
+
+@Component
+public class FirebaseCredentialVerifier {
+
+  private static final String FIREBASE_JWK_SET_URI =
+      "https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com";
+
+  private final JwtDecoder jwtDecoder;
+  private final String projectId;
+
+  public FirebaseCredentialVerifier(AuthProperties authProperties) {
+    String configuredProjectId = authProperties.getFirebaseProjectId();
+    if (configuredProjectId == null || configuredProjectId.isBlank()) {
+      this.jwtDecoder = null;
+      this.projectId = "";
+      return;
+    }
+
+    this.projectId = configuredProjectId.trim();
+    NimbusJwtDecoder decoder = NimbusJwtDecoder.withJwkSetUri(FIREBASE_JWK_SET_URI).build();
+    String issuer = "https://securetoken.google.com/" + this.projectId;
+
+    OAuth2TokenValidator<Jwt> withIssuer = JwtValidators.createDefaultWithIssuer(issuer);
+    OAuth2TokenValidator<Jwt> withAudience =
+        token -> {
+          String audience = token.getAudience().stream().findFirst().orElse("");
+          if (this.projectId.equals(audience)) {
+            return OAuth2TokenValidatorResult.success();
+          }
+          return OAuth2TokenValidatorResult.failure(
+              new OAuth2Error(
+                  "invalid_token",
+                  "Firebase token audience does not match configured project id",
+                  null));
+        };
+
+    decoder.setJwtValidator(new DelegatingOAuth2TokenValidator<>(withIssuer, withAudience));
+    this.jwtDecoder = decoder;
+  }
+
+  public Jwt verify(String credential) {
+    if (jwtDecoder == null) {
+      throw new IllegalStateException("TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID is not set");
+    }
+    return jwtDecoder.decode(credential);
+  }
+
+  public String tenantIdFromToken(Jwt jwt) {
+    Object tenant = jwt.getClaim("firebase");
+    if (tenant instanceof java.util.Map<?, ?> map) {
+      Object tid = map.get("tenant");
+      return tid != null ? tid.toString() : null;
+    }
+    return null;
+  }
+}

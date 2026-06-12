@@ -48,3 +48,6 @@ temp/search/*
 
 .env
 .env.local
+tripplanning-trip-service/temp/
+
+.jvm-dev/

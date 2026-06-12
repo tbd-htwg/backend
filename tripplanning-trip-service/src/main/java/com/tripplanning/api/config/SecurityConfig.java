@@ -24,6 +24,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import com.tripplanning.common.auth.AuthProperties;
 import com.tripplanning.common.auth.TestBearerImpersonationFilter;
 import com.tripplanning.auth.AppJwtService;
+import com.tripplanning.tenant.TenantContextFilter;
 import com.tripplanning.user.UserRepository;
 
 @Configuration
@@ -82,6 +83,7 @@ public class SecurityConfig {
   public SecurityFilterChain filterChain(
       HttpSecurity http,
       InternalApiAuthFilter internalApiAuthFilter,
+      TenantContextFilter tenantContextFilter,
       org.springframework.beans.factory.ObjectProvider<TestBearerImpersonationFilter>
           testBearerFilterProvider)
       throws Exception {
@@ -92,14 +94,6 @@ public class SecurityConfig {
             auth ->
                 auth.requestMatchers(HttpMethod.OPTIONS, "/**")
                     .permitAll()
-                    .requestMatchers(HttpMethod.POST, "/api/v2/auth/firebase")
-                    .permitAll()
-                    .requestMatchers(HttpMethod.POST, "/api/v2/auth/google")
-                    .permitAll()
-                    .requestMatchers(HttpMethod.POST, "/api/v2/auth/dev-login")
-                    .permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/v2/auth/me")
-                    .authenticated()
                     .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
                     .permitAll()
                     .requestMatchers("/actuator/health", "/actuator/health/**")
@@ -125,6 +119,7 @@ public class SecurityConfig {
         .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));
 
     http.addFilterBefore(internalApiAuthFilter, UsernamePasswordAuthenticationFilter.class);
+    http.addFilterAfter(tenantContextFilter, InternalApiAuthFilter.class);
 
     TestBearerImpersonationFilter testBearerFilter = testBearerFilterProvider.getIfAvailable();
     if (testBearerFilter != null) {
