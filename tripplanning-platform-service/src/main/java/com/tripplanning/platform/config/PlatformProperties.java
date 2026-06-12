@@ -16,11 +16,19 @@ public class PlatformProperties {
   private Provisioning provisioning = new Provisioning();
   private Github github = new Github();
   private StandardPostgres standardPostgres = new StandardPostgres();
+  private OpenSearch openSearch = new OpenSearch();
 
   @Getter
   @Setter
   public static class Provisioning {
     private boolean useStubs = true;
+  }
+
+  @Getter
+  @Setter
+  public static class OpenSearch {
+    private String hosts = "";
+    private String protocol = "http";
   }
 
   @Getter

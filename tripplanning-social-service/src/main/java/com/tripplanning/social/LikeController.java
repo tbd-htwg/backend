@@ -13,7 +13,6 @@ import org.springframework.web.server.ResponseStatusException;
 @RequiredArgsConstructor
 public class LikeController {
 
-    private final TripLikeRepository likeRepository;
     private final FirestoreSocialService firestoreSocialService;
     private final TripServiceClient tripServiceClient;
     private final CommunityCacheEvictor communityCacheEvictor;
@@ -25,14 +24,7 @@ public class LikeController {
             @PathVariable Long tripId,
             @AuthenticationPrincipal Jwt jwt) {
         long userId = Long.parseLong(jwt.getSubject());
-        boolean exists =
-                Boolean.TRUE.equals(
-                        likeRepository
-                                .findByUserIdAndTripId(userId, tripId)
-                                .map(d -> true)
-                                .defaultIfEmpty(false)
-                                .block());
-        return new CurrentUserLikeStatus(exists);
+        return new CurrentUserLikeStatus(firestoreSocialService.likeExists(userId, tripId));
     }
 
     @GetMapping("/api/v2/trips/search/countLikes")
@@ -63,15 +55,8 @@ public class LikeController {
     }
 
     private ResponseEntity<Void> likeTripInternal(Long userId, Long tripId) {
-        boolean alreadyLiked =
-                Boolean.TRUE.equals(
-                        likeRepository
-                                .findByUserIdAndTripId(userId, tripId)
-                                .map(d -> true)
-                                .defaultIfEmpty(false)
-                                .block());
-        if (!alreadyLiked) {
-            likeRepository.save(new TripLikeDocument(userId, tripId)).block();
+        if (!firestoreSocialService.likeExists(userId, tripId)) {
+            firestoreSocialService.saveLike(userId, tripId);
             tripServiceClient.evictLikedByFeedCache();
             communityCacheEvictor.evictForTrip(tripId);
         }
@@ -84,11 +69,7 @@ public class LikeController {
             @PathVariable Long tripId,
             @AuthenticationPrincipal Jwt jwt) {
         requireSelf(userId, jwt);
-        String deterministicId = TripLikeDocument.documentId(userId, tripId);
-        likeRepository
-                .deleteById(deterministicId)
-                .then(likeRepository.deleteByUserIdAndTripId(userId, tripId))
-                .block();
+        firestoreSocialService.deleteLike(userId, tripId);
         tripServiceClient.evictLikedByFeedCache();
         communityCacheEvictor.evictForTrip(tripId);
         return ResponseEntity.noContent().build();
@@ -99,11 +80,7 @@ public class LikeController {
     public ResponseEntity<Void> likeExists(
             @PathVariable Long userId,
             @PathVariable Long tripId) {
-        boolean exists = Boolean.TRUE.equals(
-                likeRepository.findByUserIdAndTripId(userId, tripId)
-                        .map(d -> true)
-                        .defaultIfEmpty(false)
-                        .block());
+        boolean exists = firestoreSocialService.likeExists(userId, tripId);
         return exists
                 ? ResponseEntity.noContent().build()
                 : ResponseEntity.notFound().build();

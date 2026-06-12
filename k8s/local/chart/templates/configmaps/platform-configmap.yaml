@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: platform-service-config
+  labels:
+    {{- include "tripplanning.labels" . | nindent 4 }}
+    app.kubernetes.io/component: platform-service
+    {{- include "tripplanning.selectorLabels" . | nindent 4 }}
+data:
+{{- range $key, $value := .Values.services.platform.env }}
+  {{ $key }}: {{ $value | quote }}
+{{- end }}

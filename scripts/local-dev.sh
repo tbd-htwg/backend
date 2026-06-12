@@ -417,6 +417,12 @@ apply_local_secrets() {
     --from-literal=VIATOR_API_KEY="${VIATOR_API_KEY}" \
     --from-literal=GOOGLE_MAPS_API_KEY="${GOOGLE_MAPS_API_KEY}" \
     --dry-run=client -o yaml | kubectl apply -f -
+  kubectl create secret generic platform-service-secrets \
+    --namespace="${NS}" \
+    --from-literal=TRIPPLANNING_AUTH_JWT_SECRET="${JWT_SECRET}" \
+    --from-literal=TRIPPLANNING_INTERNAL_SECRET="${INTERNAL_SECRET}" \
+    --from-literal=TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID="${TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID}" \
+    --dry-run=client -o yaml | kubectl apply -f -
 }
 
 render_local_manifests() {
@@ -441,6 +447,7 @@ helm_local_template_args() {
     --set services.trip.image.tag="${IMAGE_TAG}" \
     --set services.social.image.tag="${IMAGE_TAG}" \
     --set services.externalInfo.image.tag="${IMAGE_TAG}" \
+    --set services.platform.image.tag="${IMAGE_TAG}" \
     --set firestoreEmulator.enabled="${firestore_enabled}" \
     --set services.trip.env.TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID="${TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID}" \
     --set services.trip.env.GCP_STORAGE_BUCKET_NAME="${GCP_STORAGE_BUCKET_NAME}" \
@@ -505,6 +512,7 @@ helm_upgrade_local() {
     --set services.trip.image.tag="${IMAGE_TAG}" \
     --set services.social.image.tag="${IMAGE_TAG}" \
     --set services.externalInfo.image.tag="${IMAGE_TAG}" \
+    --set services.platform.image.tag="${IMAGE_TAG}" \
     --set firestoreEmulator.enabled="${firestore_enabled}" \
     --set services.trip.env.TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID="${TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID}" \
     --set services.trip.env.GCP_STORAGE_BUCKET_NAME="${GCP_STORAGE_BUCKET_NAME}" \
@@ -628,7 +636,7 @@ cmd_deploy() {
   require_cmd mvn docker helm
   apply_local_secrets
   echo "== Maven package =="
-  (cd "${BACKEND_DIR}" && mvn -q -pl tripplanning-trip-service,tripplanning-social-service,tripplanning-external-info-service,tripplanning-seed-job -am package -DskipTests)
+  (cd "${BACKEND_DIR}" && mvn -q -pl tripplanning-trip-service,tripplanning-social-service,tripplanning-external-info-service,tripplanning-platform-service,tripplanning-seed-job -am package -DskipTests)
   echo "== Docker build (minikube daemon) =="
   eval "$(minikube docker-env)"
   local cachebust
@@ -636,6 +644,7 @@ cmd_deploy() {
   (cd "${BACKEND_DIR}" && docker build --build-arg SERVICE=trip --build-arg CACHEBUST="${cachebust}" -t "tripplanning-trip-service:${IMAGE_TAG}" .)
   (cd "${BACKEND_DIR}" && docker build --build-arg SERVICE=social --build-arg CACHEBUST="${cachebust}" -t "tripplanning-social-service:${IMAGE_TAG}" .)
   (cd "${BACKEND_DIR}" && docker build --build-arg SERVICE=external-info --build-arg CACHEBUST="${cachebust}" -t "tripplanning-external-info-service:${IMAGE_TAG}" .)
+  (cd "${BACKEND_DIR}" && docker build --build-arg SERVICE=platform --build-arg CACHEBUST="${cachebust}" -t "tripplanning-platform-service:${IMAGE_TAG}" .)
   (cd "${BACKEND_DIR}" && docker build --build-arg SERVICE=seed-job --build-arg CACHEBUST="${cachebust}" -t "tripplanning-seed-job:${IMAGE_TAG}" .)
   sync_gcp_adc_secret
   maybe_sync_sample_images
@@ -645,7 +654,7 @@ cmd_deploy() {
   render_local_manifests
 
   echo "== restart app deployments (pick up rebuilt :${IMAGE_TAG} images) =="
-  kubectl rollout restart deployment/trip-service deployment/social-service deployment/external-info-service -n "${NS}"
+  kubectl rollout restart deployment/trip-service deployment/social-service deployment/external-info-service deployment/platform-service -n "${NS}"
 
   echo "Waiting for valkey..."
   kubectl wait --for=condition=available deployment/valkey -n "${NS}" --timeout=120s 2>/dev/null \

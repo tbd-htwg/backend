@@ -347,7 +347,7 @@ Returns `accessToken` for `Authorization: Bearer …` on `/api/v2/*`.
 ### Google sign-in
 
 1. Configure Identity Platform / Firebase (see [ms2 overview](../../../infrastructure/ms2/docs/overview.md)).
-2. Frontend obtains Firebase ID token → `POST /api/v2/auth/firebase` on trip-service (deprecated alias: `/auth/google`).
+2. Frontend obtains Firebase ID token → `POST /api/v2/auth/firebase` on **platform-service** (nginx ingress routes `/api/v2/auth` to port 8083).
 3. Requires **Application Default Credentials** on the host (Minikube pods use the node's credential chain for GCP client libraries where configured).
 
 ---

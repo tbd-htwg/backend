@@ -1,7 +1,8 @@
-# Build trip-service, social-service, external-info-service, or seed-job image:
+# Build trip-service, social-service, external-info-service, platform-service, or seed-job image:
 #   docker build --build-arg SERVICE=trip -t tripplanning-trip-service .
 #   docker build --build-arg SERVICE=social -t tripplanning-social-service .
 #   docker build --build-arg SERVICE=external-info -t tripplanning-external-info-service .
+#   docker build --build-arg SERVICE=platform -t tripplanning-platform-service .
 #   docker build --build-arg SERVICE=seed-job -t tripplanning-seed-job .
 ARG SERVICE=trip
 
@@ -14,6 +15,7 @@ COPY tripplanning-common/pom.xml tripplanning-common/
 COPY tripplanning-trip-service/pom.xml tripplanning-trip-service/
 COPY tripplanning-social-service/pom.xml tripplanning-social-service/
 COPY tripplanning-external-info-service/pom.xml tripplanning-external-info-service/
+COPY tripplanning-platform-service/pom.xml tripplanning-platform-service/
 COPY tripplanning-seed-job/pom.xml tripplanning-seed-job/
 RUN if [ "${SERVICE}" = "seed-job" ]; then \
       mvn -pl tripplanning-seed-job -am dependency:go-offline -DskipTests; \
@@ -25,6 +27,7 @@ COPY tripplanning-common tripplanning-common
 COPY tripplanning-trip-service tripplanning-trip-service
 COPY tripplanning-social-service tripplanning-social-service
 COPY tripplanning-external-info-service tripplanning-external-info-service
+COPY tripplanning-platform-service tripplanning-platform-service
 COPY tripplanning-seed-job tripplanning-seed-job
 # Bust layer cache on redeploy (local-dev.sh passes CACHEBUST=$(date +%s)).
 ARG CACHEBUST=0

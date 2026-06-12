@@ -30,7 +30,6 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 @RequiredArgsConstructor
 public class CommentController {
 
-    private final CommentRepository commentRepository;
     private final TripServiceClient tripServiceClient;
     private final TripExistenceCache tripExistenceCache;
     private final FirestoreSocialService firestoreSocialService;
@@ -110,8 +109,8 @@ public class CommentController {
         if (content == null || content.isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "content is required");
         }
-        CommentDocument saved =
-                commentRepository.save(new CommentDocument(tripId, userId, content)).block();
+        FirestoreSocialService.CommentRow saved =
+                firestoreSocialService.saveComment(tripId, userId, content);
         communityCacheEvictor.evictForTrip(tripId);
         String base = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
         String userName =
@@ -121,14 +120,12 @@ public class CommentController {
                         .name();
         CommunityCommentItem item =
                 new CommunityCommentItem(
-                        saved.getId(),
-                        saved.getTripId(),
-                        saved.getUserId(),
+                        saved.id(),
+                        saved.tripId(),
+                        saved.userId(),
                         userName,
-                        saved.getContent(),
-                        saved.getCreatedAt() != null
-                                ? Instant.ofEpochMilli(saved.getCreatedAt()).toString()
-                                : "");
+                        saved.content(),
+                        Instant.ofEpochMilli(saved.createdAtMillis()).toString());
         return ResponseEntity.ok(toHalComment(item, base));
     }
 
@@ -137,17 +134,17 @@ public class CommentController {
             @PathVariable String id,
             @AuthenticationPrincipal Jwt jwt) {
         long callerId = Long.parseLong(jwt.getSubject());
-        CommentDocument comment = commentRepository.findById(id).block();
+        FirestoreSocialService.CommentRow comment = firestoreSocialService.findCommentById(id);
         if (comment == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Kommentar nicht gefunden");
         }
-        boolean isAuthor = comment.getUserId().equals(callerId);
-        boolean isTripOwner = tripServiceClient.isTripOwnedBy(comment.getTripId(), callerId);
+        boolean isAuthor = comment.userId() == callerId;
+        boolean isTripOwner = tripServiceClient.isTripOwnedBy(comment.tripId(), callerId);
         if (!isAuthor && !isTripOwner) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Nicht berechtigt");
         }
-        commentRepository.deleteById(id).block();
-        communityCacheEvictor.evictForTrip(comment.getTripId());
+        firestoreSocialService.deleteComment(id);
+        communityCacheEvictor.evictForTrip(comment.tripId());
         return ResponseEntity.noContent().build();
     }
 

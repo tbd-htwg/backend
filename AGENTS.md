@@ -10,9 +10,10 @@ Maven **multi-module** Spring Boot 3 backend:
 
 | Module | Port | Role |
 |--------|------|------|
-| `tripplanning-trip-service` | 8080 | Trips, users, Google Places (`place`), trip stops (`tripLocation`), auth, GCS images, search |
+| `tripplanning-trip-service` | 8080 | Trips, users, Google Places (`place`), trip stops (`tripLocation`), GCS images, search |
 | `tripplanning-social-service` | 8081 | Firestore comments / likes |
 | `tripplanning-external-info-service` | 8082 | Google Places search, Google Routes transport distance, weather, warnings, Viator tours |
+| `tripplanning-platform-service` | 8083 | Auth, tenant admin, provisioning, internal tenant runtime |
 | `tripplanning-seed-job` | — | One-shot perf seed (PostgreSQL + Firestore; `./scripts/local-dev.sh seed-job`) |
 
 After **any** perf seed (`local-dev.sh seed-job` or `gke-seed-job.sh`), run **`./scripts/reset-search-index.sh`** if search was not reset automatically. Seed inserts via JDBC bypass Hibernate Search; trip-service skips mass reindex when OpenSearch doc counts already match PostgreSQL (stale index content). Both seed scripts call `reset-search-index.sh` by default; use `--skip-search-reset` only when debugging.
@@ -46,7 +47,8 @@ Default trip-service: **`http://localhost:8080`**.
 | Area | Module / package |
 |------|------------------|
 | Core domain (JPA + REST) | `tripplanning-trip-service` — `user`, `trip`, `tripLocation`, `place`, `accommodation`, `transport` |
-| Auth (Firebase ID token → app JWT) | `tripplanning-trip-service` — `com.tripplanning.auth` (`POST /api/v2/auth/firebase`) |
+| Auth (Firebase ID token → app JWT) | `tripplanning-platform-service` — `com.tripplanning.platform.auth` (`POST /api/v2/auth/firebase`, `dev-login`) |
+| Tenant admin / provisioning | `tripplanning-platform-service` — `com.tripplanning.platform.tenant`, `com.tripplanning.platform.provisioning` |
 | Social (Firestore) | `tripplanning-social-service` — `com.tripplanning.social` |
 | Full-text search | `tripplanning-trip-service` — `com.tripplanning.search` — **`/api/search/**`** |
 | Images (GCS) | `tripplanning-trip-service` — `com.tripplanning.images` |

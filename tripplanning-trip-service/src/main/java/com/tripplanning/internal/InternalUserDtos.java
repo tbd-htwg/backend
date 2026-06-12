@@ -7,4 +7,6 @@ public final class InternalUserDtos {
   public record IdentityProvisionRequest(String sub, String email, String name, String picture) {}
 
   public record DevProvisionRequest(String email, String name) {}
+
+  public record TenantUserDto(long id, String name, String email, String description) {}
 }

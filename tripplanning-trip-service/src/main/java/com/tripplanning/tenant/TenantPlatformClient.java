@@ -12,7 +12,8 @@ import org.springframework.web.reactive.function.client.WebClient;
 @Component
 public class TenantPlatformClient {
 
-  public record TenantRuntime(String slug, String tier, String dbName, String searchIndex) {}
+  public record TenantRuntime(
+      String slug, String tier, String dbName, String searchIndex, String gcsBucket, String objectPrefix) {}
 
   private final WebClient webClient;
   private final String internalSecret;
@@ -31,7 +32,7 @@ public class TenantPlatformClient {
 
   public TenantRuntime resolve(String slug) {
     if (slug == null || slug.isBlank() || "free".equals(slug)) {
-      return new TenantRuntime("free", "FREE", "tripplanning", "tripentity");
+      return new TenantRuntime("free", "FREE", "tripplanning", "tripentity", null, "");
     }
     return cache.computeIfAbsent(slug, this::loadRuntime);
   }
@@ -51,7 +52,9 @@ public class TenantPlatformClient {
             String.valueOf(body.get("slug")),
             String.valueOf(body.get("tier")),
             String.valueOf(body.get("dbName")),
-            String.valueOf(body.get("searchIndex")));
+            String.valueOf(body.get("searchIndex")),
+            stringOrNull(body.get("gcsBucket")),
+            stringOrNull(body.get("objectPrefix")));
       }
     } catch (Exception ignored) {
       // Platform service may be unavailable in local dev — use naming conventions.
@@ -59,9 +62,17 @@ public class TenantPlatformClient {
     return devFallback(slug);
   }
 
+  private static String stringOrNull(Object value) {
+    if (value == null) {
+      return null;
+    }
+    String s = String.valueOf(value);
+    return s.isBlank() || "null".equals(s) ? null : s;
+  }
+
   private TenantRuntime devFallback(String slug) {
     String db = "tripplanning_std_" + slug.replace('-', '_');
-    return new TenantRuntime(slug, "STANDARD", db, "tripentity-" + slug);
+    return new TenantRuntime(slug, "STANDARD", db, "tripentity-" + slug, null, "std/" + slug + "/");
   }
 
   public void evict(String slug) {

@@ -11,9 +11,12 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import com.tripplanning.common.security.InternalApiAuthFilter;
 
 @Configuration
 public class PlatformSecurityConfig {
@@ -38,7 +41,8 @@ public class PlatformSecurityConfig {
   }
 
   @Bean
-  public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+  public SecurityFilterChain filterChain(
+      HttpSecurity http, InternalApiAuthFilter internalApiAuthFilter) throws Exception {
     http.sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .cors(Customizer.withDefaults())
         .csrf(csrf -> csrf.disable())
@@ -48,7 +52,11 @@ public class PlatformSecurityConfig {
                     .permitAll()
                     .requestMatchers("/actuator/health", "/actuator/health/**")
                     .permitAll()
+                    .requestMatchers("/internal/**")
+                    .permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/v2/tenants/*/public-config")
+                    .permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/v2/tenants/*/users")
                     .permitAll()
                     .requestMatchers(HttpMethod.POST, "/api/v2/auth/firebase")
                     .permitAll()
@@ -80,6 +88,8 @@ public class PlatformSecurityConfig {
                               return new org.springframework.security.oauth2.server.resource
                                   .authentication.JwtAuthenticationToken(token, authorities);
                             })));
+
+    http.addFilterBefore(internalApiAuthFilter, UsernamePasswordAuthenticationFilter.class);
     return http.build();
   }
 }

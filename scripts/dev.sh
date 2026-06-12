@@ -402,8 +402,13 @@ cmd_start() {
     TRIPPLANNING_AUTH_JWT_SECRET="${TRIPPLANNING_AUTH_JWT_SECRET}" \
     TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID="${TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID}" \
     TRIPPLANNING_TRIP_SERVICE_URL=http://localhost:8080 \
-    TRIPPLANNING_INTERNAL_SECRET="${INTERNAL_SECRET}"
+    TRIPPLANNING_INTERNAL_SECRET="${INTERNAL_SECRET}" \
+    TRIPPLANNING_PLATFORM_USE_STUBS="${TRIPPLANNING_PLATFORM_USE_STUBS:-true}"
 
+  if [[ "${TRIPPLANNING_PLATFORM_USE_STUBS:-true}" == "true" ]]; then
+    echo ""
+    echo "WARN: Provisioning STUB mode (TRIPPLANNING_PLATFORM_USE_STUBS=true) — no real GCP/Terraform resources"
+  fi
   echo ""
   echo "== JVM backend ready =="
   echo "  trip-service          http://localhost:8080"

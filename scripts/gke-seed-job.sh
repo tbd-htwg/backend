@@ -218,26 +218,16 @@ run_preflight_checks() {
 }
 
 apply_seed_job() {
-  local tenant_values helm_args gateway_name gateway_ns api_host
+  local tenant_values helm_args
   tenant_values="$(mktemp)"
   trap 'rm -f "${tenant_values}"' RETURN
   extract_tenant_values "${tenant_values}"
-
-  gateway_name="$(awk '/name: tripplanning-gateway/{found=1} found && /name:/{print $2; exit}' "${HELMRELEASE_VALUES}" 2>/dev/null || true)"
-  gateway_ns="$(awk '/namespace: gateway-system/{print $2; exit}' "${HELMRELEASE_VALUES}" 2>/dev/null || true)"
-  api_host="$(awk '/api:/{print $2; exit}' "${HELMRELEASE_VALUES}" 2>/dev/null || true)"
-  gateway_name="${gateway_name:-tripplanning-gateway}"
-  gateway_ns="${gateway_ns:-gateway-system}"
-  api_host="${api_host:-k8s.tbd-htwg.de}"
 
   helm_args=(
     template tripplanning-free "${MS2_CHART}"
     -f "${tenant_values}"
     --set "seedJob.enabled=true"
     --set "seedJob.image.tag=${IMAGE_TAG}"
-    --set "global.gateway.name=${gateway_name}"
-    --set "global.gateway.namespace=${gateway_ns}"
-    --set "global.hosts.api=${api_host}"
   )
 
   echo "== Remove previous seed job (if any) =="

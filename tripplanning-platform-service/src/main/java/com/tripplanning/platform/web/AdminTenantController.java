@@ -3,6 +3,7 @@ package com.tripplanning.platform.web;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -13,6 +14,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+import org.springframework.web.reactive.function.client.WebClientResponseException;
+
+import com.tripplanning.platform.client.TripUserClient;
 import com.tripplanning.platform.tenant.TenantDtos;
 import com.tripplanning.platform.tenant.TenantService;
 
@@ -23,9 +27,11 @@ import jakarta.validation.Valid;
 public class AdminTenantController {
 
   private final TenantService tenantService;
+  private final TripUserClient tripUserClient;
 
-  public AdminTenantController(TenantService tenantService) {
+  public AdminTenantController(TenantService tenantService, TripUserClient tripUserClient) {
     this.tenantService = tenantService;
+    this.tripUserClient = tripUserClient;
   }
 
   @GetMapping
@@ -82,8 +88,33 @@ public class AdminTenantController {
 
   @GetMapping("/{id}/users")
   public List<TenantDtos.TenantUserDto> listUsers(@PathVariable String id) {
-    tenantService.getById(id);
-    return List.of();
+    TenantDtos.TenantDto tenant = tenantService.getById(id);
+    String host = TripUserClient.hostHeaderFromUrl(tenant.hostUrl());
+    try {
+      List<TenantDtos.TenantUserDto> users = tripUserClient.listUsers(host);
+      return users != null ? users : List.of();
+    } catch (Exception e) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_GATEWAY, "Failed to list tenant users: " + e.getMessage());
+    }
+  }
+
+  @DeleteMapping("/{id}/users/{userId}")
+  public void deleteUser(@PathVariable String id, @PathVariable long userId) {
+    TenantDtos.TenantDto tenant = tenantService.getById(id);
+    String host = TripUserClient.hostHeaderFromUrl(tenant.hostUrl());
+    try {
+      tripUserClient.deleteUser(host, userId);
+    } catch (WebClientResponseException e) {
+      if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
+      }
+      throw new ResponseStatusException(
+          HttpStatus.BAD_GATEWAY, "Failed to delete tenant user: " + e.getMessage());
+    } catch (Exception e) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_GATEWAY, "Failed to delete tenant user: " + e.getMessage());
+    }
   }
 
   @PostMapping("/{id}/retry")
@@ -96,4 +127,5 @@ public class AdminTenantController {
       throw new ResponseStatusException(HttpStatus.CONFLICT, e.getMessage());
     }
   }
+
 }

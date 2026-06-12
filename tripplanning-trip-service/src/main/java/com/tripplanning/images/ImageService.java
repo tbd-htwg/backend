@@ -27,6 +27,8 @@ import com.google.cloud.storage.BlobInfo;
 import com.google.cloud.storage.HttpMethod;
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageException;
+import com.tripplanning.common.tenant.TenantContextHolder;
+import com.tripplanning.tenant.TenantPlatformClient;
 import com.tripplanning.tripLocation.TripLocationImageEntity;
 
 import lombok.RequiredArgsConstructor;
@@ -42,14 +44,15 @@ public class ImageService {
     private final Storage storage;
     private final ExecutorService imageSigningExecutor;
     private final GcsUrlSignerHolder gcsUrlSignerHolder;
+    private final TenantPlatformClient tenantPlatformClient;
 
     @Value("${spring.cloud.gcp.storage.bucket-name}")
-    private String bucketName;
+    private String defaultBucketName;
 
     @PostConstruct
     void trimBucketName() {
-        if (bucketName != null) {
-            bucketName = bucketName.trim();
+        if (defaultBucketName != null) {
+            defaultBucketName = defaultBucketName.trim();
         }
     }
 
@@ -58,10 +61,11 @@ public class ImageService {
             throw new IllegalArgumentException("Only image files (JPG, PNG) allowed!");
         }
 
+        StorageTarget target = resolveStorage();
         String safeName = sanitizeFileName(fileName);
-        String objectName = folder + "/" + UUID.randomUUID() + "_" + safeName;
+        String objectName = target.prefix() + folder + "/" + UUID.randomUUID() + "_" + safeName;
 
-        BlobId blobId = BlobId.of(bucketName, objectName);
+        BlobId blobId = BlobId.of(target.bucket(), objectName);
         BlobInfo blobInfo = BlobInfo.newBuilder(blobId)
                 .setContentType(contentType)
                 .build();
@@ -79,8 +83,9 @@ public class ImageService {
         if (objectName == null || objectName.isBlank()) {
             return Optional.of("imagePath is empty.");
         }
-        String trimmed = Normalizer.normalize(objectName.trim(), Normalizer.Form.NFC);
-        BlobId blobId = BlobId.of(bucketName, trimmed);
+        StorageTarget target = resolveStorage();
+        String trimmed = Normalizer.normalize(qualifyObjectPath(target, objectName.trim()), Normalizer.Form.NFC);
+        BlobId blobId = BlobId.of(target.bucket(), trimmed);
         try {
             Blob blob = storage.get(blobId);
             if (blob != null) {
@@ -88,7 +93,7 @@ public class ImageService {
             }
             return Optional.of(
                     "No object at gs://"
-                            + bucketName
+                            + target.bucket()
                             + "/"
                             + trimmed
                             + " (metadata GET returned null; check rsync prefix vs --sample-images-prefix and bucket "
@@ -96,13 +101,13 @@ public class ImageService {
         } catch (StorageException e) {
             log.warn(
                     "GCS metadata read failed for gs://{}/{}: {} [{}]",
-                    bucketName,
+                    target.bucket(),
                     trimmed,
                     e.getMessage(),
                     e.getCode());
             return Optional.of(
                     "Could not read gs://"
-                            + bucketName
+                            + target.bucket()
                             + "/"
                             + trimmed
                             + ": "
@@ -128,7 +133,9 @@ public class ImageService {
         if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
             return trimmed;
         }
-        BlobId blobId = BlobId.of(bucketName, trimmed);
+        StorageTarget target = resolveStorage();
+        String resolved = qualifyObjectPath(target, trimmed);
+        BlobId blobId = BlobId.of(target.bucket(), resolved);
         BlobInfo blobInfo = BlobInfo.newBuilder(blobId).build();
         return createSignedUrl(blobInfo, HttpMethod.GET).toString();
     }
@@ -192,18 +199,20 @@ public class ImageService {
             log.debug("Skip GCS delete: object does not match required prefix {} (object={})", requiredNamePrefix, trimmed);
             return;
         }
+        StorageTarget target = resolveStorage();
+        String resolved = qualifyObjectPath(target, trimmed);
         try {
-            boolean removed = Boolean.TRUE.equals(storage.delete(BlobId.of(bucketName, trimmed)));
+            boolean removed = Boolean.TRUE.equals(storage.delete(BlobId.of(target.bucket(), resolved)));
             if (removed) {
-                log.debug("Deleted gs://{}/{}", bucketName, trimmed);
+                log.debug("Deleted gs://{}/{}", target.bucket(), resolved);
             } else {
-                log.debug("GCS object already absent gs://{}/{}", bucketName, trimmed);
+                log.debug("GCS object already absent gs://{}/{}", target.bucket(), resolved);
             }
         } catch (StorageException e) {
             log.warn(
                     "Could not delete gs://{}/{} — clearing DB image name anyway. Fix IAM (storage.objects.delete) if objects should be removed. {} [{}]",
-                    bucketName,
-                    trimmed,
+                    target.bucket(),
+                    resolved,
                     e.getMessage(),
                     e.getCode(),
                     e);
@@ -244,6 +253,30 @@ public class ImageService {
             current = current.getCause();
         }
         return current.getMessage() != null ? current.getMessage() : current.getClass().getSimpleName();
+    }
+
+    private record StorageTarget(String bucket, String prefix) {}
+
+    private StorageTarget resolveStorage() {
+        TenantPlatformClient.TenantRuntime runtime =
+                tenantPlatformClient.resolve(TenantContextHolder.slugOrDefault());
+        String bucket =
+                runtime.gcsBucket() != null && !runtime.gcsBucket().isBlank()
+                        ? runtime.gcsBucket()
+                        : defaultBucketName;
+        String prefix = runtime.objectPrefix() != null ? runtime.objectPrefix() : "";
+        return new StorageTarget(bucket, prefix);
+    }
+
+    private static String qualifyObjectPath(StorageTarget target, String objectName) {
+        if (objectName == null || objectName.isBlank()) {
+            return objectName;
+        }
+        String prefix = target.prefix();
+        if (prefix == null || prefix.isBlank() || objectName.startsWith(prefix)) {
+            return objectName;
+        }
+        return prefix + objectName;
     }
 
     private String sanitizeFileName(String fileName) {
