@@ -8,8 +8,19 @@ import org.springframework.stereotype.Component;
 public class TenantCacheKeyPrefix {
 
   public String prefix() {
-    String slug = TenantContextHolder.slugOrDefault();
-    return "free".equals(slug) ? "" : slug + ":";
+    TenantContext ctx = TenantContextHolder.get();
+    if (ctx == null || ctx.isFree()) {
+      return "";
+    }
+    String slug = ctx.slug();
+    String tier = ctx.tier();
+    if (tier != null && "STANDARD".equalsIgnoreCase(tier)) {
+      return "std:" + slug + ":";
+    }
+    if (tier != null && "ENTERPRISE".equalsIgnoreCase(tier)) {
+      return "ent:" + slug + ":";
+    }
+    return slug + ":";
   }
 
   public String qualify(String key) {

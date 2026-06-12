@@ -7,14 +7,12 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tripplanning.platform.config.PlatformProperties;
-import com.tripplanning.platform.infra.DnsClient;
 import com.tripplanning.platform.infra.IdentityPlatformClient;
-import com.tripplanning.platform.infra.LoadBalancerRegistrar;
-import com.tripplanning.platform.infra.PremiumInfrastructureProvisioner;
-import com.tripplanning.platform.infra.StandardDataProvisioner;
+import com.tripplanning.platform.infra.TenantDispatchPayload;
+import com.tripplanning.platform.infra.TenantInfrastructureProvisioner;
 import com.tripplanning.platform.tenant.ProvisioningJson;
 import com.tripplanning.platform.tenant.TenantEntity;
+import com.tripplanning.platform.tenant.TenantNaming;
 import com.tripplanning.platform.tenant.TenantRepository;
 import com.tripplanning.platform.tenant.TenantStatus;
 import com.tripplanning.platform.tenant.TenantTier;
@@ -29,12 +27,8 @@ public class TenantProvisioningService {
 
   private final TenantRepository tenantRepository;
   private final ProvisioningJson provisioningJson;
-  private final PlatformProperties platformProperties;
   private final IdentityPlatformClient identityPlatformClient;
-  private final DnsClient dnsClient;
-  private final LoadBalancerRegistrar loadBalancerRegistrar;
-  private final StandardDataProvisioner standardDataProvisioner;
-  private final PremiumInfrastructureProvisioner premiumInfrastructureProvisioner;
+  private final TenantInfrastructureProvisioner infrastructureProvisioner;
 
   @Async
   public void provisionAsync(String tenantId) {
@@ -70,7 +64,6 @@ public class TenantProvisioningService {
   }
 
   private void runProvisioning(TenantEntity tenant) {
-    String hostBase = platformProperties.getHostBase();
     TenantTier tier = tenant.getTier();
 
     updateStep(tenant.getId(), tier, 0, null);
@@ -81,52 +74,59 @@ public class TenantProvisioningService {
     tenant.setEnabledAuthProvidersJson(provisioningJson.writeProviders(idp.enabledProviders()));
     tenantRepository.save(tenant);
 
+    updateStep(tenant.getId(), tier, 1, null);
+    TenantDispatchPayload payload = toDispatchPayload(reload(tenant.getId()));
+
     if (tier == TenantTier.STANDARD) {
-      dnsClient.registerStandardSubdomain(tenant.getSlug(), hostBase);
-      loadBalancerRegistrar.registerStandardHost(tenant.getSlug(), hostBase);
-
-      updateStep(tenant.getId(), tier, 1, null);
-      standardDataProvisioner.createDatabase(tenant.getDbName());
-
+      infrastructureProvisioner.triggerStandardTenant(payload);
       updateStep(tenant.getId(), tier, 2, null);
-      standardDataProvisioner.createSearchIndex(tenant.getSearchIndex());
-
+      updateStep(tenant.getId(), tier, 3, null);
+      updateStep(tenant.getId(), tier, 4, null);
       complete(tenant.getId(), tier);
       return;
     }
 
-    if (tier == TenantTier.PREMIUM) {
-      updateStep(tenant.getId(), tier, 1, null);
-      dnsClient.registerPremiumSubdomain(tenant.getSlug(), hostBase);
-      loadBalancerRegistrar.registerPremiumHost(tenant.getSlug(), hostBase);
-      tenant = reload(tenant.getId());
-      tenant.setFrontendPath("/" + tenant.getSlug() + "/");
-      tenant.setImageTag("premium-" + tenant.getSlug());
-      tenantRepository.save(tenant);
-
+    if (tier == TenantTier.ENTERPRISE) {
+      infrastructureProvisioner.triggerEnterpriseTenant(payload);
       updateStep(tenant.getId(), tier, 2, null);
-      premiumInfrastructureProvisioner.triggerPremiumTenant(
-          tenant.getSlug(), tenant.getDisplayName());
-
-      // Backing services in the tenant namespace — stubs until infra workflow reports ready.
       updateStep(tenant.getId(), tier, 3, null);
       updateStep(tenant.getId(), tier, 4, null);
-
       updateStep(tenant.getId(), tier, 5, null);
+
       tenant = reload(tenant.getId());
-      tenant.setFirestoreDatabase("(default)-" + tenant.getSlug());
-      tenant.setGcsBucket("tbd-cloudappdev-images-" + tenant.getSlug());
+      if (tenant.getFirestoreDatabase() == null || tenant.getFirestoreDatabase().isBlank()) {
+        tenant.setFirestoreDatabase("(default)-" + tenant.getSlug());
+      }
+      if (tenant.getGcsBucket() == null || tenant.getGcsBucket().isBlank()) {
+        tenant.setGcsBucket(TenantNaming.gcsBucket(tenant.getSlug(), TenantTier.ENTERPRISE));
+      }
       tenantRepository.save(tenant);
 
+      updateStep(tenant.getId(), tier, 6, null);
       complete(tenant.getId(), tier);
     }
+  }
+
+  private TenantDispatchPayload toDispatchPayload(TenantEntity tenant) {
+    return new TenantDispatchPayload(
+        tenant.getSlug(),
+        tenant.getDisplayName(),
+        tenant.getTier(),
+        tenant.getHostUrl(),
+        tenant.getNamespace(),
+        tenant.getDbName(),
+        tenant.getSearchIndex(),
+        tenant.getFrontendPath(),
+        tenant.getIdentityPlatformTenantId(),
+        tenant.getImageTag(),
+        tenant.getGcsBucket());
   }
 
   private void updateStep(String tenantId, TenantTier tier, int doneThrough, String failedKey) {
     TenantEntity tenant = reload(tenantId);
     List<com.tripplanning.platform.tenant.TenantDtos.ProvisioningStepDto> steps =
-        tier == TenantTier.PREMIUM
-            ? ProvisioningStepDefinitions.premiumSteps(doneThrough, failedKey)
+        tier == TenantTier.ENTERPRISE
+            ? ProvisioningStepDefinitions.enterpriseSteps(doneThrough, failedKey)
             : ProvisioningStepDefinitions.standardSteps(doneThrough, failedKey);
     tenant.setProvisioningStepsJson(provisioningJson.writeSteps(steps));
     tenant.setUpdatedAt(Instant.now());

@@ -26,16 +26,20 @@ public class PlatformDevAuthController {
   private final PlatformAppJwtService platformAppJwtService;
   private final TripUserClient tripUserClient;
   private final String hostBase;
+  private final String enterpriseHostBase;
 
   public PlatformDevAuthController(
       PlatformAdminService platformAdminService,
       PlatformAppJwtService platformAppJwtService,
       TripUserClient tripUserClient,
-      @Value("${tripplanning.platform.host-base:k8s.tbd-htwg.de}") String hostBase) {
+      @Value("${tripplanning.platform.host-base:k8s.tbd-htwg.de}") String hostBase,
+      @Value("${tripplanning.platform.enterprise-host-base:enterprise.k8s.tbd-htwg.de}")
+          String enterpriseHostBase) {
     this.platformAdminService = platformAdminService;
     this.platformAppJwtService = platformAppJwtService;
     this.tripUserClient = tripUserClient;
     this.hostBase = hostBase;
+    this.enterpriseHostBase = enterpriseHostBase;
   }
 
   @PostMapping("/dev-login")
@@ -48,7 +52,8 @@ public class PlatformDevAuthController {
     String forwardedHost =
         HostTenantResolver.effectiveHost(
             request.getHeader("X-Forwarded-Host"), request.getHeader("Host"));
-    String tenantSlug = HostTenantResolver.resolveSlug(forwardedHost, hostBase);
+    String tenantSlug =
+        HostTenantResolver.resolveSlug(forwardedHost, hostBase, enterpriseHostBase);
     try {
       TenantDtos.UserResponseDto user =
           tripUserClient.provisionDev(forwardedHost, email, body.name());

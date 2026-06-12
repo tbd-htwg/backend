@@ -30,18 +30,22 @@ public class PlatformAuthController {
   private final PlatformAppJwtService platformAppJwtService;
   private final TripUserClient tripUserClient;
   private final String hostBase;
+  private final String enterpriseHostBase;
 
   public PlatformAuthController(
       FirebaseCredentialVerifier firebaseCredentialVerifier,
       PlatformAdminService platformAdminService,
       PlatformAppJwtService platformAppJwtService,
       TripUserClient tripUserClient,
-      @Value("${tripplanning.platform.host-base:k8s.tbd-htwg.de}") String hostBase) {
+      @Value("${tripplanning.platform.host-base:k8s.tbd-htwg.de}") String hostBase,
+      @Value("${tripplanning.platform.enterprise-host-base:enterprise.k8s.tbd-htwg.de}")
+          String enterpriseHostBase) {
     this.firebaseCredentialVerifier = firebaseCredentialVerifier;
     this.platformAdminService = platformAdminService;
     this.platformAppJwtService = platformAppJwtService;
     this.tripUserClient = tripUserClient;
     this.hostBase = hostBase;
+    this.enterpriseHostBase = enterpriseHostBase;
   }
 
   @PostMapping("/firebase")
@@ -109,6 +113,6 @@ public class PlatformAuthController {
   }
 
   private String resolveTenantSlug(String host) {
-    return HostTenantResolver.resolveSlug(host, hostBase);
+    return HostTenantResolver.resolveSlug(host, hostBase, enterpriseHostBase);
   }
 }

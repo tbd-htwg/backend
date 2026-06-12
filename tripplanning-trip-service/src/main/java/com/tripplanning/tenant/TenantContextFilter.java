@@ -23,12 +23,16 @@ import jakarta.servlet.http.HttpServletResponse;
 public class TenantContextFilter extends OncePerRequestFilter {
 
   private final String hostBase;
+  private final String enterpriseHostBase;
   private final TenantPlatformClient tenantPlatformClient;
 
   public TenantContextFilter(
       @Value("${tripplanning.platform.host-base:k8s.tbd-htwg.de}") String hostBase,
+      @Value("${tripplanning.platform.enterprise-host-base:enterprise.k8s.tbd-htwg.de}")
+          String enterpriseHostBase,
       TenantPlatformClient tenantPlatformClient) {
     this.hostBase = hostBase;
+    this.enterpriseHostBase = enterpriseHostBase;
     this.tenantPlatformClient = tenantPlatformClient;
   }
 
@@ -40,7 +44,7 @@ public class TenantContextFilter extends OncePerRequestFilter {
       String host =
           HostTenantResolver.effectiveHost(
               request.getHeader("X-Forwarded-Host"), request.getHeader("Host"));
-      String slug = HostTenantResolver.resolveSlug(host, hostBase);
+      String slug = HostTenantResolver.resolveSlug(host, hostBase, enterpriseHostBase);
       TenantPlatformClient.TenantRuntime runtime = tenantPlatformClient.resolve(slug);
       TenantContextHolder.set(new TenantContext(runtime.slug(), runtime.tier()));
 

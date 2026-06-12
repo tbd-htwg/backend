@@ -11,6 +11,7 @@ tripplanning:
     test-bearer-token: ${TRIPPLANNING_AUTH_TEST_BEARER_TOKEN:}
   platform:
     host-base: ${TRIPPLANNING_PLATFORM_HOST_BASE:k8s.tbd-htwg.de}
+    enterprise-host-base: ${TRIPPLANNING_PLATFORM_ENTERPRISE_HOST_BASE:enterprise.k8s.tbd-htwg.de}
   services:
     trip-base-url: ${TRIPPLANNING_TRIP_SERVICE_URL:http://localhost:8080}
     social-base-url: ${TRIPPLANNING_SOCIAL_SERVICE_URL:http://localhost:8081}

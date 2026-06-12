@@ -1,0 +1,88 @@
+package com.tripplanning.platform.infra;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.client.WebClient;
+
+import com.tripplanning.platform.config.PlatformProperties;
+import com.tripplanning.platform.tenant.TenantTier;
+
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Component
+public class GithubTenantInfrastructureProvisioner implements TenantInfrastructureProvisioner {
+
+  private final PlatformProperties platformProperties;
+  private final WebClient webClient;
+
+  public GithubTenantInfrastructureProvisioner(PlatformProperties platformProperties) {
+    this.platformProperties = platformProperties;
+    this.webClient = WebClient.builder().build();
+  }
+
+  @Override
+  public void triggerStandardTenant(TenantDispatchPayload payload) {
+    dispatch(payload, platformProperties.getGithub().getStandardEventType());
+  }
+
+  @Override
+  public void triggerEnterpriseTenant(TenantDispatchPayload payload) {
+    dispatch(payload, platformProperties.getGithub().getEnterpriseEventType());
+  }
+
+  private void dispatch(TenantDispatchPayload payload, String eventType) {
+    var github = platformProperties.getGithub();
+    String url = github.getDispatchUrl();
+    String token = github.getDispatchToken();
+
+    if (url == null || url.isBlank() || token == null || token.isBlank()) {
+      log.warn(
+          "[stub] GitHub dispatch not configured — tier={}, slug={}, displayName={}",
+          payload.tier(),
+          payload.slug(),
+          payload.displayName());
+      return;
+    }
+
+    Map<String, Object> clientPayload = new LinkedHashMap<>();
+    clientPayload.put("slug", payload.slug());
+    clientPayload.put("displayName", payload.displayName());
+    clientPayload.put("tier", payload.tier().name());
+    clientPayload.put("hostUrl", payload.hostUrl());
+    clientPayload.put("namespace", payload.namespace());
+    clientPayload.put("dbName", payload.dbName());
+    clientPayload.put("searchIndex", payload.searchIndex());
+    clientPayload.put("frontendPath", payload.frontendPath());
+    clientPayload.put("identityPlatformTenantId", payload.identityPlatformTenantId());
+    if (payload.tier() == TenantTier.ENTERPRISE) {
+      if (payload.imageTag() != null) {
+        clientPayload.put("imageTag", payload.imageTag());
+      }
+      if (payload.gcsBucket() != null) {
+        clientPayload.put("gcsBucket", payload.gcsBucket());
+      }
+    }
+
+    Map<String, Object> body =
+        Map.of("event_type", eventType, "client_payload", clientPayload);
+
+    webClient
+        .post()
+        .uri(url)
+        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+        .header(HttpHeaders.ACCEPT, "application/vnd.github+json")
+        .contentType(MediaType.APPLICATION_JSON)
+        .bodyValue(body)
+        .retrieve()
+        .toBodilessEntity()
+        .block();
+
+    log.info(
+        "Dispatched {} tenant provisioning for slug={}", payload.tier(), payload.slug());
+  }
+}

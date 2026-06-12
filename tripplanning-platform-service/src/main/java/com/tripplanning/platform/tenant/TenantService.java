@@ -47,6 +47,22 @@ public class TenantService {
     return tenantMapper.toPublicConfig(entity);
   }
 
+  public TenantDtos.SlugAvailabilityDto checkSlugAvailability(String slug) {
+    String normalized = slug == null ? "" : slug.trim().toLowerCase();
+    if (normalized.isBlank()) {
+      return new TenantDtos.SlugAvailabilityDto(false, "Slug is required");
+    }
+    try {
+      slugValidator.validate(normalized);
+    } catch (IllegalArgumentException e) {
+      return new TenantDtos.SlugAvailabilityDto(false, e.getMessage());
+    }
+    if (tenantRepository.existsBySlug(normalized)) {
+      return new TenantDtos.SlugAvailabilityDto(false, "Tenant slug already exists");
+    }
+    return new TenantDtos.SlugAvailabilityDto(true, null);
+  }
+
   @Transactional
   public TenantDtos.TenantDto create(TenantDtos.TenantCreateRequest request) {
     String slug = request.slug().trim().toLowerCase();
@@ -63,6 +79,7 @@ public class TenantService {
     Instant now = Instant.now();
     String id = "tenant-" + slug;
     String hostBase = platformProperties.getHostBase();
+    String enterpriseHostBase = platformProperties.getEnterpriseHostBase();
 
     TenantEntity entity =
         TenantEntity.builder()
@@ -71,7 +88,7 @@ public class TenantService {
             .displayName(request.displayName().trim())
             .tier(tier)
             .status(TenantStatus.PROVISIONING)
-            .hostUrl(TenantNaming.hostUrl(slug, hostBase))
+            .hostUrl(TenantNaming.hostUrl(slug, tier, hostBase, enterpriseHostBase))
             .namespace(TenantNaming.namespace(slug, tier))
             .createdAt(now)
             .updatedAt(now)
@@ -79,14 +96,12 @@ public class TenantService {
             .searchIndex(TenantNaming.searchIndex(slug, tier))
             .estimatedMonthlyCostEur(TenantNaming.estimatedCost(tier))
             .headerTitle(request.displayName().trim())
+            .frontendPath(TenantNaming.frontendPath(slug, tier))
+            .imageTag(TenantNaming.imageTag(slug, tier))
+            .gcsBucket(TenantNaming.gcsBucket(slug, tier))
             .provisioningStepsJson(
                 provisioningJson.writeSteps(ProvisioningStepDefinitions.initialSteps(tier)))
             .build();
-
-    if (tier == TenantTier.PREMIUM) {
-      entity.setFrontendPath("/" + slug + "/");
-      entity.setImageTag("premium-" + slug);
-    }
 
     tenantRepository.save(entity);
     provisioningService.provisionAsync(id);

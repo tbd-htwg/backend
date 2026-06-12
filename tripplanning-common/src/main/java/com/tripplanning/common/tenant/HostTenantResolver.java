@@ -2,6 +2,8 @@ package com.tripplanning.common.tenant;
 
 public final class HostTenantResolver {
 
+  public static final String DEFAULT_ENTERPRISE_HOST_BASE = "enterprise.k8s.tbd-htwg.de";
+
   private HostTenantResolver() {}
 
   /**
@@ -19,6 +21,10 @@ public final class HostTenantResolver {
   }
 
   public static String resolveSlug(String hostHeader, String hostBase) {
+    return resolveSlug(hostHeader, hostBase, DEFAULT_ENTERPRISE_HOST_BASE);
+  }
+
+  public static String resolveSlug(String hostHeader, String hostBase, String enterpriseHostBase) {
     if (hostHeader == null || hostHeader.isBlank()) {
       return TenantContext.FREE_SLUG;
     }
@@ -27,6 +33,19 @@ public final class HostTenantResolver {
     if (base.isEmpty() || host.equals(base)) {
       return TenantContext.FREE_SLUG;
     }
+
+    String entBase =
+        enterpriseHostBase == null || enterpriseHostBase.isBlank()
+            ? DEFAULT_ENTERPRISE_HOST_BASE
+            : enterpriseHostBase.trim().toLowerCase();
+    String entSuffix = "." + entBase;
+    if (host.endsWith(entSuffix)) {
+      String slug = host.substring(0, host.length() - entSuffix.length());
+      if (!slug.isBlank() && !slug.contains(".")) {
+        return slug;
+      }
+    }
+
     String suffix = "." + base;
     if (host.endsWith(suffix)) {
       String slug = host.substring(0, host.length() - suffix.length());
@@ -35,5 +54,17 @@ public final class HostTenantResolver {
       }
     }
     return TenantContext.FREE_SLUG;
+  }
+
+  public static boolean isEnterpriseHost(String hostHeader, String enterpriseHostBase) {
+    if (hostHeader == null || hostHeader.isBlank()) {
+      return false;
+    }
+    String host = hostHeader.split(":")[0].trim().toLowerCase();
+    String entBase =
+        enterpriseHostBase == null || enterpriseHostBase.isBlank()
+            ? DEFAULT_ENTERPRISE_HOST_BASE
+            : enterpriseHostBase.trim().toLowerCase();
+    return host.endsWith("." + entBase);
   }
 }

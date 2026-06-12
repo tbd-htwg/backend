@@ -48,7 +48,7 @@ tripplanning:
     allowed-origins: http://localhost:5173
   auth:
     jwt-secret: test-test-test-test-test-test-test-test-test-32b
-    firebase-project-id: project-9118634e-c9f1-4f29-804
+    firebase-project-id: tbd-cloudappdev
     jwt-expiration-seconds: 3600
   search:
     elasticsearch-index-name: tripentity-test

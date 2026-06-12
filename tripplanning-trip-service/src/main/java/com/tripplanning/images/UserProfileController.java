@@ -79,7 +79,7 @@ public class UserProfileController {
         UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
         
-        if (user.getImagePath() == null) {
+        if (user.getImagePath() == null || user.getImagePath().isBlank()) {
             return ResponseEntity.notFound().build();
         }
 
@@ -126,7 +126,7 @@ public class UserProfileController {
         }
         
         String profileImageUrl = null;
-        if (user.getImagePath() != null) {
+        if (user.getImagePath() != null && !user.getImagePath().isBlank()) {
             profileImageUrl = imageService.createSignedReadUrlIfAuthenticated(user.getImagePath());
         }
         

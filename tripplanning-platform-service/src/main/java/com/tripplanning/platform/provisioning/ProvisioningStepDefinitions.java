@@ -13,7 +13,7 @@ public final class ProvisioningStepDefinitions {
   public static List<TenantDtos.ProvisioningStepDto> initialSteps(TenantTier tier) {
     return switch (tier) {
       case STANDARD -> standardSteps(0, null);
-      case PREMIUM -> premiumSteps(0, null);
+      case ENTERPRISE -> enterpriseSteps(0, null);
       default -> List.of();
     };
   }
@@ -22,34 +22,49 @@ public final class ProvisioningStepDefinitions {
       int doneThrough, String runningOrFailedKey) {
     List<TenantDtos.ProvisioningStepDto> steps = new ArrayList<>();
     steps.add(step("registry", "Registry entry", doneThrough, 0, runningOrFailedKey));
-    steps.add(step("database", "Create database", doneThrough, 1, runningOrFailedKey));
-    steps.add(step("search_index", "Create search index", doneThrough, 2, runningOrFailedKey));
+    steps.add(
+        step("identity_platform", "Identity Platform tenant", doneThrough, 1, runningOrFailedKey));
+    steps.add(
+        step(
+            "terraform_infra",
+            "Terraform DNS + DB + secrets",
+            doneThrough,
+            2,
+            runningOrFailedKey));
+    steps.add(
+        step("gitops", "API router + tenant config", doneThrough, 3, runningOrFailedKey));
+    steps.add(
+        step("search_index", "Search index bootstrap", doneThrough, 4, runningOrFailedKey));
     return steps;
   }
 
-  public static List<TenantDtos.ProvisioningStepDto> premiumSteps(
+  public static List<TenantDtos.ProvisioningStepDto> enterpriseSteps(
       int doneThrough, String runningOrFailedKey) {
     List<TenantDtos.ProvisioningStepDto> steps = new ArrayList<>();
     steps.add(step("registry", "Registry entry", doneThrough, 0, runningOrFailedKey));
     steps.add(
-        step(
-            "entry_routing",
-            "Identity Platform + DNS + load balancer",
-            doneThrough,
-            1,
-            runningOrFailedKey));
-    steps.add(step("gitops", "Flux GitOps namespace", doneThrough, 2, runningOrFailedKey));
-    steps.add(step("database", "Dedicated Postgres", doneThrough, 3, runningOrFailedKey));
-    steps.add(step("search_index", "Dedicated OpenSearch", doneThrough, 4, runningOrFailedKey));
+        step("identity_platform", "Identity Platform tenant", doneThrough, 1, runningOrFailedKey));
     steps.add(
-        step("gcp_resources", "Firestore + GCS bucket", doneThrough, 5, runningOrFailedKey));
+        step(
+            "terraform_infra",
+            "Terraform DNS + Cloud SQL + bucket",
+            doneThrough,
+            2,
+            runningOrFailedKey));
+    steps.add(
+        step("gitops", "Namespace + HelmRelease + LB", doneThrough, 3, runningOrFailedKey));
+    steps.add(step("database", "Dedicated Postgres ready", doneThrough, 4, runningOrFailedKey));
+    steps.add(
+        step("search_index", "Dedicated OpenSearch ready", doneThrough, 5, runningOrFailedKey));
+    steps.add(
+        step("gcp_resources", "Firestore + GCS bucket", doneThrough, 6, runningOrFailedKey));
     return steps;
   }
 
   public static List<TenantDtos.ProvisioningStepDto> completed(TenantTier tier) {
     return switch (tier) {
-      case STANDARD -> standardSteps(3, null);
-      case PREMIUM -> premiumSteps(6, null);
+      case STANDARD -> standardSteps(5, null);
+      case ENTERPRISE -> enterpriseSteps(7, null);
       default -> List.of();
     };
   }

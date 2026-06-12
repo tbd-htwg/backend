@@ -47,7 +47,12 @@ public class PlatformDataInitializer implements ApplicationRunner {
             .displayName("Free Pool")
             .tier(TenantTier.FREE)
             .status(TenantStatus.ACTIVE)
-            .hostUrl(TenantNaming.hostUrl("free", hostBase))
+            .hostUrl(
+                TenantNaming.hostUrl(
+                    "free",
+                    TenantTier.FREE,
+                    hostBase,
+                    platformProperties.getEnterpriseHostBase()))
             .namespace(TenantNaming.namespace("free", TenantTier.FREE))
             .createdAt(now)
             .updatedAt(now)

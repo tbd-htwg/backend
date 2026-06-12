@@ -36,6 +36,11 @@ public class AdminTenantController {
     return tenantService.list(includeArchived, tier, status);
   }
 
+  @GetMapping("/slug-availability")
+  public TenantDtos.SlugAvailabilityDto slugAvailability(@RequestParam String slug) {
+    return tenantService.checkSlugAvailability(slug);
+  }
+
   @GetMapping("/{id}")
   public TenantDtos.TenantDto get(@PathVariable String id) {
     try {

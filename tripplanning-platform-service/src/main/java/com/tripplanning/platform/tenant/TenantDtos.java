@@ -50,6 +50,8 @@ public final class TenantDtos {
       @NotBlank @Size(max = 255) String displayName,
       @NotBlank String tier) {}
 
+  public record SlugAvailabilityDto(boolean available, String reason) {}
+
   public record TenantBrandingUpdateRequest(
       String primaryColor, String headerTitle, String iconUrl) {}
 

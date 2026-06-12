@@ -60,7 +60,7 @@ public class TenantPlatformClient {
   }
 
   private TenantRuntime devFallback(String slug) {
-    String db = "tenant_" + slug.replace('-', '_');
+    String db = "tripplanning_std_" + slug.replace('-', '_');
     return new TenantRuntime(slug, "STANDARD", db, "tripentity-" + slug);
   }
 

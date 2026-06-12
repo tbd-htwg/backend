@@ -6,6 +6,7 @@ tripplanning:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173,http://127.0.0.1:5173}
   platform:
     host-base: ${TRIPPLANNING_PLATFORM_HOST_BASE:k8s.tbd-htwg.de}
+    enterprise-host-base: ${TRIPPLANNING_PLATFORM_ENTERPRISE_HOST_BASE:enterprise.k8s.tbd-htwg.de}
   services:
     internal-secret: ${TRIPPLANNING_INTERNAL_SECRET:}
   auth:

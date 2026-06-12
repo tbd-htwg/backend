@@ -11,6 +11,7 @@ import lombok.Setter;
 public class PlatformProperties {
 
   private String hostBase = "k8s.tbd-htwg.de";
+  private String enterpriseHostBase = "enterprise.k8s.tbd-htwg.de";
   private String bootstrapAdminEmail = "admin@platform.demo";
   private Provisioning provisioning = new Provisioning();
   private Github github = new Github();
@@ -27,7 +28,8 @@ public class PlatformProperties {
   public static class Github {
     private String dispatchUrl = "";
     private String dispatchToken = "";
-    private String eventType = "tenant-created-premium";
+    private String standardEventType = "tenant-created-standard";
+    private String enterpriseEventType = "tenant-created-enterprise";
   }
 
   @Getter

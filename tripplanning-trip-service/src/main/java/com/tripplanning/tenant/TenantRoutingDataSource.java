@@ -12,7 +12,7 @@ import com.tripplanning.common.tenant.TenantContextHolder;
 
 /**
  * Routes JDBC connections to per-tenant databases on the shared Standard Postgres instance.
- * Free tier uses the default datasource URL; Standard/Premium tenants use {@code dbName} from
+ * Free tier uses the default datasource URL; Standard/Enterprise tenants use {@code dbName} from
  * platform-service (or naming conventions when platform is unavailable).
  */
 public class TenantRoutingDataSource extends AbstractRoutingDataSource {
