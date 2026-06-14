@@ -1,6 +1,7 @@
 package com.tripplanning.platform.infra;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -45,7 +46,7 @@ public class RestIdentityPlatformClient implements IdentityPlatformClient {
   public TenantAuthConfig createTenant(String slug, String displayName) {
     Map<String, Object> body =
         Map.of(
-            "displayName", displayName,
+            "displayName", identityDisplayName(slug, displayName),
             "allowPasswordSignup", true,
             "enableEmailLinkSignin", false);
 
@@ -119,5 +120,17 @@ public class RestIdentityPlatformClient implements IdentityPlatformClient {
     } catch (Exception e) {
       throw new IllegalStateException("Failed to obtain GCP access token for Identity Toolkit", e);
     }
+  }
+
+  private String identityDisplayName(String slug, String displayName) {
+    String source = displayName == null || displayName.isBlank() ? slug : displayName;
+    String cleaned = source.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9-]", "-");
+    if (cleaned.isBlank() || !Character.isLetter(cleaned.charAt(0))) {
+      cleaned = "t-" + cleaned;
+    }
+    if (cleaned.length() < 4) {
+      cleaned = cleaned + "-tenant";
+    }
+    return cleaned.substring(0, Math.min(cleaned.length(), 20));
   }
 }

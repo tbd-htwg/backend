@@ -2,11 +2,11 @@ name: Docker GKE services
 
 on:
   workflow_dispatch:
-#   push:
-#     branches: [main, develop]
-#     paths:
-#       - "backend/**"
-#       - ".github/workflows/docker-publish-gke.yml"
+  push:
+    branches: [main]
+    paths:
+      - "**"
+      - ".github/workflows/docker-publish-gke.yml"
 
 env:
   REGISTRY: ghcr.io
