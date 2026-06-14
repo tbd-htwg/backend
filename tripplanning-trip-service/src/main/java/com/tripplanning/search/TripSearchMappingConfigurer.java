@@ -3,6 +3,7 @@ package com.tripplanning.search;
 import org.hibernate.search.mapper.orm.mapping.HibernateOrmMappingConfigurationContext;
 import org.hibernate.search.mapper.orm.mapping.HibernateOrmSearchMappingConfigurer;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import com.tripplanning.trip.TripEntity;
@@ -12,6 +13,10 @@ import com.tripplanning.trip.TripEntity;
  * staging) can use a distinct Elasticsearch index when sharing one cluster.
  */
 @Component
+@ConditionalOnProperty(
+    name = "tripplanning.tenant.datasource-routing.enabled",
+    havingValue = "false",
+    matchIfMissing = true)
 public class TripSearchMappingConfigurer implements HibernateOrmSearchMappingConfigurer {
 
     private final String elasticsearchIndexName;

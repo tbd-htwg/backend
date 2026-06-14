@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
+import com.tripplanning.common.tenant.TenantContextHolder;
 import com.tripplanning.trip.TripEntity;
 import com.tripplanning.trip.TripRepository;
 
@@ -39,17 +40,20 @@ public class SearchIndexCoordinationService {
     private final String statusKey;
     private final Optional<StringRedisTemplate> redis;
     private final AtomicBoolean localIndexing = new AtomicBoolean(false);
+    private final boolean tenantRoutingEnabled;
 
     public SearchIndexCoordinationService(
             EntityManagerFactory entityManagerFactory,
             TripRepository tripRepository,
             @Value("${tripplanning.search.lock-key:tripplanning:search:index:lock}") String lockKey,
             @Value("${tripplanning.search.status-key:tripplanning:search:index:status}") String statusKey,
+            @Value("${tripplanning.tenant.datasource-routing.enabled:false}") boolean tenantRoutingEnabled,
             @Autowired(required = false) StringRedisTemplate redisTemplate) {
         this.entityManagerFactory = entityManagerFactory;
         this.tripRepository = tripRepository;
         this.lockKey = lockKey;
         this.statusKey = statusKey;
+        this.tenantRoutingEnabled = tenantRoutingEnabled;
         this.redis = Optional.ofNullable(redisTemplate);
         this.instanceId = defaultInstanceId();
     }
@@ -59,7 +63,7 @@ public class SearchIndexCoordinationService {
         long esCount = countIndexedTripsSafe();
         boolean indexing =
                 localIndexing.get() || SearchIndexStatus.STATE_INDEXING.equals(readSharedState());
-        String lockOwner = redis.map(r -> r.opsForValue().get(lockKey)).orElse(null);
+        String lockOwner = redis.map(r -> r.opsForValue().get(scopedLockKey())).orElse(null);
         boolean lockHeldHere = instanceId.equals(lockOwner);
         String state = resolveState(dbCount, esCount, indexing);
         String message = describe(state, dbCount, esCount, lockOwner);
@@ -76,6 +80,16 @@ public class SearchIndexCoordinationService {
      * lock.
      */
     public void ensureIndexPopulated() {
+        if (tenantRoutingEnabled) {
+            log.info(
+                    "Tenant datasource routing enabled; skipping global search index bootstrap.");
+            return;
+        }
+        ensureIndexPopulatedForCurrentTenant();
+    }
+
+    /** Mass-indexes the current tenant database into the routed search index. */
+    public void ensureIndexPopulatedForCurrentTenant() {
         SearchIndexStatus initial = currentStatus();
         if (initial.isReady()) {
             publishSharedState(SearchIndexStatus.STATE_READY);
@@ -143,34 +157,51 @@ public class SearchIndexCoordinationService {
         }
     }
 
+    private String scopedLockKey() {
+        if (!tenantRoutingEnabled) {
+            return lockKey;
+        }
+        return lockKey + ":" + TenantContextHolder.slugOrDefault();
+    }
+
+    private String scopedStatusKey() {
+        if (!tenantRoutingEnabled) {
+            return statusKey;
+        }
+        return statusKey + ":" + TenantContextHolder.slugOrDefault();
+    }
+
     private boolean tryAcquireLock() {
+        String scopedLock = scopedLockKey();
         return redis
                 .map(
                         r ->
                                 Boolean.TRUE.equals(
                                         r.opsForValue()
                                                 .setIfAbsent(
-                                                        lockKey, instanceId, LOCK_TTL)))
+                                                        scopedLock, instanceId, LOCK_TTL)))
                 .orElseGet(() -> localIndexing.compareAndSet(false, true));
     }
 
     private void releaseLock() {
+        String scopedLock = scopedLockKey();
         redis.ifPresent(
                 r -> {
-                    String owner = r.opsForValue().get(lockKey);
+                    String owner = r.opsForValue().get(scopedLock);
                     if (instanceId.equals(owner)) {
-                        r.delete(lockKey);
+                        r.delete(scopedLock);
                     }
                 });
     }
 
     private void publishSharedState(String state) {
+        String scopedStatus = scopedStatusKey();
         redis.ifPresent(
-                r -> r.opsForValue().set(statusKey, state, STATUS_TTL));
+                r -> r.opsForValue().set(scopedStatus, state, STATUS_TTL));
     }
 
     private String readSharedState() {
-        return redis.map(r -> r.opsForValue().get(statusKey)).orElse(null);
+        return redis.map(r -> r.opsForValue().get(scopedStatusKey())).orElse(null);
     }
 
     private long countIndexedTripsSafe() {

@@ -1,6 +1,7 @@
 package com.tripplanning.tenant;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -13,11 +14,20 @@ import org.springframework.web.reactive.function.client.WebClient;
 public class TenantPlatformClient {
 
   public record TenantRuntime(
-      String slug, String tier, String dbName, String searchIndex, String gcsBucket, String objectPrefix) {}
+      String slug,
+      String tier,
+      String dbName,
+      String dbUser,
+      String dbPassword,
+      String searchIndex,
+      String gcsBucket,
+      String objectPrefix) {}
+
+  private static final Duration CACHE_TTL = Duration.ofMinutes(5);
 
   private final WebClient webClient;
   private final String internalSecret;
-  private final Map<String, TenantRuntime> cache = new ConcurrentHashMap<>();
+  private final Map<String, CachedRuntime> cache = new ConcurrentHashMap<>();
 
   public TenantPlatformClient(
       @Value("${tripplanning.platform.base-url:http://localhost:8083}") String baseUrl,
@@ -32,9 +42,15 @@ public class TenantPlatformClient {
 
   public TenantRuntime resolve(String slug) {
     if (slug == null || slug.isBlank() || "free".equals(slug)) {
-      return new TenantRuntime("free", "FREE", "tripplanning", "tripentity", null, "");
+      return new TenantRuntime("free", "FREE", "tripplanning", "tripplanning_app", "", "tripentity", null, "");
     }
-    return cache.computeIfAbsent(slug, this::loadRuntime);
+    CachedRuntime cached = cache.get(slug);
+    if (cached != null && cached.expiresAt().isAfter(Instant.now())) {
+      return cached.runtime();
+    }
+    TenantRuntime loaded = loadRuntime(slug);
+    cache.put(slug, new CachedRuntime(loaded, Instant.now().plus(CACHE_TTL)));
+    return loaded;
   }
 
   private TenantRuntime loadRuntime(String slug) {
@@ -52,6 +68,8 @@ public class TenantPlatformClient {
             String.valueOf(body.get("slug")),
             String.valueOf(body.get("tier")),
             String.valueOf(body.get("dbName")),
+            stringOrNull(body.get("dbUser")),
+            stringOrNull(body.get("dbPassword")),
             String.valueOf(body.get("searchIndex")),
             stringOrNull(body.get("gcsBucket")),
             stringOrNull(body.get("objectPrefix")));
@@ -72,10 +90,14 @@ public class TenantPlatformClient {
 
   private TenantRuntime devFallback(String slug) {
     String db = "tripplanning_std_" + slug.replace('-', '_');
-    return new TenantRuntime(slug, "STANDARD", db, "tripentity-" + slug, null, "std/" + slug + "/");
+    String user = "tripplanning_app_" + slug.replace('-', '_');
+    return new TenantRuntime(
+        slug, "STANDARD", db, user, "", "tripentity-" + slug, null, "std/" + slug + "/");
   }
 
   public void evict(String slug) {
     cache.remove(slug);
   }
+
+  private record CachedRuntime(TenantRuntime runtime, Instant expiresAt) {}
 }

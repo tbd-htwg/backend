@@ -59,6 +59,9 @@ public class TenantEntity {
   @Column(name = "db_name", length = 128)
   private String dbName;
 
+  @Column(name = "db_user", length = 128)
+  private String dbUser;
+
   @Column(name = "search_index", length = 128)
   private String searchIndex;
 

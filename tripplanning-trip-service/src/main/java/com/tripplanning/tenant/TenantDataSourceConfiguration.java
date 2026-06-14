@@ -19,8 +19,11 @@ public class TenantDataSourceConfiguration {
   @Bean
   @Primary
   public DataSource dataSource(
-      DataSourceProperties properties, TenantPlatformClient platformClient) {
+      DataSourceProperties properties,
+      TenantPlatformClient platformClient,
+      TenantSchemaMigrator schemaMigrator) {
     DataSource defaultDataSource = properties.initializeDataSourceBuilder().build();
-    return new TenantRoutingDataSource(defaultDataSource, properties, platformClient);
+    return new TenantRoutingDataSource(
+        defaultDataSource, properties, platformClient, schemaMigrator);
   }
 }
