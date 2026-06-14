@@ -50,6 +50,109 @@ public class TenantProvisioningService {
   }
 
   @Transactional
+  public ProvisioningCallbackOutcome completeProvisioningFromCallback(
+      String slug, ProvisioningCallbackRequest request) {
+    TenantEntity tenant =
+        tenantRepository
+            .findBySlug(slug.toLowerCase())
+            .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + slug));
+
+    if (tenant.getStatus() == TenantStatus.ACTIVE) {
+      return ProvisioningCallbackOutcome.ALREADY_ACTIVE;
+    }
+    if (tenant.getStatus() != TenantStatus.PROVISIONING) {
+      throw new IllegalStateException(
+          "Tenant " + slug + " is not provisioning (status=" + tenant.getStatus() + ")");
+    }
+
+    if ("FAILED".equalsIgnoreCase(request.status())) {
+      String failedStep =
+          request.failedStep() != null && !request.failedStep().isBlank()
+              ? request.failedStep()
+              : "terraform_infra";
+      updateStep(tenant.getId(), tenant.getTier(), stepIndexForKey(tenant.getTier(), failedStep), failedStep, false);
+      failTenant(
+          tenant.getId(),
+          request.message() != null && !request.message().isBlank()
+              ? request.message()
+              : "Infrastructure provisioning failed");
+      return ProvisioningCallbackOutcome.COMPLETED;
+    }
+
+    if (!"SUCCESS".equalsIgnoreCase(request.status())) {
+      throw new IllegalArgumentException("status must be SUCCESS or FAILED");
+    }
+
+    applyResourceOverrides(tenant, request);
+    tenantRepository.save(tenant);
+
+    TenantTier tier = tenant.getTier();
+    boolean stubLabels = false;
+
+    if (tier == TenantTier.STANDARD) {
+      updateStep(tenant.getId(), tier, 3, null, stubLabels);
+      standardDataProvisioner.createSearchIndex(reload(tenant.getId()).getSearchIndex());
+      updateStep(tenant.getId(), tier, 4, null, stubLabels);
+      complete(tenant.getId(), tier, stubLabels);
+      return ProvisioningCallbackOutcome.COMPLETED;
+    }
+
+    if (tier == TenantTier.ENTERPRISE) {
+      updateStep(tenant.getId(), tier, 3, null, stubLabels);
+      updateStep(tenant.getId(), tier, 4, null, stubLabels);
+      updateStep(tenant.getId(), tier, 5, null, stubLabels);
+
+      tenant = reload(tenant.getId());
+      if (tenant.getFirestoreDatabase() == null || tenant.getFirestoreDatabase().isBlank()) {
+        tenant.setFirestoreDatabase("(default)-" + tenant.getSlug());
+      }
+      if (tenant.getGcsBucket() == null || tenant.getGcsBucket().isBlank()) {
+        tenant.setGcsBucket(TenantNaming.gcsBucket(tenant.getSlug(), TenantTier.ENTERPRISE));
+      }
+      tenantRepository.save(tenant);
+
+      updateStep(tenant.getId(), tier, 6, null, stubLabels);
+      complete(tenant.getId(), tier, stubLabels);
+      return ProvisioningCallbackOutcome.COMPLETED;
+    }
+
+    throw new IllegalStateException("Callback not supported for tier " + tier);
+  }
+
+  private void applyResourceOverrides(TenantEntity tenant, ProvisioningCallbackRequest request) {
+    if (request.dbName() != null && !request.dbName().isBlank()) {
+      tenant.setDbName(request.dbName());
+    }
+    if (request.dbUser() != null && !request.dbUser().isBlank()) {
+      tenant.setDbUser(request.dbUser());
+    }
+    if (request.gcsBucket() != null && !request.gcsBucket().isBlank()) {
+      tenant.setGcsBucket(request.gcsBucket());
+    }
+    if (request.firestoreDatabase() != null && !request.firestoreDatabase().isBlank()) {
+      tenant.setFirestoreDatabase(request.firestoreDatabase());
+    }
+    if (request.identityPlatformTenantId() != null
+        && !request.identityPlatformTenantId().isBlank()) {
+      tenant.setIdentityPlatformTenantId(request.identityPlatformTenantId());
+    }
+    tenant.setUpdatedAt(Instant.now());
+  }
+
+  private static int stepIndexForKey(TenantTier tier, String failedKey) {
+    var steps =
+        tier == TenantTier.ENTERPRISE
+            ? ProvisioningStepDefinitions.enterpriseSteps(0, failedKey)
+            : ProvisioningStepDefinitions.standardSteps(0, failedKey);
+    for (int i = 0; i < steps.size(); i++) {
+      if (failedKey.equals(steps.get(i).key())) {
+        return i;
+      }
+    }
+    return tier == TenantTier.ENTERPRISE ? 2 : 2;
+  }
+
+  @Transactional
   public void retry(String tenantId) {
     TenantEntity tenant =
         tenantRepository

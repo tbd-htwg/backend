@@ -93,6 +93,7 @@ public class TenantService {
             .createdAt(now)
             .updatedAt(now)
             .dbName(TenantNaming.dbName(slug, tier))
+            .dbUser(TenantNaming.dbUser(slug, tier))
             .searchIndex(TenantNaming.searchIndex(slug, tier))
             .estimatedMonthlyCostEur(TenantNaming.estimatedCost(tier))
             .headerTitle(request.displayName().trim())

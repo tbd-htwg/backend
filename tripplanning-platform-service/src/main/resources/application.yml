@@ -15,6 +15,8 @@ tripplanning:
     host-base: ${TRIPPLANNING_PLATFORM_HOST_BASE:k8s.tbd-htwg.de}
     enterprise-host-base: ${TRIPPLANNING_PLATFORM_ENTERPRISE_HOST_BASE:enterprise.k8s.tbd-htwg.de}
     bootstrap-admin-email: ${TRIPPLANNING_PLATFORM_BOOTSTRAP_ADMIN_EMAIL:admin@platform.demo}
+    gcp:
+      project-id: ${TRIPPLANNING_PLATFORM_GCP_PROJECT_ID:}
     provisioning:
       use-stubs: ${TRIPPLANNING_PLATFORM_USE_STUBS:true}
     github:

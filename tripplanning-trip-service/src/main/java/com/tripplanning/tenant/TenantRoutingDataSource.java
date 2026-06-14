@@ -21,15 +21,18 @@ public class TenantRoutingDataSource extends AbstractRoutingDataSource {
   private final String defaultDbName;
   private final DataSourceProperties properties;
   private final TenantPlatformClient platformClient;
+  private final TenantSchemaMigrator schemaMigrator;
   private final Map<String, DataSource> pools = new ConcurrentHashMap<>();
 
   public TenantRoutingDataSource(
       DataSource defaultDataSource,
       DataSourceProperties properties,
-      TenantPlatformClient platformClient) {
+      TenantPlatformClient platformClient,
+      TenantSchemaMigrator schemaMigrator) {
     this.defaultDataSource = defaultDataSource;
     this.properties = properties;
     this.platformClient = platformClient;
+    this.schemaMigrator = schemaMigrator;
     this.defaultDbName = extractDatabaseName(properties.determineUrl());
     setDefaultTargetDataSource(defaultDataSource);
     setTargetDataSources(Map.of());
@@ -56,11 +59,28 @@ public class TenantRoutingDataSource extends AbstractRoutingDataSource {
   }
 
   private DataSource createPool(String dbName) {
+    String slug = TenantContextHolder.slugOrDefault();
+    TenantPlatformClient.TenantRuntime runtime = platformClient.resolve(slug);
     String url = withDatabaseName(properties.determineUrl(), dbName);
-    return properties
-        .initializeDataSourceBuilder()
-        .url(url)
-        .build();
+    DataSource dataSource =
+        properties
+            .initializeDataSourceBuilder()
+            .url(url)
+            .username(resolveUsername(runtime))
+            .password(resolvePassword(runtime))
+            .build();
+    schemaMigrator.migrateIfNeeded(dbName, dataSource);
+    return dataSource;
+  }
+
+  private static String resolveUsername(TenantPlatformClient.TenantRuntime runtime) {
+    return runtime.dbUser() != null && !runtime.dbUser().isBlank()
+        ? runtime.dbUser()
+        : "tripplanning_app";
+  }
+
+  private static String resolvePassword(TenantPlatformClient.TenantRuntime runtime) {
+    return runtime.dbPassword() != null ? runtime.dbPassword() : "";
   }
 
   static String extractDatabaseName(String url) {

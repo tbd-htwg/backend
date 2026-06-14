@@ -28,7 +28,9 @@ class TenantNamingTest {
     assertThat(TenantNaming.namespace("acme", TenantTier.ENTERPRISE))
         .isEqualTo("tripplanning-ent-acme");
     assertThat(TenantNaming.dbName("acme", TenantTier.ENTERPRISE))
-        .isEqualTo("tripplanning_ent_acme");
+        .isEqualTo("tripplanning");
+    assertThat(TenantNaming.dbUser("acme-corp", TenantTier.STANDARD))
+        .isEqualTo("tripplanning_app_acme_corp");
     assertThat(TenantNaming.frontendPath("acme", TenantTier.ENTERPRISE))
         .isEqualTo("/enterprise/acme/");
     assertThat(TenantNaming.gcsBucket("acme", TenantTier.ENTERPRISE))

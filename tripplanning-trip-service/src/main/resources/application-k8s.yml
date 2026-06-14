@@ -1,5 +1,10 @@
 # Kubernetes (minikube / GKE): use in-cluster OpenSearch for Hibernate Search (Elasticsearch-protocol backend).
 # Activate with SPRING_PROFILES_ACTIVE=local,k8s (minikube) or omit gke-dev on GKE.
+#
+# Standard tier (shared pool) additionally requires:
+#   TRIPPLANNING_TENANT_DATASOURCE_ROUTING=true
+#   TRIPPLANNING_PLATFORM_BASE_URL=http://platform-service.tripplanning-system.svc.cluster.local:8083
+#   TRIPPLANNING_INTERNAL_SECRET=<shared internal secret>
 spring:
   config:
     activate:

@@ -33,7 +33,23 @@ public final class TenantNaming {
     return switch (tier) {
       case FREE -> "tripplanning";
       case STANDARD -> "tripplanning_std_" + slug.replace('-', '_');
-      case ENTERPRISE -> "tripplanning_ent_" + slug.replace('-', '_');
+      case ENTERPRISE -> "tripplanning";
+    };
+  }
+
+  public static String dbUser(String slug, TenantTier tier) {
+    return switch (tier) {
+      case FREE -> "tripplanning_app";
+      case STANDARD -> "tripplanning_app_" + slug.replace('-', '_');
+      case ENTERPRISE -> "tripplanning_app";
+    };
+  }
+
+  public static String dbPasswordSecretId(String slug, TenantTier tier) {
+    return switch (tier) {
+      case STANDARD -> "tripplanning-standard-" + slug + "-db-password";
+      case ENTERPRISE -> "tripplanning-enterprise-" + slug + "-db-password";
+      default -> null;
     };
   }
 
