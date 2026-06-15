@@ -171,6 +171,27 @@ public class TenantProvisioningService {
     provisionAsync(tenantId);
   }
 
+  @Transactional
+  public void applyProvisioningCallback(String slug, String status, String message) {
+    TenantEntity tenant =
+        tenantRepository
+            .findBySlug(slug.toLowerCase())
+            .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + slug));
+
+    if ("FAILED".equalsIgnoreCase(status)) {
+      failTenant(
+          tenant.getId(),
+          message == null || message.isBlank() ? "Infrastructure provisioning failed" : message);
+      return;
+    }
+
+    if (!"ACTIVE".equalsIgnoreCase(status)) {
+      throw new IllegalArgumentException("Unsupported provisioning callback status: " + status);
+    }
+
+    complete(tenant.getId(), tenant.getTier(), false);
+  }
+
   private void runProvisioning(TenantEntity tenant) {
     TenantTier tier = tenant.getTier();
     boolean stubMode = useStubLabels();
