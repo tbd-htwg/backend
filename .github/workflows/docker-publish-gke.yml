@@ -3,121 +3,239 @@ name: Docker GKE services
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches:
+      - develop
+      - main
     paths:
-      - "**"
+      - "Dockerfile"
+      - "pom.xml"
+      - "tripplanning-common/**"
+      - "tripplanning-trip-service/**"
+      - "tripplanning-social-service/**"
+      - "tripplanning-external-info-service/**"
+      - "tripplanning-platform-service/**"
+      - "tripplanning-seed-job/**"
       - ".github/workflows/docker-publish-gke.yml"
+
+permissions:
+  contents: read
+  id-token: write
+  packages: write
+
+concurrency:
+  group: docker-gke-services-${{ github.ref }}
+  cancel-in-progress: false
 
 env:
   REGISTRY: ghcr.io
 
 jobs:
-  build-trip:
+  detect:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
+    outputs:
+      matrix: ${{ steps.detect.outputs.matrix }}
+      trip: ${{ steps.detect.outputs.trip }}
+      social: ${{ steps.detect.outputs.social }}
+      external_info: ${{ steps.detect.outputs.external_info }}
+      platform: ${{ steps.detect.outputs.platform }}
+      seed_job: ${{ steps.detect.outputs.seed_job }}
     steps:
       - uses: actions/checkout@v4
-      - uses: docker/setup-buildx-action@v3
-      - uses: docker/login-action@v3
         with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - uses: docker/build-push-action@v6
-        with:
-          context: .
-          push: ${{ github.event_name != 'pull_request' }}
-          build-args: SERVICE=trip
-          tags: |
-            ${{ env.REGISTRY }}/${{ github.repository }}/tripplanning-trip-service:${{ github.sha }}
-            ${{ env.REGISTRY }}/${{ github.repository }}/tripplanning-trip-service:latest
+          fetch-depth: 0
 
-  build-social:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    steps:
-      - uses: actions/checkout@v4
-      - uses: docker/setup-buildx-action@v3
-      - uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - uses: docker/build-push-action@v6
-        with:
-          context: .
-          push: ${{ github.event_name != 'pull_request' }}
-          build-args: SERVICE=social
-          tags: |
-            ${{ env.REGISTRY }}/${{ github.repository }}/tripplanning-social-service:${{ github.sha }}
-            ${{ env.REGISTRY }}/${{ github.repository }}/tripplanning-social-service:latest
+      - name: Detect changed services
+        id: detect
+        shell: bash
+        run: |
+          set -euo pipefail
 
-  build-external-info:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    steps:
-      - uses: actions/checkout@v4
-      - uses: docker/setup-buildx-action@v3
-      - uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - uses: docker/build-push-action@v6
-        with:
-          context: .
-          push: ${{ github.event_name != 'pull_request' }}
-          build-args: SERVICE=external-info
-          tags: |
-            ${{ env.REGISTRY }}/${{ github.repository }}/tripplanning-external-info-service:${{ github.sha }}
-            ${{ env.REGISTRY }}/${{ github.repository }}/tripplanning-external-info-service:latest
+          if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
+            changed_files="__manual__"
+          else
+            before="${{ github.event.before }}"
+            if [[ -z "${before}" || "${before}" =~ ^0+$ ]]; then
+              before="$(git rev-list --max-parents=0 HEAD)"
+            fi
+            changed_files="$(git diff --name-only "${before}" "${GITHUB_SHA}")"
+          fi
 
-  build-platform:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    steps:
-      - uses: actions/checkout@v4
-      - uses: docker/setup-buildx-action@v3
-      - uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - uses: docker/build-push-action@v6
-        with:
-          context: .
-          push: ${{ github.event_name != 'pull_request' }}
-          build-args: SERVICE=platform
-          tags: |
-            ${{ env.REGISTRY }}/${{ github.repository }}/tripplanning-platform-service:${{ github.sha }}
-            ${{ env.REGISTRY }}/${{ github.repository }}/tripplanning-platform-service:latest
+          echo "Changed files:"
+          printf '%s\n' "${changed_files}"
 
-  build-seed-job:
+          all=false
+          trip=false
+          social=false
+          external_info=false
+          platform=false
+          seed_job=false
+
+          if printf '%s\n' "${changed_files}" | grep -Eq '^(__manual__|Dockerfile$|pom.xml$|tripplanning-common/|\.github/workflows/docker-publish-gke\.yml$)'; then
+            all=true
+          fi
+          if [[ "${all}" == "true" ]] || printf '%s\n' "${changed_files}" | grep -q '^tripplanning-trip-service/'; then
+            trip=true
+          fi
+          if [[ "${all}" == "true" ]] || printf '%s\n' "${changed_files}" | grep -q '^tripplanning-social-service/'; then
+            social=true
+          fi
+          if [[ "${all}" == "true" ]] || printf '%s\n' "${changed_files}" | grep -q '^tripplanning-external-info-service/'; then
+            external_info=true
+          fi
+          if [[ "${all}" == "true" ]] || printf '%s\n' "${changed_files}" | grep -q '^tripplanning-platform-service/'; then
+            platform=true
+          fi
+          if [[ "${all}" == "true" ]] || printf '%s\n' "${changed_files}" | grep -q '^tripplanning-seed-job/'; then
+            seed_job=true
+          fi
+
+          matrix='[]'
+          add_service() {
+            local enabled="$1"
+            local service="$2"
+            local build_arg="$3"
+            local image="$4"
+            local deployment="$5"
+            if [[ "${enabled}" != "true" ]]; then
+              return
+            fi
+            matrix="$(
+              jq -c \
+                --arg service "${service}" \
+                --arg build_arg "${build_arg}" \
+                --arg image "${image}" \
+                --arg deployment "${deployment}" \
+                '. + [{service: $service, build_arg: $build_arg, image: $image, deployment: $deployment}]' \
+                <<<"${matrix}"
+            )"
+          }
+
+          add_service "${trip}" "trip" "trip" "tripplanning-trip-service" "trip-service"
+          add_service "${social}" "social" "social" "tripplanning-social-service" "social-service"
+          add_service "${external_info}" "external-info" "external-info" "tripplanning-external-info-service" "external-info-service"
+          add_service "${platform}" "platform" "platform" "tripplanning-platform-service" "platform-service"
+          add_service "${seed_job}" "seed-job" "seed-job" "tripplanning-seed-job" ""
+
+          echo "matrix=${matrix}" >> "${GITHUB_OUTPUT}"
+          echo "trip=${trip}" >> "${GITHUB_OUTPUT}"
+          echo "social=${social}" >> "${GITHUB_OUTPUT}"
+          echo "external_info=${external_info}" >> "${GITHUB_OUTPUT}"
+          echo "platform=${platform}" >> "${GITHUB_OUTPUT}"
+          echo "seed_job=${seed_job}" >> "${GITHUB_OUTPUT}"
+
+  build:
+    needs: detect
+    if: needs.detect.outputs.matrix != '[]'
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.detect.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v4
+
       - uses: docker/setup-buildx-action@v3
+
       - uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
       - uses: docker/build-push-action@v6
         with:
           context: .
-          push: ${{ github.event_name != 'pull_request' }}
-          build-args: SERVICE=seed-job
+          push: true
+          build-args: |
+            SERVICE=${{ matrix.build_arg }}
+            CACHEBUST=${{ github.sha }}
           tags: |
-            ${{ env.REGISTRY }}/${{ github.repository }}/tripplanning-seed-job:${{ github.sha }}
-            ${{ env.REGISTRY }}/${{ github.repository }}/tripplanning-seed-job:latest
+            ${{ env.REGISTRY }}/${{ github.repository }}/${{ matrix.image }}:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ github.repository }}/${{ matrix.image }}:latest
+
+  deploy:
+    needs:
+      - detect
+      - build
+    if: needs.detect.outputs.matrix != '[]'
+    runs-on: ubuntu-latest
+    environment: gke-dev
+    env:
+      PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+      WIF_PROVIDER: ${{ vars.GCP_WIF_PROVIDER }}
+      DEPLOYER_SA_EMAIL: ${{ vars.GCP_BACKEND_DEPLOYER_SA_EMAIL }}
+      GKE_CLUSTER_NAME: ${{ vars.GKE_CLUSTER_NAME || 'tripplanning-gke' }}
+      GKE_CLUSTER_LOCATION: ${{ vars.GKE_CLUSTER_LOCATION || 'europe-west1' }}
+      BUILD_TRIP: ${{ needs.detect.outputs.trip }}
+      BUILD_SOCIAL: ${{ needs.detect.outputs.social }}
+      BUILD_EXTERNAL_INFO: ${{ needs.detect.outputs.external_info }}
+      BUILD_PLATFORM: ${{ needs.detect.outputs.platform }}
+    steps:
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: ${{ env.DEPLOYER_SA_EMAIL }}
+
+      - name: Setup gcloud CLI
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ env.PROJECT_ID }}
+
+      - name: Setup kubectl
+        shell: bash
+        run: |
+          set -euo pipefail
+          gcloud components install gke-gcloud-auth-plugin kubectl --quiet
+          gcloud container clusters get-credentials "${GKE_CLUSTER_NAME}" \
+            --region "${GKE_CLUSTER_LOCATION}" \
+            --project "${PROJECT_ID}"
+
+      - name: Restart changed deployments
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          services=()
+          if [[ "${BUILD_TRIP}" == "true" ]]; then
+            services+=("trip-service")
+          fi
+          if [[ "${BUILD_SOCIAL}" == "true" ]]; then
+            services+=("social-service")
+          fi
+          if [[ "${BUILD_EXTERNAL_INFO}" == "true" ]]; then
+            services+=("external-info-service")
+          fi
+
+          restart_services_in_namespace() {
+            local namespace="$1"
+            shift
+            local deployments=("$@")
+            if [[ "${#deployments[@]}" -eq 0 ]]; then
+              return
+            fi
+            for deployment in "${deployments[@]}"; do
+              if kubectl -n "${namespace}" get "deployment/${deployment}" >/dev/null 2>&1; then
+                kubectl -n "${namespace}" rollout restart "deployment/${deployment}"
+                kubectl -n "${namespace}" rollout status "deployment/${deployment}" --timeout=10m
+              fi
+            done
+          }
+
+          if [[ "${GITHUB_REF_NAME}" == "develop" ]]; then
+            restart_services_in_namespace tripplanning-free "${services[@]}"
+            if [[ "${BUILD_PLATFORM}" == "true" ]]; then
+              restart_services_in_namespace tripplanning-system platform-service
+            fi
+          elif [[ "${GITHUB_REF_NAME}" == "main" ]]; then
+            restart_services_in_namespace tripplanning-standard "${services[@]}"
+            mapfile -t enterprise_namespaces < <(
+              kubectl get namespaces -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' \
+                | grep '^tripplanning-ent-' || true
+            )
+            for namespace in "${enterprise_namespaces[@]}"; do
+              restart_services_in_namespace "${namespace}" "${services[@]}"
+            done
+          else
+            echo "No GKE rollout target configured for branch ${GITHUB_REF_NAME}"
+          fi

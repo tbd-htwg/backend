@@ -12,7 +12,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.util.matcher.RegexRequestMatcher;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -21,6 +21,10 @@ import com.tripplanning.common.security.InternalApiAuthFilter;
 
 @Configuration
 public class PlatformSecurityConfig {
+
+  private static AntPathRequestMatcher ant(HttpMethod method, String pattern) {
+    return AntPathRequestMatcher.antMatcher(method, pattern);
+  }
 
   @Bean
   public CorsConfigurationSource corsConfigurationSource(
@@ -55,13 +59,9 @@ public class PlatformSecurityConfig {
                     .permitAll()
                     .requestMatchers("/internal/**")
                     .permitAll()
-                    .requestMatchers(
-                        RegexRequestMatcher.regexMatcher(
-                            HttpMethod.GET, "^/api/v2/tenants/[^/]+/public-config$"))
+                    .requestMatchers(ant(HttpMethod.GET, "/api/v2/tenants/*/public-config"))
                     .permitAll()
-                    .requestMatchers(
-                        RegexRequestMatcher.regexMatcher(
-                            HttpMethod.GET, "^/api/v2/tenants/[^/]+/users$"))
+                    .requestMatchers(ant(HttpMethod.GET, "/api/v2/tenants/*/users"))
                     .permitAll()
                     .requestMatchers(HttpMethod.POST, "/api/v2/auth/firebase")
                     .permitAll()
