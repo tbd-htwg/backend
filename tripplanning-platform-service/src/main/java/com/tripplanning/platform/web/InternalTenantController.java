@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -48,6 +49,15 @@ public class InternalTenantController {
     this.tenantRepository = tenantRepository;
     this.credentialProvider = credentialProvider;
     this.provisioningService = provisioningService;
+  public record ProvisioningCallbackRequest(String status, String message) {}
+
+  private final TenantRepository tenantRepository;
+  private final TenantProvisioningService tenantProvisioningService;
+
+  public InternalTenantController(
+      TenantRepository tenantRepository, TenantProvisioningService tenantProvisioningService) {
+    this.tenantRepository = tenantRepository;
+    this.tenantProvisioningService = tenantProvisioningService;
   }
 
   @GetMapping("/{slug}")
@@ -91,5 +101,11 @@ public class InternalTenantController {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Tenant not active");
     }
     return entity;
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void provisioningCallback(
+      @PathVariable String slug, @RequestBody(required = false) ProvisioningCallbackRequest request) {
+    String status = request == null || request.status() == null ? "ACTIVE" : request.status();
+    String message = request == null ? null : request.message();
+    tenantProvisioningService.applyProvisioningCallback(slug, status, message);
   }
 }
