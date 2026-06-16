@@ -79,8 +79,9 @@ public class TenantProvisioningService {
       return ProvisioningCallbackOutcome.COMPLETED;
     }
 
-    if (!"SUCCESS".equalsIgnoreCase(request.status())) {
-      throw new IllegalArgumentException("status must be SUCCESS or FAILED");
+    if (!"SUCCESS".equalsIgnoreCase(request.status())
+        && !"ACTIVE".equalsIgnoreCase(request.status())) {
+      throw new IllegalArgumentException("status must be SUCCESS, ACTIVE, or FAILED");
     }
 
     applyResourceOverrides(tenant, request);

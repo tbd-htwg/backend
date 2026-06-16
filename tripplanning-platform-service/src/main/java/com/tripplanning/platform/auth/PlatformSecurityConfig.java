@@ -12,6 +12,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.RegexRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -54,9 +55,13 @@ public class PlatformSecurityConfig {
                     .permitAll()
                     .requestMatchers("/internal/**")
                     .permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/v2/tenants/*/public-config")
+                    .requestMatchers(
+                        RegexRequestMatcher.regexMatcher(
+                            HttpMethod.GET, "^/api/v2/tenants/[^/]+/public-config$"))
                     .permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/v2/tenants/*/users")
+                    .requestMatchers(
+                        RegexRequestMatcher.regexMatcher(
+                            HttpMethod.GET, "^/api/v2/tenants/[^/]+/users$"))
                     .permitAll()
                     .requestMatchers(HttpMethod.POST, "/api/v2/auth/firebase")
                     .permitAll()
