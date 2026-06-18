@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -37,7 +38,8 @@ public class PlatformSecurityConfig {
             .toList();
     config.setAllowedOrigins(origins);
     config.setAllowedMethods(List.of("GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-    config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "Origin"));
+    config.setAllowedHeaders(
+        List.of("Authorization", "Content-Type", "Accept", "Origin", "X-Internal-Secret"));
     config.setAllowCredentials(true);
 
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
@@ -46,8 +48,22 @@ public class PlatformSecurityConfig {
   }
 
   @Bean
-  public SecurityFilterChain filterChain(
+  @Order(1)
+  public SecurityFilterChain internalFilterChain(
       HttpSecurity http, InternalApiAuthFilter internalApiAuthFilter) throws Exception {
+    http.securityMatcher("/internal/**")
+        .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .cors(Customizer.withDefaults())
+        .csrf(csrf -> csrf.disable())
+        .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
+
+    http.addFilterBefore(internalApiAuthFilter, UsernamePasswordAuthenticationFilter.class);
+    return http.build();
+  }
+
+  @Bean
+  @Order(2)
+  public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
     http.sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .cors(Customizer.withDefaults())
         .csrf(csrf -> csrf.disable())
@@ -56,8 +72,6 @@ public class PlatformSecurityConfig {
                 auth.requestMatchers(HttpMethod.OPTIONS, "/**")
                     .permitAll()
                     .requestMatchers("/actuator/health", "/actuator/health/**")
-                    .permitAll()
-                    .requestMatchers("/internal/**")
                     .permitAll()
                     .requestMatchers(ant(HttpMethod.GET, "/api/v2/tenants/*/public-config"))
                     .permitAll()
@@ -94,7 +108,6 @@ public class PlatformSecurityConfig {
                                   .authentication.JwtAuthenticationToken(token, authorities);
                             })));
 
-    http.addFilterBefore(internalApiAuthFilter, UsernamePasswordAuthenticationFilter.class);
     return http.build();
   }
 }
