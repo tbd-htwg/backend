@@ -3,6 +3,8 @@ package com.tripplanning.platform.auth;
 import java.util.Arrays;
 import java.util.List;
 
+import jakarta.servlet.DispatcherType;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -51,7 +53,7 @@ public class PlatformSecurityConfig {
   @Order(1)
   public SecurityFilterChain internalFilterChain(
       HttpSecurity http, InternalApiAuthFilter internalApiAuthFilter) throws Exception {
-    http.securityMatcher("/internal/**")
+    http.securityMatcher(new AntPathRequestMatcher("/internal/**"))
         .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .cors(Customizer.withDefaults())
         .csrf(csrf -> csrf.disable())
@@ -69,7 +71,9 @@ public class PlatformSecurityConfig {
         .csrf(csrf -> csrf.disable())
         .authorizeHttpRequests(
             auth ->
-                auth.requestMatchers(HttpMethod.OPTIONS, "/**")
+                auth.dispatcherTypeMatchers(DispatcherType.ERROR)
+                    .permitAll()
+                    .requestMatchers(HttpMethod.OPTIONS, "/**")
                     .permitAll()
                     .requestMatchers("/actuator/health", "/actuator/health/**")
                     .permitAll()
