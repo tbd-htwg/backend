@@ -66,8 +66,8 @@ public class RestIdentityPlatformClient implements IdentityPlatformClient {
     String name = String.valueOf(response.get("name"));
     String tenantId = name.substring(name.lastIndexOf('/') + 1);
     log.info("Created Identity Platform tenant {} for slug={}", tenantId, slug);
-    enableProviders(tenantId, List.of("google", "password"));
-    return new TenantAuthConfig(tenantId, List.of("google", "password"));
+    enableProviders(tenantId, List.of("password"));
+    return new TenantAuthConfig(tenantId, List.of("password"));
   }
 
   @Override
@@ -85,9 +85,12 @@ public class RestIdentityPlatformClient implements IdentityPlatformClient {
     webClient
         .patch()
         .uri(
-            "/projects/{projectId}/defaultSupportedIdpConfigs/{idpId}",
-            projectId,
-            idpId)
+            uriBuilder ->
+                uriBuilder
+                    .path(
+                        "/projects/{projectId}/tenants/{tenantId}/defaultSupportedIdpConfigs/{idpId}")
+                    .queryParam("updateMask", "enabled")
+                    .build(projectId, tenantId, idpId))
         .headers(h -> h.setBearerAuth(accessToken()))
         .bodyValue(Map.of("enabled", enabled))
         .retrieve()

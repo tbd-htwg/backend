@@ -60,6 +60,7 @@ public class PlatformDataInitializer implements ApplicationRunner {
             .searchIndex("tripentity")
             .estimatedMonthlyCostEur(BigDecimal.ZERO)
             .headerTitle("Trip Planner")
+            .enabledAuthProvidersJson(provisioningJson.writeProviders(java.util.List.of("password")))
             .provisioningStepsJson(
                 provisioningJson.writeSteps(ProvisioningStepDefinitions.completed(TenantTier.FREE)))
             .build();
