@@ -1,22 +1,38 @@
 package com.tripplanning.platform.auth;
 
-import org.springframework.beans.factory.annotation.Value;
+import java.util.Arrays;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.springframework.stereotype.Service;
 
+import com.tripplanning.platform.config.PlatformProperties;
 import com.tripplanning.platform.tenant.PlatformAdminRepository;
 
 @Service
 public class PlatformAdminService {
 
   private final PlatformAdminRepository platformAdminRepository;
-  private final String bootstrapAdminEmail;
+  private final Set<String> configuredAdminEmails;
 
   public PlatformAdminService(
       PlatformAdminRepository platformAdminRepository,
-      @Value("${tripplanning.platform.bootstrap-admin-email:admin@platform.demo}")
-          String bootstrapAdminEmail) {
+      PlatformProperties platformProperties) {
     this.platformAdminRepository = platformAdminRepository;
-    this.bootstrapAdminEmail = bootstrapAdminEmail.trim().toLowerCase();
+    this.configuredAdminEmails =
+        Arrays.stream(
+                (valueOrEmpty(platformProperties.getBootstrapAdminEmail())
+                        + ","
+                        + valueOrEmpty(platformProperties.getAdditionalAdminEmails()))
+                    .split(","))
+            .map(String::trim)
+            .filter(email -> !email.isEmpty())
+            .map(String::toLowerCase)
+            .collect(Collectors.toUnmodifiableSet());
+  }
+
+  private static String valueOrEmpty(String value) {
+    return value == null ? "" : value;
   }
 
   public boolean isPlatformAdmin(String email) {
@@ -24,7 +40,7 @@ public class PlatformAdminService {
       return false;
     }
     String normalized = email.trim().toLowerCase();
-    if (normalized.equals(bootstrapAdminEmail)) {
+    if (configuredAdminEmails.contains(normalized)) {
       return true;
     }
     return platformAdminRepository.existsByEmailIgnoreCase(normalized);

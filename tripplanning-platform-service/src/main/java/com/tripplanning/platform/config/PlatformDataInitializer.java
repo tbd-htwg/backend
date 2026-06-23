@@ -2,6 +2,7 @@ package com.tripplanning.platform.config;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.Arrays;
 
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
@@ -68,13 +69,21 @@ public class PlatformDataInitializer implements ApplicationRunner {
   }
 
   private void seedBootstrapAdmin() {
-    String email = platformProperties.getBootstrapAdminEmail();
-    if (email == null || email.isBlank()) {
-      return;
-    }
-    if (platformAdminRepository.existsByEmailIgnoreCase(email)) {
-      return;
-    }
-    platformAdminRepository.save(new PlatformAdminEntity(email.toLowerCase(), Instant.now()));
+    Arrays.stream(
+            (valueOrEmpty(platformProperties.getBootstrapAdminEmail())
+                    + ","
+                    + valueOrEmpty(platformProperties.getAdditionalAdminEmails()))
+                .split(","))
+        .map(String::trim)
+        .filter(email -> !email.isEmpty())
+        .map(String::toLowerCase)
+        .filter(email -> !platformAdminRepository.existsByEmailIgnoreCase(email))
+        .forEach(
+            email ->
+                platformAdminRepository.save(new PlatformAdminEntity(email, Instant.now())));
+  }
+
+  private static String valueOrEmpty(String value) {
+    return value == null ? "" : value;
   }
 }
