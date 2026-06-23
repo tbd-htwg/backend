@@ -3,7 +3,7 @@ package com.tripplanning.platform.provisioning;
 import java.time.Instant;
 import java.util.List;
 
-import org.springframework.scheduling.annotation.Async;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +18,7 @@ import com.tripplanning.platform.tenant.TenantNaming;
 import com.tripplanning.platform.tenant.TenantRepository;
 import com.tripplanning.platform.tenant.TenantStatus;
 import com.tripplanning.platform.tenant.TenantTier;
+import com.tripplanning.platform.tenant.TenantProvisioningRequested;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,9 +34,9 @@ public class TenantProvisioningService {
   private final TenantInfrastructureProvisioner infrastructureProvisioner;
   private final StandardDataProvisioner standardDataProvisioner;
   private final PlatformProperties platformProperties;
+  private final ApplicationEventPublisher eventPublisher;
 
-  @Async
-  public void provisionAsync(String tenantId) {
+  public void provision(String tenantId) {
     tenantRepository
         .findById(tenantId)
         .ifPresent(
@@ -169,7 +170,7 @@ public class TenantProvisioningService {
             ProvisioningStepDefinitions.initialSteps(tenant.getTier(), useStubLabels())));
     tenant.setUpdatedAt(Instant.now());
     tenantRepository.save(tenant);
-    provisionAsync(tenantId);
+    eventPublisher.publishEvent(new TenantProvisioningRequested(tenantId));
   }
 
   @Transactional
@@ -198,12 +199,20 @@ public class TenantProvisioningService {
     boolean stubMode = useStubLabels();
 
     updateStep(tenant.getId(), tier, 0, null, stubMode);
-    var idp =
-        identityPlatformClient.createTenant(tenant.getSlug(), tenant.getDisplayName());
-    tenant = reload(tenant.getId());
-    tenant.setIdentityPlatformTenantId(idp.identityPlatformTenantId());
-    tenant.setEnabledAuthProvidersJson(provisioningJson.writeProviders(idp.enabledProviders()));
-    tenantRepository.save(tenant);
+    if (tenant.getIdentityPlatformTenantId() == null
+        || tenant.getIdentityPlatformTenantId().isBlank()) {
+      var idp =
+          identityPlatformClient.createTenant(tenant.getSlug(), tenant.getDisplayName());
+      tenant = reload(tenant.getId());
+      tenant.setIdentityPlatformTenantId(idp.identityPlatformTenantId());
+      tenant.setEnabledAuthProvidersJson(provisioningJson.writeProviders(idp.enabledProviders()));
+      tenantRepository.save(tenant);
+    } else {
+      log.info(
+          "Reusing Identity Platform tenant {} for slug={}",
+          tenant.getIdentityPlatformTenantId(),
+          tenant.getSlug());
+    }
 
     updateStep(tenant.getId(), tier, 1, null, stubMode);
     TenantDispatchPayload payload = toDispatchPayload(reload(tenant.getId()));

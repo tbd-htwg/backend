@@ -18,6 +18,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tripplanning.platform.config.PlatformProperties;
@@ -37,6 +38,7 @@ class TenantProvisioningServiceCallbackTest {
   @Mock private IdentityPlatformClient identityPlatformClient;
   @Mock private TenantInfrastructureProvisioner infrastructureProvisioner;
   @Mock private StandardDataProvisioner standardDataProvisioner;
+  @Mock private ApplicationEventPublisher eventPublisher;
 
   private TenantProvisioningService service;
   private TenantEntity standardTenant;
@@ -52,7 +54,8 @@ class TenantProvisioningServiceCallbackTest {
             identityPlatformClient,
             infrastructureProvisioner,
             standardDataProvisioner,
-            properties);
+            properties,
+            eventPublisher);
 
     standardTenant =
         TenantEntity.builder()

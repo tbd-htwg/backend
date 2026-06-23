@@ -3,6 +3,7 @@ package com.tripplanning.platform.tenant;
 import java.time.Instant;
 import java.util.List;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +23,7 @@ public class TenantService {
   private final ProvisioningJson provisioningJson;
   private final PlatformProperties platformProperties;
   private final TenantProvisioningService provisioningService;
+  private final ApplicationEventPublisher eventPublisher;
 
   public List<TenantDtos.TenantDto> list(boolean includeArchived, String tierFilter, String statusFilter) {
     return tenantRepository.findAllByOrderByCreatedAtDesc().stream()
@@ -107,7 +109,7 @@ public class TenantService {
             .build();
 
     tenantRepository.save(entity);
-    provisioningService.provisionAsync(id);
+    eventPublisher.publishEvent(new TenantProvisioningRequested(id));
     return tenantMapper.toDto(entity);
   }
 

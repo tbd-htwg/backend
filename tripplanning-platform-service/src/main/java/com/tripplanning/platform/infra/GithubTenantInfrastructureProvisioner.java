@@ -1,5 +1,6 @@
 package com.tripplanning.platform.infra;
 
+import java.time.Duration;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -7,11 +8,13 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 
 import com.tripplanning.platform.config.PlatformProperties;
 import com.tripplanning.platform.tenant.TenantTier;
 
 import lombok.extern.slf4j.Slf4j;
+import reactor.netty.http.client.HttpClient;
 
 @Slf4j
 @Component
@@ -22,7 +25,14 @@ public class GithubTenantInfrastructureProvisioner implements TenantInfrastructu
 
   public GithubTenantInfrastructureProvisioner(PlatformProperties platformProperties) {
     this.platformProperties = platformProperties;
-    this.webClient = WebClient.builder().build();
+    HttpClient httpClient =
+        HttpClient.create()
+            .option(io.netty.channel.ChannelOption.CONNECT_TIMEOUT_MILLIS, 10_000)
+            .responseTimeout(Duration.ofSeconds(30));
+    this.webClient =
+        WebClient.builder()
+            .clientConnector(new ReactorClientHttpConnector(httpClient))
+            .build();
   }
 
   @Override

@@ -1,5 +1,6 @@
 package com.tripplanning.platform.infra;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -9,12 +10,14 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 
 import com.google.auth.oauth2.GoogleCredentials;
 import com.tripplanning.common.auth.AuthProperties;
 
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
+import reactor.netty.http.client.HttpClient;
 
 @Slf4j
 @Component
@@ -35,8 +38,13 @@ public class RestIdentityPlatformClient implements IdentityPlatformClient {
       throw new IllegalStateException(
           "TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID required when use-stubs=false");
     }
+    HttpClient httpClient =
+        HttpClient.create()
+            .option(io.netty.channel.ChannelOption.CONNECT_TIMEOUT_MILLIS, 10_000)
+            .responseTimeout(Duration.ofSeconds(30));
     this.webClient =
         WebClient.builder()
+            .clientConnector(new ReactorClientHttpConnector(httpClient))
             .baseUrl("https://identitytoolkit.googleapis.com/v2")
             .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .build();
@@ -44,6 +52,7 @@ public class RestIdentityPlatformClient implements IdentityPlatformClient {
 
   @Override
   public TenantAuthConfig createTenant(String slug, String displayName) {
+    log.info("Creating Identity Platform tenant for slug={} in project={}", slug, projectId);
     Map<String, Object> body =
         Map.of(
             "displayName", identityDisplayName(slug, displayName),

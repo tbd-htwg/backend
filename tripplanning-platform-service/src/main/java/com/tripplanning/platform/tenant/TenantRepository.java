@@ -13,5 +13,7 @@ public interface TenantRepository extends JpaRepository<TenantEntity, String> {
 
   List<TenantEntity> findByTierOrderByCreatedAtDesc(TenantTier tier);
 
+  List<TenantEntity> findByStatusOrderByCreatedAtAsc(TenantStatus status);
+
   List<TenantEntity> findAllByOrderByCreatedAtDesc();
 }
