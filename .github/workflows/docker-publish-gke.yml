@@ -5,7 +5,6 @@ on:
   push:
     branches:
       - develop
-      - main
     paths:
       - "Dockerfile"
       - "pom.xml"
@@ -242,20 +241,29 @@ jobs:
             done
           }
 
-          if [[ "${GITHUB_REF_NAME}" == "develop" ]]; then
-            restart_services_in_namespace tripplanning-free "${services[@]}"
-            if [[ "${BUILD_PLATFORM}" == "true" ]]; then
-              restart_services_in_namespace tripplanning-system platform-service
-            fi
-          elif [[ "${GITHUB_REF_NAME}" == "main" ]]; then
-            restart_services_in_namespace tripplanning-standard "${services[@]}"
-            mapfile -t enterprise_namespaces < <(
-              kubectl get namespaces -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' \
-                | grep '^tripplanning-ent-' || true
-            )
-            for namespace in "${enterprise_namespaces[@]}"; do
+          if [[ "${GITHUB_REF_NAME}" != "develop" ]]; then
+            echo "No GKE rollout target configured for branch ${GITHUB_REF_NAME}"
+            exit 0
+          fi
+
+          runtime_namespaces=(tripplanning-free)
+          if kubectl get namespace tripplanning-standard >/dev/null 2>&1; then
+            runtime_namespaces+=(tripplanning-standard)
+          fi
+
+          mapfile -t enterprise_namespaces < <(
+            kubectl get namespaces -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' \
+              | grep '^tripplanning-ent-' || true
+          )
+          runtime_namespaces+=("${enterprise_namespaces[@]}")
+
+          if [[ "${#services[@]}" -gt 0 ]]; then
+            echo "Restarting changed runtime services in namespaces: ${runtime_namespaces[*]}"
+            for namespace in "${runtime_namespaces[@]}"; do
               restart_services_in_namespace "${namespace}" "${services[@]}"
             done
-          else
-            echo "No GKE rollout target configured for branch ${GITHUB_REF_NAME}"
+          fi
+
+          if [[ "${BUILD_PLATFORM}" == "true" ]]; then
+            restart_services_in_namespace tripplanning-system platform-service
           fi
