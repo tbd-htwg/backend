@@ -38,7 +38,10 @@ public class PlatformSecurityConfig {
             .map(String::trim)
             .filter(s -> !s.isEmpty())
             .toList();
-    config.setAllowedOrigins(origins);
+    List<String> exactOrigins = origins.stream().filter(origin -> !origin.contains("*")).toList();
+    List<String> originPatterns = origins.stream().filter(origin -> origin.contains("*")).toList();
+    config.setAllowedOrigins(exactOrigins);
+    config.setAllowedOriginPatterns(originPatterns);
     config.setAllowedMethods(List.of("GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
     config.setAllowedHeaders(
         List.of("Authorization", "Content-Type", "Accept", "Origin", "X-Internal-Secret"));
