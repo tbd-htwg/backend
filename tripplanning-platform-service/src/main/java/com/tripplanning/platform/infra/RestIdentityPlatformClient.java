@@ -52,10 +52,19 @@ public class RestIdentityPlatformClient implements IdentityPlatformClient {
 
   @Override
   public TenantAuthConfig createTenant(String slug, String displayName) {
+    String identityDisplayName = identityDisplayName(slug, displayName);
+    String existingTenantId = findTenantIdByDisplayName(identityDisplayName);
+    if (existingTenantId != null) {
+      log.info(
+          "Reusing Identity Platform tenant {} for slug={}", existingTenantId, slug);
+      enableProviders(existingTenantId, List.of("password"));
+      return new TenantAuthConfig(existingTenantId, List.of("password"));
+    }
+
     log.info("Creating Identity Platform tenant for slug={} in project={}", slug, projectId);
     Map<String, Object> body =
         Map.of(
-            "displayName", identityDisplayName(slug, displayName),
+            "displayName", identityDisplayName,
             "allowPasswordSignup", true,
             "enableEmailLinkSignin", false);
 
@@ -75,8 +84,30 @@ public class RestIdentityPlatformClient implements IdentityPlatformClient {
     String name = String.valueOf(response.get("name"));
     String tenantId = name.substring(name.lastIndexOf('/') + 1);
     log.info("Created Identity Platform tenant {} for slug={}", tenantId, slug);
-    enableProviders(tenantId, List.of("password"));
     return new TenantAuthConfig(tenantId, List.of("password"));
+  }
+
+  private String findTenantIdByDisplayName(String displayName) {
+    Map<?, ?> response =
+        webClient
+            .get()
+            .uri("/projects/{projectId}/tenants?pageSize=100", projectId)
+            .headers(h -> h.setBearerAuth(accessToken()))
+            .retrieve()
+            .bodyToMono(Map.class)
+            .block();
+    if (response == null || !(response.get("tenants") instanceof List<?> tenants)) {
+      return null;
+    }
+    return tenants.stream()
+        .filter(Map.class::isInstance)
+        .map(Map.class::cast)
+        .filter(tenant -> displayName.equals(String.valueOf(tenant.get("displayName"))))
+        .map(tenant -> String.valueOf(tenant.get("name")))
+        .filter(name -> name.contains("/"))
+        .map(name -> name.substring(name.lastIndexOf('/') + 1))
+        .findFirst()
+        .orElse(null);
   }
 
   @Override
@@ -115,7 +146,12 @@ public class RestIdentityPlatformClient implements IdentityPlatformClient {
   private void patchTenantPasswordSignup(String tenantId, boolean allow) {
     webClient
         .patch()
-        .uri("/projects/{projectId}/tenants/{tenantId}", projectId, tenantId)
+        .uri(
+            uriBuilder ->
+                uriBuilder
+                    .path("/projects/{projectId}/tenants/{tenantId}")
+                    .queryParam("updateMask", "allowPasswordSignup")
+                    .build(projectId, tenantId))
         .headers(h -> h.setBearerAuth(accessToken()))
         .bodyValue(Map.of("allowPasswordSignup", allow))
         .retrieve()
