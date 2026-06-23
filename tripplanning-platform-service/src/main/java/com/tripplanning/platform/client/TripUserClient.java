@@ -11,23 +11,35 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
+import com.tripplanning.common.tenant.HostTenantResolver;
 import com.tripplanning.platform.tenant.TenantDtos;
+import com.tripplanning.platform.tenant.TenantRepository;
+import com.tripplanning.platform.tenant.TenantTier;
 
 @Component
 public class TripUserClient {
 
-  private final WebClient webClient;
+  private final WebClient.Builder webClientBuilder;
+  private final String freeBaseUrl;
   private final String internalSecret;
+  private final TenantRepository tenantRepository;
+  private final String hostBase;
+  private final String enterpriseHostBase;
 
   public TripUserClient(
       @Value("${tripplanning.services.trip-base-url:http://localhost:8080}") String baseUrl,
-      @Value("${tripplanning.services.internal-secret:}") String internalSecret) {
+      @Value("${tripplanning.services.internal-secret:}") String internalSecret,
+      @Value("${tripplanning.platform.host-base:k8s.tbd-htwg.de}") String hostBase,
+      @Value("${tripplanning.platform.enterprise-host-base:enterprise.k8s.tbd-htwg.de}")
+          String enterpriseHostBase,
+      TenantRepository tenantRepository) {
+    this.freeBaseUrl = baseUrl;
     this.internalSecret = internalSecret;
-    this.webClient =
-        WebClient.builder()
-            .baseUrl(baseUrl)
-            .defaultHeader(HttpHeaders.ACCEPT, "application/json")
-            .build();
+    this.hostBase = hostBase;
+    this.enterpriseHostBase = enterpriseHostBase;
+    this.tenantRepository = tenantRepository;
+    this.webClientBuilder =
+        WebClient.builder().defaultHeader(HttpHeaders.ACCEPT, "application/json");
   }
 
   public TenantDtos.UserResponseDto provisionIdentity(
@@ -35,7 +47,15 @@ public class TripUserClient {
     return post(
         "/internal/users/provision-identity",
         forwardedHost,
-        Map.of("sub", sub != null ? sub : "", "email", email, "name", name != null ? name : "", "picture", picture != null ? picture : ""));
+        Map.of(
+            "sub",
+            sub != null ? sub : "",
+            "email",
+            email,
+            "name",
+            name != null ? name : "",
+            "picture",
+            picture != null ? picture : ""));
   }
 
   public TenantDtos.UserResponseDto provisionDev(String forwardedHost, String email, String name) {
@@ -46,7 +66,9 @@ public class TripUserClient {
   }
 
   public TenantDtos.UserResponseDto getUser(String forwardedHost, long userId) {
-    return webClient
+    return webClient()
+        .baseUrl(resolveBaseUrl(forwardedHost))
+        .build()
         .get()
         .uri("/internal/users/{id}", userId)
         .header("X-Internal-Secret", internalSecret)
@@ -57,7 +79,9 @@ public class TripUserClient {
   }
 
   public List<TenantDtos.TenantUserDto> listUsers(String forwardedHost) {
-    return webClient
+    return webClient()
+        .baseUrl(resolveBaseUrl(forwardedHost))
+        .build()
         .get()
         .uri("/internal/users")
         .header("X-Internal-Secret", internalSecret)
@@ -68,7 +92,9 @@ public class TripUserClient {
   }
 
   public void deleteUser(String forwardedHost, long userId) {
-    webClient
+    webClient()
+        .baseUrl(resolveBaseUrl(forwardedHost))
+        .build()
         .delete()
         .uri("/internal/users/{id}", userId)
         .header("X-Internal-Secret", internalSecret)
@@ -80,7 +106,9 @@ public class TripUserClient {
 
   private TenantDtos.UserResponseDto post(String path, String forwardedHost, Map<String, String> body) {
     try {
-      return webClient
+      return webClient()
+          .baseUrl(resolveBaseUrl(forwardedHost))
+          .build()
           .post()
           .uri(path)
           .header("X-Internal-Secret", internalSecret)
@@ -111,5 +139,29 @@ public class TripUserClient {
       trimmed = trimmed.substring(0, slash);
     }
     return trimmed;
+  }
+
+  private WebClient.Builder webClient() {
+    return webClientBuilder.clone();
+  }
+
+  private String resolveBaseUrl(String forwardedHost) {
+    String slug = HostTenantResolver.resolveSlug(forwardedHost, hostBase, enterpriseHostBase);
+    if (slug == null || slug.isBlank() || "free".equals(slug)) {
+      return freeBaseUrl;
+    }
+    return tenantRepository
+        .findBySlug(slug)
+        .map(
+            tenant -> {
+              if (tenant.getTier() == TenantTier.STANDARD) {
+                return "http://trip-service.tripplanning-standard.svc.cluster.local:8080";
+              }
+              if (tenant.getTier() == TenantTier.ENTERPRISE) {
+                return "http://trip-service." + tenant.getNamespace() + ".svc.cluster.local:8080";
+              }
+              return freeBaseUrl;
+            })
+        .orElse(freeBaseUrl);
   }
 }
