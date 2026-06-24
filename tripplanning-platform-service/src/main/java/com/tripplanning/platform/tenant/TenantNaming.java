@@ -72,7 +72,7 @@ public final class TenantNaming {
   /** Object key prefix within a shared bucket (Standard tier). */
   public static String objectPrefix(String slug, TenantTier tier) {
     if (tier == TenantTier.STANDARD) {
-      return "std/" + slug + "/";
+      return "standard/" + slug + "/";
     }
     return "";
   }

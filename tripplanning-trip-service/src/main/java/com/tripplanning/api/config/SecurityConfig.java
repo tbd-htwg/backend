@@ -119,7 +119,7 @@ public class SecurityConfig {
         .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));
 
     http.addFilterBefore(internalApiAuthFilter, UsernamePasswordAuthenticationFilter.class);
-    http.addFilterAfter(tenantContextFilter, InternalApiAuthFilter.class);
+    http.addFilterAfter(tenantContextFilter, BearerTokenAuthenticationFilter.class);
 
     TestBearerImpersonationFilter testBearerFilter = testBearerFilterProvider.getIfAvailable();
     if (testBearerFilter != null) {

@@ -93,7 +93,7 @@ public class SocialSecurityConfig {
                                         .anyRequest()
                                         .authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
-                .addFilterBefore(tenantContextFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(tenantContextFilter, BearerTokenAuthenticationFilter.class)
                 .addFilterBefore(internalApiAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         TestBearerImpersonationFilter testBearerFilter = testBearerFilterProvider.getIfAvailable();

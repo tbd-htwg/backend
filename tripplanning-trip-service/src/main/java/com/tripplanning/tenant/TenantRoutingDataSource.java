@@ -53,7 +53,10 @@ public class TenantRoutingDataSource extends AbstractRoutingDataSource {
     return pools.computeIfAbsent(dbName, this::createPool);
   }
 
-  private String currentDbName() {
+  String currentDbName() {
+    if (TenantContextHolder.get() == null) {
+      return defaultDbName;
+    }
     String slug = TenantContextHolder.slugOrDefault();
     return platformClient.resolve(slug).dbName();
   }

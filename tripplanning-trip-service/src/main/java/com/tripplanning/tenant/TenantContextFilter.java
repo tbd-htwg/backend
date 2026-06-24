@@ -52,7 +52,7 @@ public class TenantContextFilter extends OncePerRequestFilter {
         var auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.getPrincipal() instanceof Jwt jwt) {
           String tokenSlug = jwt.getClaimAsString("tenant_slug");
-          if (tokenSlug != null && !tokenSlug.isBlank() && !tokenSlug.equals(slug)) {
+          if (tokenSlug == null || tokenSlug.isBlank() || !tokenSlug.equals(slug)) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN, "Tenant mismatch");
             return;
           }

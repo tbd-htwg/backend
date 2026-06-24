@@ -6,6 +6,12 @@ import org.junit.jupiter.api.Test;
 
 class TenantNamingTest {
 
+  @Test
+  void standardObjectPrefixMatchesProvisionedStorageLayout() {
+    assertThat(TenantNaming.objectPrefix("firststand", TenantTier.STANDARD))
+        .isEqualTo("standard/firststand/");
+  }
+
   private static final String HOST_BASE = "k8s.tbd-htwg.de";
   private static final String ENTERPRISE_BASE = "enterprise.k8s.tbd-htwg.de";
 
