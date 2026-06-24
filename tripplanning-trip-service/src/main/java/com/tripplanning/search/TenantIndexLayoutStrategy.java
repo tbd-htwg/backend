@@ -1,5 +1,7 @@
 package com.tripplanning.search;
 
+import java.util.Locale;
+
 import org.hibernate.search.backend.elasticsearch.index.layout.IndexLayoutStrategy;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
@@ -45,6 +47,13 @@ public class TenantIndexLayoutStrategy implements IndexLayoutStrategy {
     if (tenantIndex == null || tenantIndex.isBlank()) {
       return hibernateSearchIndexName;
     }
-    return tenantIndex;
+    return physicalIndexName(tenantIndex, hibernateSearchIndexName);
+  }
+
+  static String physicalIndexName(String tenantIndex, String hibernateSearchIndexName) {
+    if ("tripentity".equalsIgnoreCase(hibernateSearchIndexName)) {
+      return tenantIndex;
+    }
+    return tenantIndex + "-" + hibernateSearchIndexName.toLowerCase(Locale.ROOT);
   }
 }
