@@ -52,10 +52,11 @@ public class TenantPlatformClient {
       TenantRuntime loaded = loadRuntime(slug);
       cache.put(slug, new CachedRuntime(loaded, Instant.now().plus(CACHE_TTL)));
       return loaded;
-    } catch (Exception ignored) {
-      // Keep the local-development fallback, but never cache it: a transient
-      // platform-service outage must not pin empty production credentials.
-      return devFallback(slug);
+    } catch (Exception exception) {
+      if (internalSecret == null || internalSecret.isBlank()) {
+        return devFallback(slug);
+      }
+      throw new IllegalStateException("Could not resolve runtime for tenant " + slug, exception);
     }
   }
 
@@ -67,7 +68,7 @@ public class TenantPlatformClient {
             .header("X-Internal-Secret", internalSecret)
             .retrieve()
             .bodyToMono(Map.class)
-            .block(Duration.ofSeconds(5));
+            .block(Duration.ofSeconds(15));
     if (body == null) {
       throw new IllegalStateException("Platform returned an empty tenant runtime");
     }
