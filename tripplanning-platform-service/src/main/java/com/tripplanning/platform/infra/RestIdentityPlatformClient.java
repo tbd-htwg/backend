@@ -52,7 +52,11 @@ public class RestIdentityPlatformClient implements IdentityPlatformClient {
 
   @Override
   public TenantAuthConfig createTenant(String slug, String displayName) {
-    String identityDisplayName = identityDisplayName(slug, displayName);
+    // Identity Platform display names are used as the idempotency key when a
+    // provisioning retry occurs before the generated tenant ID was persisted.
+    // They must therefore be derived from the unique slug, not the mutable and
+    // non-unique customer-facing display name.
+    String identityDisplayName = identityDisplayName(slug);
     String existingTenantId = findTenantIdByDisplayName(identityDisplayName);
     if (existingTenantId != null) {
       log.info(
@@ -170,9 +174,8 @@ public class RestIdentityPlatformClient implements IdentityPlatformClient {
     }
   }
 
-  private String identityDisplayName(String slug, String displayName) {
-    String source = displayName == null || displayName.isBlank() ? slug : displayName;
-    String cleaned = source.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9-]", "-");
+  private String identityDisplayName(String slug) {
+    String cleaned = slug.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9-]", "-");
     if (cleaned.isBlank() || !Character.isLetter(cleaned.charAt(0))) {
       cleaned = "t-" + cleaned;
     }

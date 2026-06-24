@@ -147,6 +147,21 @@ public class TenantService {
     return tenantMapper.toDto(tenantRepository.save(entity));
   }
 
+  @Transactional
+  public boolean deleteBySlug(String slug) {
+    return tenantRepository
+        .findBySlug(slug.toLowerCase())
+        .map(
+            tenant -> {
+              if ("free".equals(tenant.getSlug())) {
+                throw new IllegalStateException("Free pool cannot be deleted");
+              }
+              tenantRepository.delete(tenant);
+              return true;
+            })
+        .orElse(false);
+  }
+
   public void retry(String id) {
     provisioningService.retry(id);
   }
