@@ -9,9 +9,6 @@ import com.tripplanning.platform.tenant.TenantEntity;
 import com.tripplanning.platform.tenant.TenantNaming;
 import com.tripplanning.platform.tenant.TenantTier;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 @Component
 public class SecretManagerTenantDbCredentialProvider implements TenantDbCredentialProvider {
 
@@ -30,11 +27,12 @@ public class SecretManagerTenantDbCredentialProvider implements TenantDbCredenti
             ? tenant.getDbUser()
             : TenantNaming.dbUser(tenant.getSlug(), tier);
 
-    if (projectId == null
-        || projectId.isBlank()
-        || tier == TenantTier.FREE
-        || tier == null) {
+    if (tier == TenantTier.FREE || tier == null) {
       return new DbCredentials(user, "");
+    }
+    if (projectId == null || projectId.isBlank()) {
+      throw new IllegalStateException(
+          "tripplanning.platform.gcp.project-id is required for tenant DB credentials");
     }
 
     String secretId = TenantNaming.dbPasswordSecretId(tenant.getSlug(), tier);
@@ -48,12 +46,8 @@ public class SecretManagerTenantDbCredentialProvider implements TenantDbCredenti
           client.accessSecretVersion(versionName).getPayload().getData().toStringUtf8();
       return new DbCredentials(user, password);
     } catch (Exception e) {
-      log.warn(
-          "Failed to read DB password for tenant {} from {}: {}",
-          tenant.getSlug(),
-          secretId,
-          e.getMessage());
-      return new DbCredentials(user, "");
+      throw new IllegalStateException(
+          "Failed to read DB password for tenant " + tenant.getSlug() + " from " + secretId, e);
     }
   }
 }
