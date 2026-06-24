@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
 
+import com.tripplanning.common.tenant.TenantContext;
 import com.tripplanning.common.tenant.TenantContextHolder;
 
 class TenantRoutingDataSourceTest {
@@ -25,6 +26,10 @@ class TenantRoutingDataSourceTest {
 
     TenantContextHolder.clear();
     assertThat(dataSource.currentDbName()).isEqualTo("tripplanning_std_firststand");
+
+    TenantContextHolder.set(new TenantContext("free", "FREE"));
+    assertThat(dataSource.currentDbName()).isEqualTo("tripplanning_std_firststand");
+    TenantContextHolder.clear();
   }
 
   @Test

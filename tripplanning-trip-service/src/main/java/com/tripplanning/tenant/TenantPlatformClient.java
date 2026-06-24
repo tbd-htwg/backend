@@ -48,36 +48,38 @@ public class TenantPlatformClient {
     if (cached != null && cached.expiresAt().isAfter(Instant.now())) {
       return cached.runtime();
     }
-    TenantRuntime loaded = loadRuntime(slug);
-    cache.put(slug, new CachedRuntime(loaded, Instant.now().plus(CACHE_TTL)));
-    return loaded;
+    try {
+      TenantRuntime loaded = loadRuntime(slug);
+      cache.put(slug, new CachedRuntime(loaded, Instant.now().plus(CACHE_TTL)));
+      return loaded;
+    } catch (Exception ignored) {
+      // Keep the local-development fallback, but never cache it: a transient
+      // platform-service outage must not pin empty production credentials.
+      return devFallback(slug);
+    }
   }
 
   private TenantRuntime loadRuntime(String slug) {
-    try {
-      Map<?, ?> body =
-          webClient
-              .get()
-              .uri("/internal/tenants/{slug}", slug)
-              .header("X-Internal-Secret", internalSecret)
-              .retrieve()
-              .bodyToMono(Map.class)
-              .block(Duration.ofSeconds(5));
-      if (body != null) {
-        return new TenantRuntime(
-            String.valueOf(body.get("slug")),
-            String.valueOf(body.get("tier")),
-            String.valueOf(body.get("dbName")),
-            stringOrNull(body.get("dbUser")),
-            stringOrNull(body.get("dbPassword")),
-            String.valueOf(body.get("searchIndex")),
-            stringOrNull(body.get("gcsBucket")),
-            stringOrNull(body.get("objectPrefix")));
-      }
-    } catch (Exception ignored) {
-      // Platform service may be unavailable in local dev — use naming conventions.
+    Map<?, ?> body =
+        webClient
+            .get()
+            .uri("/internal/tenants/{slug}", slug)
+            .header("X-Internal-Secret", internalSecret)
+            .retrieve()
+            .bodyToMono(Map.class)
+            .block(Duration.ofSeconds(5));
+    if (body == null) {
+      throw new IllegalStateException("Platform returned an empty tenant runtime");
     }
-    return devFallback(slug);
+    return new TenantRuntime(
+        String.valueOf(body.get("slug")),
+        String.valueOf(body.get("tier")),
+        String.valueOf(body.get("dbName")),
+        stringOrNull(body.get("dbUser")),
+        stringOrNull(body.get("dbPassword")),
+        String.valueOf(body.get("searchIndex")),
+        stringOrNull(body.get("gcsBucket")),
+        stringOrNull(body.get("objectPrefix")));
   }
 
   private static String stringOrNull(Object value) {

@@ -54,7 +54,8 @@ public class TenantRoutingDataSource extends AbstractRoutingDataSource {
   }
 
   String currentDbName() {
-    if (TenantContextHolder.get() == null) {
+    if (TenantContextHolder.get() == null
+        || "free".equals(TenantContextHolder.slugOrDefault())) {
       return defaultDbName;
     }
     String slug = TenantContextHolder.slugOrDefault();
