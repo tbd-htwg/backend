@@ -41,6 +41,6 @@ class TenantNamingTest {
         .isEqualTo("/enterprise/acme/");
     assertThat(TenantNaming.gcsBucket("acme", TenantTier.ENTERPRISE))
         .isEqualTo("tripplanning-ent-acme-images");
-    assertThat(TenantNaming.imageTag("acme", TenantTier.ENTERPRISE)).isEqualTo("enterprise-acme");
+    assertThat(TenantNaming.imageTag("acme", TenantTier.ENTERPRISE)).isEqualTo("latest");
   }
 }

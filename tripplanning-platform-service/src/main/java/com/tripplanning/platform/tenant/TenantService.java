@@ -68,7 +68,11 @@ public class TenantService {
   @Transactional
   public TenantDtos.TenantDto create(TenantDtos.TenantCreateRequest request) {
     String slug = request.slug().trim().toLowerCase();
+    String displayName = request.displayName().trim();
     slugValidator.validate(slug);
+    if (displayName.contains("\n") || displayName.contains("\r")) {
+      throw new IllegalArgumentException("Display name must be a single line");
+    }
     if (tenantRepository.existsBySlug(slug)) {
       throw new IllegalArgumentException("Tenant slug already exists: " + slug);
     }
@@ -77,6 +81,7 @@ public class TenantService {
     if (tier == TenantTier.FREE) {
       throw new IllegalArgumentException("Free tier cannot be created via admin API");
     }
+    validateGeneratedResourceNames(slug, tier);
 
     Instant now = Instant.now();
     String id = "tenant-" + slug;
@@ -87,7 +92,7 @@ public class TenantService {
         TenantEntity.builder()
             .id(id)
             .slug(slug)
-            .displayName(request.displayName().trim())
+            .displayName(displayName)
             .tier(tier)
             .status(TenantStatus.PROVISIONING)
             .hostUrl(TenantNaming.hostUrl(slug, tier, hostBase, enterpriseHostBase))
@@ -98,7 +103,7 @@ public class TenantService {
             .dbUser(TenantNaming.dbUser(slug, tier))
             .searchIndex(TenantNaming.searchIndex(slug, tier))
             .estimatedMonthlyCostEur(TenantNaming.estimatedCost(tier))
-            .headerTitle(request.displayName().trim())
+            .headerTitle(displayName)
             .frontendPath(TenantNaming.frontendPath(slug, tier))
             .imageTag(TenantNaming.imageTag(slug, tier))
             .gcsBucket(TenantNaming.gcsBucket(slug, tier))
@@ -111,6 +116,17 @@ public class TenantService {
     tenantRepository.save(entity);
     eventPublisher.publishEvent(new TenantProvisioningRequested(id));
     return tenantMapper.toDto(entity);
+  }
+
+  private static void validateGeneratedResourceNames(String slug, TenantTier tier) {
+    if (tier == TenantTier.STANDARD && slug.length() > 46) {
+      throw new IllegalArgumentException(
+          "Standard tenant slug must be at most 46 characters");
+    }
+    if (tier == TenantTier.ENTERPRISE && slug.length() > 32) {
+      throw new IllegalArgumentException(
+          "Enterprise tenant slug must be at most 32 characters");
+    }
   }
 
   @Transactional

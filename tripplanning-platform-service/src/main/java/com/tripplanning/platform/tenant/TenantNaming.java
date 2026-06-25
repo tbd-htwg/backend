@@ -78,7 +78,10 @@ public final class TenantNaming {
   }
 
   public static String imageTag(String slug, TenantTier tier) {
-    return tier == TenantTier.ENTERPRISE ? "enterprise-" + slug : null;
+    // The backend image workflow publishes immutable commit-SHA tags and
+    // "latest". A per-tenant tag is only valid after a separate custom image
+    // build, which the admin tenant-creation flow does not perform.
+    return tier == TenantTier.ENTERPRISE ? "latest" : null;
   }
 
   public static java.math.BigDecimal estimatedCost(TenantTier tier) {
