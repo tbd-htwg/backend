@@ -6,11 +6,5 @@ public record TenantDispatchPayload(
     String slug,
     String displayName,
     TenantTier tier,
-    String hostUrl,
-    String namespace,
-    String dbName,
-    String searchIndex,
-    String frontendPath,
     String identityPlatformTenantId,
-    String imageTag,
-    String gcsBucket) {}
+    String imageTag) {}

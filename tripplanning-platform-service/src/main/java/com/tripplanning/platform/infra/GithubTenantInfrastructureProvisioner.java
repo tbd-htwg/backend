@@ -59,24 +59,7 @@ public class GithubTenantInfrastructureProvisioner implements TenantInfrastructu
       return;
     }
 
-    Map<String, Object> clientPayload = new LinkedHashMap<>();
-    clientPayload.put("slug", payload.slug());
-    clientPayload.put("displayName", payload.displayName());
-    clientPayload.put("tier", payload.tier().name());
-    clientPayload.put("hostUrl", payload.hostUrl());
-    clientPayload.put("namespace", payload.namespace());
-    clientPayload.put("dbName", payload.dbName());
-    clientPayload.put("searchIndex", payload.searchIndex());
-    clientPayload.put("frontendPath", payload.frontendPath());
-    clientPayload.put("identityPlatformTenantId", payload.identityPlatformTenantId());
-    if (payload.tier() == TenantTier.ENTERPRISE) {
-      if (payload.imageTag() != null) {
-        clientPayload.put("imageTag", payload.imageTag());
-      }
-      if (payload.gcsBucket() != null) {
-        clientPayload.put("gcsBucket", payload.gcsBucket());
-      }
-    }
+    Map<String, Object> clientPayload = buildClientPayload(payload);
 
     Map<String, Object> body =
         Map.of("event_type", eventType, "client_payload", clientPayload);
@@ -94,5 +77,21 @@ public class GithubTenantInfrastructureProvisioner implements TenantInfrastructu
 
     log.info(
         "Dispatched {} tenant provisioning for slug={}", payload.tier(), payload.slug());
+  }
+
+  static Map<String, Object> buildClientPayload(TenantDispatchPayload payload) {
+    // GitHub repository_dispatch permits at most ten top-level client_payload
+    // properties. Keep this contract limited to fields consumed by
+    // infrastructure/.github/workflows/tenant-provision.yml. Resource names
+    // are derived consistently by the workflow and Terraform.
+    Map<String, Object> clientPayload = new LinkedHashMap<>();
+    clientPayload.put("slug", payload.slug());
+    clientPayload.put("displayName", payload.displayName());
+    clientPayload.put("tier", payload.tier().name());
+    clientPayload.put("identityPlatformTenantId", payload.identityPlatformTenantId());
+    if (payload.tier() == TenantTier.ENTERPRISE && payload.imageTag() != null) {
+      clientPayload.put("imageTag", payload.imageTag());
+    }
+    return clientPayload;
   }
 }

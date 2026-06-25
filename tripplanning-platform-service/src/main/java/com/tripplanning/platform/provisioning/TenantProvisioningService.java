@@ -278,14 +278,8 @@ public class TenantProvisioningService {
         tenant.getSlug(),
         tenant.getDisplayName(),
         tenant.getTier(),
-        tenant.getHostUrl(),
-        tenant.getNamespace(),
-        tenant.getDbName(),
-        tenant.getSearchIndex(),
-        tenant.getFrontendPath(),
         tenant.getIdentityPlatformTenantId(),
-        tenant.getImageTag(),
-        tenant.getGcsBucket());
+        tenant.getImageTag());
   }
 
   private void updateStep(
