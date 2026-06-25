@@ -113,12 +113,96 @@ public class SearchIndexCoordinationService {
                     instanceId,
                     initial.databaseTrips(),
                     initial.indexedTrips());
-            runMassIndexer(initial.databaseTrips());
+            runMassIndexer(initial.databaseTrips(), false);
             publishSharedState(SearchIndexStatus.STATE_READY);
             log.info("Mass indexing finished; search index marked READY.");
         } catch (Exception e) {
             log.error("Mass indexing failed", e);
             publishSharedState(SearchIndexStatus.STATE_STALE);
+        } finally {
+            localIndexing.set(false);
+            releaseLock();
+        }
+    }
+
+    /**
+     * Manually reconciles the search index, intended for a scheduled CronJob hitting the internal
+     * maintenance endpoint. With {@code force=false} this only rebuilds when the index is not READY
+     * (count drift); with {@code force=true} it always drops and rebuilds the index, covering stale
+     * content from JDBC bulk loads that bypass Hibernate Search (the {@code reset-search-index.sh}
+     * scenario). Runs synchronously so the caller can wait for completion.
+     */
+    public SearchReconcileResult reconcile(boolean force) {
+        if (tenantRoutingEnabled) {
+            SearchIndexStatus status = currentStatus();
+            return new SearchReconcileResult(
+                    SearchReconcileResult.ACTION_SKIPPED,
+                    force,
+                    status,
+                    status,
+                    "Tenant datasource routing enabled; global reconcile skipped.");
+        }
+
+        SearchIndexStatus before = currentStatus();
+
+        if (before.indexingInProgress()) {
+            return new SearchReconcileResult(
+                    SearchReconcileResult.ACTION_CONFLICT,
+                    force,
+                    before,
+                    before,
+                    "Mass indexing already in progress; reconcile skipped.");
+        }
+
+        if (!force && before.isReady()) {
+            publishSharedState(SearchIndexStatus.STATE_READY);
+            return new SearchReconcileResult(
+                    SearchReconcileResult.ACTION_SKIPPED,
+                    force,
+                    before,
+                    before,
+                    "Index already READY and force=false; nothing to do.");
+        }
+
+        if (!tryAcquireLock()) {
+            return new SearchReconcileResult(
+                    SearchReconcileResult.ACTION_CONFLICT,
+                    force,
+                    before,
+                    currentStatus(),
+                    "Could not acquire index lock; another pod is reconciling.");
+        }
+
+        localIndexing.set(true);
+        publishSharedState(SearchIndexStatus.STATE_INDEXING);
+        try {
+            log.info(
+                    "Reconcile starting (force={}, db={}, es={}).",
+                    force,
+                    before.databaseTrips(),
+                    before.indexedTrips());
+            runMassIndexer(before.databaseTrips(), force);
+            publishSharedState(SearchIndexStatus.STATE_READY);
+            SearchIndexStatus after = currentStatus();
+            log.info(
+                    "Reconcile finished; search index marked READY ({} indexed, {} in database).",
+                    after.indexedTrips(),
+                    after.databaseTrips());
+            return new SearchReconcileResult(
+                    SearchReconcileResult.ACTION_RECONCILED,
+                    force,
+                    before,
+                    after,
+                    "Mass reindex completed.");
+        } catch (Exception e) {
+            log.error("Reconcile mass indexing failed", e);
+            publishSharedState(SearchIndexStatus.STATE_STALE);
+            return new SearchReconcileResult(
+                    SearchReconcileResult.ACTION_FAILED,
+                    force,
+                    before,
+                    currentStatus(),
+                    "Mass reindex failed: " + e.getMessage());
         } finally {
             localIndexing.set(false);
             releaseLock();
@@ -143,16 +227,17 @@ public class SearchIndexCoordinationService {
                 "Timed out waiting for peer indexing; pod will become ready when counts match (db vs es).");
     }
 
-    private void runMassIndexer(long databaseTrips) throws InterruptedException {
+    private void runMassIndexer(long databaseTrips, boolean force) throws InterruptedException {
         try (EntityManager em = entityManagerFactory.createEntityManager()) {
             SearchSession searchSession = Search.session(em);
             MassIndexer indexer =
                     searchSession
                             .massIndexer(TripEntity.class)
                             .threadsToLoadObjects(2)
-                            // Drop orphaned index docs when PostgreSQL is empty (common after H2 reset).
-                            .purgeAllOnStart(databaseTrips == 0)
-                            .dropAndCreateSchemaOnStart(false);
+                            // Force rebuild drops stale docs (JDBC bulk load); also purge when
+                            // PostgreSQL is empty (common after H2 reset).
+                            .purgeAllOnStart(force || databaseTrips == 0)
+                            .dropAndCreateSchemaOnStart(force);
             indexer.startAndWait();
         }
     }
