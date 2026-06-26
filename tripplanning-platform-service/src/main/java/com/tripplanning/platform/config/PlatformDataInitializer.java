@@ -37,6 +37,7 @@ public class PlatformDataInitializer implements ApplicationRunner {
 
   private void seedFreeTenant() {
     if (tenantRepository.existsBySlug("free")) {
+      upgradeFreeTenantAuthProviders();
       return;
     }
     String hostBase = platformProperties.getHostBase();
@@ -61,11 +62,26 @@ public class PlatformDataInitializer implements ApplicationRunner {
             .searchIndex("tripentity")
             .estimatedMonthlyCostEur(BigDecimal.ZERO)
             .headerTitle("Trip Planner")
-            .enabledAuthProvidersJson(provisioningJson.writeProviders(java.util.List.of("password")))
+            .enabledAuthProvidersJson(
+                provisioningJson.writeProviders(java.util.List.of("google", "password")))
             .provisioningStepsJson(
                 provisioningJson.writeSteps(ProvisioningStepDefinitions.completed(TenantTier.FREE)))
             .build();
     tenantRepository.save(free);
+  }
+
+  private void upgradeFreeTenantAuthProviders() {
+    tenantRepository
+        .findBySlug("free")
+        .ifPresent(
+            free -> {
+              var providers = provisioningJson.readProviders(free.getEnabledAuthProvidersJson());
+              if (providers.size() == 1 && providers.contains("password")) {
+                free.setEnabledAuthProvidersJson(
+                    provisioningJson.writeProviders(java.util.List.of("google", "password")));
+                tenantRepository.save(free);
+              }
+            });
   }
 
   private void seedBootstrapAdmin() {
