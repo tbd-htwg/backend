@@ -89,8 +89,14 @@ public class TenantEntity {
   @Column(name = "header_title")
   private String headerTitle;
 
-  @Column(name = "icon_url", length = 1024)
+  @Column(name = "icon_url", columnDefinition = "TEXT")
   private String iconUrl;
+
+  @Column(name = "title_retract_to_initials", nullable = false)
+  private boolean titleRetractToInitials;
+
+  @Column(name = "invert_header_icon", nullable = false)
+  private boolean invertHeaderIcon;
 
   @Column(name = "frontend_path", length = 256)
   private String frontendPath;

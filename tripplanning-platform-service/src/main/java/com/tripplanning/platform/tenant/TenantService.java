@@ -7,6 +7,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tripplanning.platform.branding.BrandingIconService;
 import com.tripplanning.platform.config.PlatformProperties;
 import com.tripplanning.platform.provisioning.ProvisioningStepDefinitions;
 import com.tripplanning.platform.provisioning.TenantProvisioningService;
@@ -24,6 +25,7 @@ public class TenantService {
   private final PlatformProperties platformProperties;
   private final TenantProvisioningService provisioningService;
   private final ApplicationEventPublisher eventPublisher;
+  private final BrandingIconService brandingIconService;
 
   public List<TenantDtos.TenantDto> list(boolean includeArchived, String tierFilter, String statusFilter) {
     return tenantRepository.findAllByOrderByCreatedAtDesc().stream()
@@ -135,17 +137,59 @@ public class TenantService {
         tenantRepository
             .findById(id)
             .orElseThrow(() -> new IllegalArgumentException("Tenant not found"));
-    if (request.primaryColor() != null) {
-      entity.setPrimaryColor(request.primaryColor());
-    }
     if (request.headerTitle() != null) {
-      entity.setHeaderTitle(request.headerTitle());
+      entity.setHeaderTitle(
+          request.headerTitle().isBlank() ? entity.getDisplayName() : request.headerTitle());
     }
+    entity.setPrimaryColor(request.primaryColor());
     if (request.iconUrl() != null) {
-      entity.setIconUrl(request.iconUrl());
+      brandingIconService.deleteStoredIcon(entity, entity.getIconUrl());
+      entity.setIconUrl(request.iconUrl().isBlank() ? null : request.iconUrl());
+    }
+    if (request.titleRetractToInitials() != null) {
+      entity.setTitleRetractToInitials(request.titleRetractToInitials());
+    }
+    if (request.invertHeaderIcon() != null) {
+      entity.setInvertHeaderIcon(request.invertHeaderIcon());
     }
     entity.setUpdatedAt(Instant.now());
     return tenantMapper.toDto(tenantRepository.save(entity));
+  }
+
+  @Transactional
+  public TenantDtos.BrandingIconUploadResponse uploadBrandingIcon(
+      String id, TenantDtos.BrandingIconUploadRequest request) {
+    TenantEntity entity =
+        tenantRepository
+            .findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("Tenant not found"));
+    BrandingIconService.SignedUploadInfo signedUpload =
+        brandingIconService.createSignedUpload(entity, request.fileName(), request.contentType());
+    if (brandingIconService.usesStubStorage(entity)) {
+      return new TenantDtos.BrandingIconUploadResponse(
+          signedUpload.uploadUrl(), "", signedUpload.objectName(), signedUpload.contentType());
+    }
+    brandingIconService.deleteStoredIcon(entity, entity.getIconUrl());
+    entity.setIconUrl(signedUpload.objectName());
+    entity.setUpdatedAt(Instant.now());
+    tenantRepository.save(entity);
+    String signedReadUrl = brandingIconService.resolveIconUrl(entity, signedUpload.objectName());
+    return new TenantDtos.BrandingIconUploadResponse(
+        signedUpload.uploadUrl(), signedReadUrl, signedUpload.objectName(), signedUpload.contentType());
+  }
+
+  @Transactional
+  public String completeStubBrandingIconUpload(String tenantId, String token, byte[] body) {
+    TenantEntity entity =
+        tenantRepository
+            .findById(tenantId)
+            .orElseThrow(() -> new IllegalArgumentException("Tenant not found"));
+    brandingIconService.deleteStoredIcon(entity, entity.getIconUrl());
+    String dataUrl = brandingIconService.completeStubUpload(tenantId, token, body);
+    entity.setIconUrl(dataUrl);
+    entity.setUpdatedAt(Instant.now());
+    tenantRepository.save(entity);
+    return dataUrl;
   }
 
   @Transactional

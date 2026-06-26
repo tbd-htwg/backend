@@ -62,6 +62,8 @@ public class PlatformDataInitializer implements ApplicationRunner {
             .searchIndex("tripentity")
             .estimatedMonthlyCostEur(BigDecimal.ZERO)
             .headerTitle("Trip Planner")
+            .titleRetractToInitials(true)
+            .invertHeaderIcon(true)
             .enabledAuthProvidersJson(
                 provisioningJson.writeProviders(java.util.List.of("google", "password")))
             .provisioningStepsJson(
@@ -75,10 +77,22 @@ public class PlatformDataInitializer implements ApplicationRunner {
         .findBySlug("free")
         .ifPresent(
             free -> {
+              boolean changed = false;
               var providers = provisioningJson.readProviders(free.getEnabledAuthProvidersJson());
               if (providers.size() == 1 && providers.contains("password")) {
                 free.setEnabledAuthProvidersJson(
                     provisioningJson.writeProviders(java.util.List.of("google", "password")));
+                changed = true;
+              }
+              if (!free.isTitleRetractToInitials()) {
+                free.setTitleRetractToInitials(true);
+                changed = true;
+              }
+              if (!free.isInvertHeaderIcon()) {
+                free.setInvertHeaderIcon(true);
+                changed = true;
+              }
+              if (changed) {
                 tenantRepository.save(free);
               }
             });

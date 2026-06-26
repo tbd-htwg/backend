@@ -90,6 +90,11 @@ public class PlatformSecurityConfig {
                     .permitAll()
                     .requestMatchers(HttpMethod.POST, "/api/v2/auth/dev-login")
                     .permitAll()
+                    .requestMatchers(
+                        ant(
+                            HttpMethod.PUT,
+                            "/api/v2/admin/tenants/*/branding/icon/stub-upload/*"))
+                    .permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/v2/auth/me")
                     .authenticated()
                     .requestMatchers("/api/v2/admin/**")

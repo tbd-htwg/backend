@@ -44,6 +44,13 @@ management:
         enabled: true
 
 spring:
+  cloud:
+    gcp:
+      storage:
+        bucket-name: ${SPRING_CLOUD_GCP_STORAGE_BUCKET_NAME:}
+      impersonate-service-account: ${SPRING_CLOUD_GCP_IMPERSONATE_SERVICE_ACCOUNT:}
+      sql:
+        enabled: false
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:h2:mem:platform;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH}
     username: ${SPRING_DATASOURCE_USERNAME:sa}

@@ -5,6 +5,8 @@ import java.util.List;
 
 import org.springframework.stereotype.Component;
 
+import com.tripplanning.platform.branding.BrandingIconService;
+
 import lombok.RequiredArgsConstructor;
 
 @Component
@@ -12,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 public class TenantMapper {
 
   private final ProvisioningJson provisioningJson;
+  private final BrandingIconService brandingIconService;
 
   public TenantDtos.TenantDto toDto(TenantEntity entity) {
     return toDto(entity, Collections.emptyList());
@@ -39,7 +42,9 @@ public class TenantMapper {
         users,
         entity.getPrimaryColor(),
         entity.getHeaderTitle(),
-        entity.getIconUrl(),
+        resolveIconUrl(entity),
+        entity.isTitleRetractToInitials(),
+        entity.isInvertHeaderIcon(),
         entity.getFrontendPath(),
         entity.getImageTag());
   }
@@ -54,7 +59,17 @@ public class TenantMapper {
         provisioningJson.readProviders(entity.getEnabledAuthProvidersJson()),
         entity.getPrimaryColor(),
         entity.getHeaderTitle() != null ? entity.getHeaderTitle() : entity.getDisplayName(),
-        entity.getIconUrl(),
+        resolveIconUrl(entity),
+        entity.isTitleRetractToInitials(),
+        entity.isInvertHeaderIcon(),
         entity.getFrontendPath());
+  }
+
+  private String resolveIconUrl(TenantEntity entity) {
+    try {
+      return brandingIconService.resolveIconUrl(entity, entity.getIconUrl());
+    } catch (IllegalStateException e) {
+      return entity.getIconUrl();
+    }
   }
 }

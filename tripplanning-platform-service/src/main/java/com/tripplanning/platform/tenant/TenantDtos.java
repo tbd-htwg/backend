@@ -39,6 +39,8 @@ public final class TenantDtos {
       String primaryColor,
       String headerTitle,
       String iconUrl,
+      boolean titleRetractToInitials,
+      boolean invertHeaderIcon,
       String frontendPath,
       String imageTag) {}
 
@@ -53,7 +55,16 @@ public final class TenantDtos {
   public record SlugAvailabilityDto(boolean available, String reason) {}
 
   public record TenantBrandingUpdateRequest(
-      String primaryColor, String headerTitle, String iconUrl) {}
+      String primaryColor,
+      String headerTitle,
+      String iconUrl,
+      Boolean titleRetractToInitials,
+      Boolean invertHeaderIcon) {}
+
+  public record BrandingIconUploadRequest(String fileName, String contentType) {}
+
+  public record BrandingIconUploadResponse(
+      String uploadUrl, String signedReadUrl, String objectName, String contentType) {}
 
   public record PublicTenantConfigDto(
       String slug,
@@ -65,6 +76,8 @@ public final class TenantDtos {
       String primaryColor,
       String headerTitle,
       String iconUrl,
+      boolean titleRetractToInitials,
+      boolean invertHeaderIcon,
       String frontendPath) {}
 
   public record AuthConfigDto(

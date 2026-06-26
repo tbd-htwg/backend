@@ -1,0 +1,2 @@
+ALTER TABLE tenants
+    ADD COLUMN invert_header_icon BOOLEAN NOT NULL DEFAULT FALSE;
