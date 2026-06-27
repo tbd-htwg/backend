@@ -104,6 +104,27 @@ public class TripUserClient {
         .block(Duration.ofSeconds(10));
   }
 
+  /** Evicts cached tenant runtime (security flags) on the trip-service for this host. */
+  public void evictTenantRuntimeCache(String forwardedHost) {
+    if (internalSecret == null || internalSecret.isBlank()) {
+      return;
+    }
+    try {
+      webClient()
+          .baseUrl(resolveBaseUrl(forwardedHost))
+          .build()
+          .post()
+          .uri("/internal/cache/tenant-runtime/evict")
+          .header("X-Internal-Secret", internalSecret)
+          .header("X-Forwarded-Host", forwardedHost != null ? forwardedHost : "")
+          .retrieve()
+          .toBodilessEntity()
+          .block(Duration.ofSeconds(5));
+    } catch (Exception ignored) {
+      // Best-effort; trip-service cache TTL is the fallback.
+    }
+  }
+
   private TenantDtos.UserResponseDto post(String path, String forwardedHost, Map<String, String> body) {
     try {
       return webClient()

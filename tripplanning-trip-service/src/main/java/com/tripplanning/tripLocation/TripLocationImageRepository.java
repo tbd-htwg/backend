@@ -24,4 +24,15 @@ public interface TripLocationImageRepository extends JpaRepository<TripLocationI
             order by tl.trip.id, tl.id, img.id
             """)
     List<FeedImagePathRow> findFeedImagePathsByTripIds(@Param("tripIds") List<Long> tripIds);
+
+    @Query(
+            """
+            select distinct tl.trip.id
+            from TripLocationImageEntity img
+            join img.tripLocation tl
+            where tl.trip.id in :tripIds
+              and img.imagePath is not null
+              and trim(img.imagePath) <> ''
+            """)
+    List<Long> findTripIdsWithLocationImages(@Param("tripIds") List<Long> tripIds);
 }

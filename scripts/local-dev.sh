@@ -76,7 +76,7 @@ INTERNAL_SECRET="${INTERNAL_SECRET:-dev-internal-service-secret}"
 VIATOR_API_KEY="${VIATOR_API_KEY:-}"
 GOOGLE_MAPS_API_KEY="${GOOGLE_MAPS_API_KEY:-}"
 TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID="${TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID:-${GOOGLE_PROJECT}}"
-GCP_STORAGE_BUCKET_NAME="${GCP_STORAGE_BUCKET_NAME:-tbd-test}"
+GCP_STORAGE_BUCKET_NAME="${GCP_STORAGE_BUCKET_NAME:-tbd-cloudappdev-images-bucket}"
 GCP_IMPERSONATE_SERVICE_ACCOUNT="${GCP_IMPERSONATE_SERVICE_ACCOUNT:-tripplanning-image-url-sig@${GOOGLE_PROJECT}.iam.gserviceaccount.com}"
 ADC_FILE="${ADC_FILE:-${HOME}/.config/gcloud/application_default_credentials.json}"
 # Opt-in only: deploy/setup do not rsync _sample_images/ (~2.8 GiB) unless SYNC_SAMPLE_IMAGES=true
@@ -770,6 +770,8 @@ main() {
     sync-sample-images) cmd_sync_sample_images ;;
     seed-job) cmd_seed_job "$@" ;;
     reset-search-index) cmd_reset_search_index "$@" ;;
+    setup-gcs|bucket-cors) cmd_setup_gcs ;;
+    setup-gcs-iam) cmd_setup_gcs_iam ;;
     help|-h|--help) usage ;;
     *)
       ensure_local_kubectl_target
@@ -781,8 +783,6 @@ main() {
         delete) cmd_delete ;;
         deploy) cmd_deploy ;;
         verify) cmd_verify "$@" ;;
-        setup-gcs|bucket-cors) cmd_setup_gcs ;;
-        setup-gcs-iam) cmd_setup_gcs_iam ;;
         status) cmd_status ;;
         port-forward) cmd_port_forward ;;
         logs) cmd_logs "$@" ;;

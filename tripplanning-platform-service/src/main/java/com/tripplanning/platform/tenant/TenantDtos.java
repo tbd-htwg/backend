@@ -43,7 +43,12 @@ public final class TenantDtos {
       boolean invertHeaderIcon,
       String frontendPath,
       String imageTag,
-      TenantResourceConfigDto resourceConfig) {}
+      TenantResourceConfigDto resourceConfig,
+      boolean publicTripAccess,
+      boolean publicImageAccess) {}
+
+  public record TenantSecurityUpdateRequest(
+      boolean publicTripAccess, boolean publicImageAccess) {}
 
   public record TenantCreateRequest(
       @NotBlank
@@ -91,7 +96,9 @@ public final class TenantDtos {
       String iconUrl,
       boolean titleRetractToInitials,
       boolean invertHeaderIcon,
-      String frontendPath) {}
+      String frontendPath,
+      boolean publicTripAccess,
+      boolean publicImageAccess) {}
 
   public record AuthConfigDto(
       String identityPlatformTenantId, List<String> enabledAuthProviders) {}

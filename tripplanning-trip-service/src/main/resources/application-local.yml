@@ -56,7 +56,7 @@ spring:
       # ms2 dev defaults; override via GCP_IMPERSONATE_SERVICE_ACCOUNT / GCP_STORAGE_BUCKET_NAME (ConfigMap or env)
       impersonate-service-account: ${GCP_IMPERSONATE_SERVICE_ACCOUNT:tripplanning-image-url-sig@tbd-cloudappdev.iam.gserviceaccount.com}
       storage:
-        bucket-name: ${GCP_STORAGE_BUCKET_NAME:tbd-test}
+        bucket-name: ${GCP_STORAGE_BUCKET_NAME:tbd-cloudappdev-images-bucket}
       sql:
         enabled: false
 

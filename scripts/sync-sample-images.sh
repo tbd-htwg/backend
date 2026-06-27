@@ -5,7 +5,7 @@
 #   ./scripts/sync-sample-images.sh [--target test|prod]
 #
 # Targets:
-#   test (default)  → gs://tbd-test/sample/                         (Minikube/local dev)
+#   test (default)  → gs://tbd-cloudappdev-images-bucket/sample/    (local dev / Minikube)
 #   prod            → gs://tbd-cloudappdev-images-bucket/sample/    (GKE tripplanning-free)
 #
 # Explicit --target always wins over docs/gettingstarted/.env (avoids accidental test-bucket sync on GKE).
@@ -15,7 +15,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 LOCAL_GETTINGSTARTED="${SCRIPT_DIR}/../docs/gettingstarted"
 
-BUCKET_TEST="tbd-test"
+BUCKET_TEST="tbd-cloudappdev-images-bucket"
 BUCKET_PROD="tbd-cloudappdev-images-bucket"
 TARGET=""
 

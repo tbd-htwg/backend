@@ -368,6 +368,10 @@ cmd_start() {
     exit 1
   fi
 
+  # spring-boot:run resolves sibling modules from ~/.m2; refresh common after record/DTO changes.
+  echo "== Installing tripplanning-common =="
+  mvn -q install -pl tripplanning-common -DskipTests -f "${BACKEND_DIR}/pom.xml"
+
   start_valkey
   start_firestore
 
@@ -390,6 +394,8 @@ cmd_start() {
   start_and_wait trip tripplanning-trip-service 8080 \
     "${REDIS_ENV[@]}" \
     SPRING_PROFILES_ACTIVE=local \
+    GCP_STORAGE_BUCKET_NAME="${GCP_STORAGE_BUCKET_NAME:-tbd-cloudappdev-images-bucket}" \
+    GCP_IMPERSONATE_SERVICE_ACCOUNT="${GCP_IMPERSONATE_SERVICE_ACCOUNT:-tripplanning-image-url-sig@tbd-cloudappdev.iam.gserviceaccount.com}" \
     TRIPPLANNING_AUTH_JWT_SECRET="${TRIPPLANNING_AUTH_JWT_SECRET}" \
     TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID="${TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID}" \
     TRIPPLANNING_SOCIAL_SERVICE_URL=http://localhost:8081 \

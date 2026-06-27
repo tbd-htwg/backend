@@ -8,3 +8,6 @@ tripplanning:
   auth:
     firebase-project-id: ${TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID:tbd-cloudappdev}
     jwt-secret: ${TRIPPLANNING_AUTH_JWT_SECRET:local-dev-jwt-secret-min-32-chars!!}
+  platform:
+    bootstrap-admin-email: ${TRIPPLANNING_PLATFORM_BOOTSTRAP_ADMIN_EMAIL:jakob.schwarz@htwg-konstanz.de}
+    additional-admin-emails: ${TRIPPLANNING_PLATFORM_ADDITIONAL_ADMIN_EMAILS:jonas.wunsch@htwg-konstanz.de,sophia.deiser@htwg-konstanz.de,benedict.benthien@htwg-konstanz.de}

@@ -19,4 +19,6 @@ public class TripSearchDto {
     private List<String> locations;
     private List<String> accommodationNames;
     private List<String> transportRoutes;
+    /** True when the trip has at least one trip-location image in storage. */
+    private Boolean hasLocationImages;
 }

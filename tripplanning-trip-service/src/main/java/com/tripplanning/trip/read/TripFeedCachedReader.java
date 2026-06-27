@@ -76,8 +76,9 @@ public class TripFeedCachedReader {
                 queryHeaders(
                         "SELECT new com.tripplanning.trip.read.TripFeedCachedReader$TripHeaderRow("
                                 + "t.id, t.title, t.destination, t.startDate, t.shortDescription,"
-                                + " u.id, u.name, u.imagePath)"
+                                + " u.id, u.name, u.imagePath, t.visible)"
                                 + " FROM TripEntity t JOIN t.user u"
+                                + " WHERE t.visible = true"
                                 + " ORDER BY t.id DESC",
                         Map.of(),
                         page,
@@ -87,25 +88,33 @@ public class TripFeedCachedReader {
 
     @Cacheable(
             value = CacheConfig.TRIP_FEED_BY_USER,
-            key = "@tenantCacheKeyPrefix.qualifyUserPage(#userId, #page, #size)")
+            key = "@tenantCacheKeyPrefix.qualifyUserPage(#userId, #includeHidden, #page, #size)")
     @Transactional(readOnly = true)
-    public TripFeedPageRaw feedByUserRaw(long userId, int page, int size) {
-        long totalItems = countByUser(userId);
+    public TripFeedPageRaw feedByUserRaw(long userId, boolean includeHidden, int page, int size) {
+        long totalItems = countByUser(userId, includeHidden);
         if (totalItems == 0) {
             return emptyRawPage(page, size);
         }
+        String visibilityClause = includeHidden ? "" : " AND t.visible = true";
         List<TripHeaderRow> headers =
                 queryHeaders(
                         "SELECT new com.tripplanning.trip.read.TripFeedCachedReader$TripHeaderRow("
                                 + "t.id, t.title, t.destination, t.startDate, t.shortDescription,"
-                                + " u.id, u.name, u.imagePath)"
+                                + " u.id, u.name, u.imagePath, t.visible)"
                                 + " FROM TripEntity t JOIN t.user u"
                                 + " WHERE u.id = :userId"
+                                + visibilityClause
                                 + " ORDER BY t.id DESC",
                         Map.of("userId", userId),
                         page,
                         size);
         return assembleRawPage(headers, page, size, totalItems);
+    }
+
+    /** @deprecated Use {@link #feedByUserRaw(long, boolean, int, int)}. */
+    @Transactional(readOnly = true)
+    public TripFeedPageRaw feedByUserRaw(long userId, int page, int size) {
+        return feedByUserRaw(userId, false, page, size);
     }
 
     @Cacheable(
@@ -131,9 +140,9 @@ public class TripFeedCachedReader {
                                 .createQuery(
                                         "SELECT new com.tripplanning.trip.read.TripFeedCachedReader$TripHeaderRow("
                                                 + "t.id, t.title, t.destination, t.startDate, t.shortDescription,"
-                                                + " u.id, u.name, u.imagePath)"
+                                                + " u.id, u.name, u.imagePath, t.visible)"
                                                 + " FROM TripEntity t JOIN t.user u"
-                                                + " WHERE t.id IN :ids",
+                                                + " WHERE t.id IN :ids AND t.visible = true",
                                         TripHeaderRow.class)
                                 .setParameter("ids", pageIds)
                                 .getResultList());
@@ -169,7 +178,7 @@ public class TripFeedCachedReader {
                             .createQuery(
                                     "SELECT new com.tripplanning.trip.read.TripFeedCachedReader$TripDetailHeaderRow("
                                             + "t.id, t.title, t.destination, t.destinationGooglePlaceId, t.startDate,"
-                                            + " t.shortDescription, t.longDescription,"
+                                            + " t.shortDescription, t.longDescription, t.visible,"
                                             + " u.id, u.name, u.imagePath)"
                                             + " FROM TripEntity t JOIN t.user u"
                                             + " WHERE t.id = :id",
@@ -279,6 +288,7 @@ public class TripFeedCachedReader {
                 header.startDate(),
                 header.shortDescription(),
                 header.longDescription() == null ? "" : header.longDescription(),
+                header.visible(),
                 new TripFeedAuthorRaw(header.authorId(), header.authorName(), header.authorImagePath()),
                 stops,
                 accommodations,
@@ -314,7 +324,7 @@ public class TripFeedCachedReader {
 
     private long countAll() {
         return entityManager
-                .createQuery("SELECT count(t.id) FROM TripEntity t", Long.class)
+                .createQuery("SELECT count(t.id) FROM TripEntity t WHERE t.visible = true", Long.class)
                 .getSingleResult();
     }
 
@@ -326,11 +336,13 @@ public class TripFeedCachedReader {
         return countAll();
     }
 
-    private long countByUser(long userId) {
+    private long countByUser(long userId, boolean includeHidden) {
+        String jpql =
+                includeHidden
+                        ? "SELECT count(t.id) FROM TripEntity t WHERE t.user.id = :userId"
+                        : "SELECT count(t.id) FROM TripEntity t WHERE t.user.id = :userId AND t.visible = true";
         return entityManager
-                .createQuery(
-                        "SELECT count(t.id) FROM TripEntity t WHERE t.user.id = :userId",
-                        Long.class)
+                .createQuery(jpql, Long.class)
                 .setParameter("userId", userId)
                 .getSingleResult();
     }
@@ -361,7 +373,8 @@ public class TripFeedCachedReader {
                             new TripFeedAuthorRaw(row.authorId(), row.authorName(), row.authorImagePath()),
                             locationsByTripId.getOrDefault(row.id(), List.of()),
                             accomNamesByTripId.getOrDefault(row.id(), List.of()),
-                            transportRoutesByTripId.getOrDefault(row.id(), List.of())));
+                            transportRoutesByTripId.getOrDefault(row.id(), List.of()),
+                            row.visible()));
         }
         return new TripFeedPageRaw(items, page, size, totalItems, totalPages(totalItems, size));
     }
@@ -456,7 +469,8 @@ public class TripFeedCachedReader {
             TripFeedAuthorRaw author,
             List<String> locations,
             List<String> accommodationNames,
-            List<String> transportRoutes) {}
+            List<String> transportRoutes,
+            boolean visible) {}
 
     public record TripFeedDetailRaw(
             long id,
@@ -466,6 +480,7 @@ public class TripFeedCachedReader {
             LocalDate startDate,
             String shortDescription,
             String longDescription,
+            boolean visible,
             TripFeedAuthorRaw author,
             List<TripFeedDetailStopRaw> stops,
             List<TripFeedAccommodation> accommodations,
@@ -500,7 +515,8 @@ public class TripFeedCachedReader {
             String shortDescription,
             Long authorId,
             String authorName,
-            String authorImagePath) {}
+            String authorImagePath,
+            boolean visible) {}
 
     public record TripDetailHeaderRow(
             Long id,
@@ -510,6 +526,7 @@ public class TripFeedCachedReader {
             LocalDate startDate,
             String shortDescription,
             String longDescription,
+            boolean visible,
             Long authorId,
             String authorName,
             String authorImagePath) {}

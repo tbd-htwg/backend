@@ -48,7 +48,9 @@ public class TenantMapper {
         entity.isInvertHeaderIcon(),
         entity.getFrontendPath(),
         entity.getImageTag(),
-        resourceConfigService.read(entity.getResourceConfigJson()));
+        resourceConfigService.read(entity.getResourceConfigJson()),
+        entity.isPublicTripAccess(),
+        entity.isPublicImageAccess());
   }
 
   public TenantDtos.PublicTenantConfigDto toPublicConfig(TenantEntity entity) {
@@ -64,7 +66,9 @@ public class TenantMapper {
         resolveIconUrl(entity),
         entity.isTitleRetractToInitials(),
         entity.isInvertHeaderIcon(),
-        entity.getFrontendPath());
+        entity.getFrontendPath(),
+        entity.isPublicTripAccess(),
+        entity.isPublicImageAccess());
   }
 
   private String resolveIconUrl(TenantEntity entity) {

@@ -92,6 +92,7 @@ public class TripSimilarityServiceLucene implements TripSimilarityPort {
                     .fetch(offset, size);
 
             List<TripSearchDto> content = result.hits().stream()
+                    .filter(TripEntity::isVisible)
                     .map(this::toDto)
                     .collect(Collectors.toList());
 

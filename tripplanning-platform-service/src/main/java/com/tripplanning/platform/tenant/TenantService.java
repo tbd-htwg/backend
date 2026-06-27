@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tripplanning.platform.branding.BrandingIconService;
+import com.tripplanning.platform.client.TripUserClient;
 import com.tripplanning.platform.config.PlatformProperties;
 import com.tripplanning.platform.infra.TenantInfrastructureProvisioner;
 import com.tripplanning.platform.provisioning.ProvisioningStepDefinitions;
@@ -29,6 +30,7 @@ public class TenantService {
   private final BrandingIconService brandingIconService;
   private final TenantResourceConfigService resourceConfigService;
   private final TenantInfrastructureProvisioner infrastructureProvisioner;
+  private final TripUserClient tripUserClient;
 
   public List<TenantDtos.TenantDto> list(boolean includeArchived, String tierFilter, String statusFilter) {
     return tenantRepository.findAllByOrderByCreatedAtDesc().stream()
@@ -157,6 +159,20 @@ public class TenantService {
     }
     entity.setUpdatedAt(Instant.now());
     return tenantMapper.toDto(tenantRepository.save(entity));
+  }
+
+  @Transactional
+  public TenantDtos.TenantDto updateSecurity(String id, TenantDtos.TenantSecurityUpdateRequest request) {
+    TenantEntity entity =
+        tenantRepository
+            .findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("Tenant not found"));
+    entity.setPublicTripAccess(request.publicTripAccess());
+    entity.setPublicImageAccess(request.publicImageAccess());
+    entity.setUpdatedAt(Instant.now());
+    TenantEntity saved = tenantRepository.save(entity);
+    tripUserClient.evictTenantRuntimeCache(TripUserClient.hostHeaderFromUrl(saved.getHostUrl()));
+    return tenantMapper.toDto(saved);
   }
 
   @Transactional

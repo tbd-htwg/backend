@@ -92,6 +92,14 @@ public class PlatformDataInitializer implements ApplicationRunner {
                 free.setInvertHeaderIcon(true);
                 changed = true;
               }
+              if (!free.isPublicTripAccess()) {
+                free.setPublicTripAccess(true);
+                changed = true;
+              }
+              if (!free.isPublicImageAccess()) {
+                free.setPublicImageAccess(true);
+                changed = true;
+              }
               if (changed) {
                 tenantRepository.save(free);
               }

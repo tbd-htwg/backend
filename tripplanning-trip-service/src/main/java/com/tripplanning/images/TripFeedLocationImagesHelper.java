@@ -2,9 +2,11 @@ package com.tripplanning.images;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
@@ -34,6 +36,14 @@ public class TripFeedLocationImagesHelper {
      * @param startIndex first flattened image index per trip (0-based); ignored when null
      * @param perTripLimit max images per trip from {@code startIndex}; null means all remaining
      */
+    /** Trip ids from {@code tripIds} that have at least one non-blank location image path. */
+    public Set<Long> tripIdsWithLocationImages(List<Long> tripIds) {
+        if (tripIds == null || tripIds.isEmpty()) {
+            return Set.of();
+        }
+        return new HashSet<>(tripLocationImageRepository.findTripIdsWithLocationImages(tripIds));
+    }
+
     public Map<Long, List<String>> collectFeedLocationImageUrls(
             List<Long> tripIds, Integer startIndex, Integer perTripLimit) {
         if (tripIds == null || tripIds.isEmpty()) {

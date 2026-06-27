@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.hibernate.search.engine.search.query.SearchResult;
 import org.hibernate.search.mapper.orm.Search;
@@ -16,6 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tripplanning.images.TripFeedLocationImagesHelper;
 import com.tripplanning.transport.TransportRoutes;
 import com.tripplanning.trip.TripEntity;
 
@@ -31,6 +33,7 @@ import lombok.RequiredArgsConstructor;
 public class TripSearchCachedReader {
 
     private final EntityManager entityManager;
+    private final TripFeedLocationImagesHelper tripFeedLocationImagesHelper;
 
     @Transactional(readOnly = true)
     public Page<TripSearchDto> searchRaw(String terms, int page, int size) {
@@ -90,6 +93,7 @@ public class TripSearchCachedReader {
         Map<Long, List<String>> locations = batchLocationNamesByTripId(ids);
         Map<Long, List<String>> accomNames = batchAccommodationNamesByTripId(ids);
         Map<Long, List<String>> transportRoutes = batchTransportRoutesByTripId(ids);
+        Set<Long> tripIdsWithImages = tripFeedLocationImagesHelper.tripIdsWithLocationImages(ids);
 
         List<TripSearchDto> out = new ArrayList<>(ids.size());
         for (Long id : ids) {
@@ -109,6 +113,7 @@ public class TripSearchCachedReader {
                             .locations(locations.getOrDefault(id, List.of()))
                             .accommodationNames(accomNames.getOrDefault(id, List.of()))
                             .transportRoutes(transportRoutes.getOrDefault(id, List.of()))
+                            .hasLocationImages(tripIdsWithImages.contains(id))
                             .build());
         }
         return out;
@@ -121,8 +126,8 @@ public class TripSearchCachedReader {
                                 "SELECT new com.tripplanning.search.TripSearchCachedReader$SearchHeaderRow("
                                         + "t.id, t.title, t.destination, t.startDate, t.shortDescription,"
                                         + " u.id, u.name)"
-                                        + " FROM TripEntity t JOIN t.user u"
-                                        + " WHERE t.id IN :ids",
+                                        +                                 " FROM TripEntity t JOIN t.user u"
+                                        + " WHERE t.id IN :ids AND t.visible = true",
                                 SearchHeaderRow.class)
                         .setParameter("ids", ids)
                         .getResultList();

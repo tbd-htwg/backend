@@ -35,7 +35,9 @@ public class InternalTenantController {
       String dbPassword,
       String searchIndex,
       String gcsBucket,
-      String objectPrefix) {}
+      String objectPrefix,
+      boolean publicTripAccess,
+      boolean publicImageAccess) {}
 
   public record ProvisioningCallbackResponse(String outcome) {}
   public record TenantDeletionResponse(String outcome) {}
@@ -69,7 +71,9 @@ public class InternalTenantController {
         credentials.password(),
         entity.getSearchIndex(),
         entity.getGcsBucket(),
-        TenantNaming.objectPrefix(entity.getSlug(), entity.getTier()));
+        TenantNaming.objectPrefix(entity.getSlug(), entity.getTier()),
+        entity.isPublicTripAccess(),
+        entity.isPublicImageAccess());
   }
 
   @PostMapping("/{slug}/provisioning-callback")
