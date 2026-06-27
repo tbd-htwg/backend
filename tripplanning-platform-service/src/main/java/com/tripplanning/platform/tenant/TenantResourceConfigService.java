@@ -108,14 +108,14 @@ public class TenantResourceConfigService {
 
   public TenantDtos.TenantResourceConfigDto defaults() {
     return new TenantDtos.TenantResourceConfigDto(
-        false, defaultService("trip"), defaultService("social"), defaultService("externalInfo"));
+        true, defaultService("trip"), defaultService("social"), defaultService("externalInfo"));
   }
 
   private static TenantDtos.TenantServiceResourceDto defaultService(String serviceName) {
     return switch (serviceName) {
-      case "trip" -> new TenantDtos.TenantServiceResourceDto("SMALL", 1, 1, 3);
-      case "social" -> new TenantDtos.TenantServiceResourceDto("SMALL", 1, 1, 2);
-      case "externalInfo" -> new TenantDtos.TenantServiceResourceDto("SMALL", 1, 1, 2);
+      case "trip" -> new TenantDtos.TenantServiceResourceDto("SMALL", 1, 1, 4);
+      case "social" -> new TenantDtos.TenantServiceResourceDto("SMALL", 1, 1, 3);
+      case "externalInfo" -> new TenantDtos.TenantServiceResourceDto("SMALL", 1, 1, 3);
       default -> throw new IllegalArgumentException("Unsupported service: " + serviceName);
     };
   }
@@ -125,13 +125,13 @@ public class TenantResourceConfigService {
     static ResourcePreset forService(String service, String size) {
       String key = size == null ? "SMALL" : size.toUpperCase(Locale.ROOT);
       return switch (service + ":" + key) {
-        case "trip:SMALL" -> new ResourcePreset("300m", "512Mi", "1000m", "1Gi");
+        case "trip:SMALL" -> new ResourcePreset("100m", "512Mi", "1000m", "1Gi");
         case "trip:MEDIUM" -> new ResourcePreset("600m", "768Mi", "1500m", "1536Mi");
         case "trip:LARGE" -> new ResourcePreset("1000m", "1Gi", "2000m", "2Gi");
-        case "social:SMALL" -> new ResourcePreset("200m", "384Mi", "750m", "768Mi");
+        case "social:SMALL" -> new ResourcePreset("50m", "384Mi", "750m", "768Mi");
         case "social:MEDIUM" -> new ResourcePreset("400m", "512Mi", "1000m", "1Gi");
         case "social:LARGE" -> new ResourcePreset("750m", "768Mi", "1500m", "1536Mi");
-        case "externalInfo:SMALL" -> new ResourcePreset("150m", "256Mi", "500m", "512Mi");
+        case "externalInfo:SMALL" -> new ResourcePreset("50m", "256Mi", "500m", "512Mi");
         case "externalInfo:MEDIUM" -> new ResourcePreset("300m", "384Mi", "750m", "768Mi");
         case "externalInfo:LARGE" -> new ResourcePreset("500m", "512Mi", "1000m", "1Gi");
         default -> throw new IllegalArgumentException("Unsupported resource size " + size + " for " + service);

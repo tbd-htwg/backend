@@ -15,6 +15,17 @@ class TenantResourceConfigServiceTest {
       new TenantResourceConfigService(new ObjectMapper());
 
   @Test
+  void defaultsMatchEnterpriseChartDevelopmentProfile() {
+    TenantDtos.TenantResourceConfigDto defaults = service.defaults();
+
+    assertThat(defaults.autoscalingEnabled()).isTrue();
+    assertThat(defaults.trip().maxReplicas()).isEqualTo(4);
+    assertThat(defaults.social().maxReplicas()).isEqualTo(3);
+    assertThat(defaults.externalInfo().maxReplicas()).isEqualTo(3);
+    assertThat(service.toWorkflowPayload(defaults).toString()).contains("100m", "512Mi");
+  }
+
+  @Test
   void buildsWorkflowPayloadWithBoundedAutoscalingValues() {
     TenantDtos.TenantResourceConfigDto config =
         new TenantDtos.TenantResourceConfigDto(
