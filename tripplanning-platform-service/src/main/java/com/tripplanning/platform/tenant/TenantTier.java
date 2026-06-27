@@ -10,4 +10,8 @@ public enum TenantTier {
   public boolean supportsCustomFields() {
     return this == ENTERPRISE || this == DEVELOP;
   }
+
+  public boolean supportsResourceScaling() {
+    return this == ENTERPRISE || this == DEVELOP;
+  }
 }

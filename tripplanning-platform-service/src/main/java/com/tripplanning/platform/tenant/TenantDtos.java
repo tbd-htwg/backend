@@ -71,7 +71,8 @@ public final class TenantDtos {
       boolean autoscalingEnabled,
       TenantServiceResourceDto trip,
       TenantServiceResourceDto social,
-      TenantServiceResourceDto externalInfo) {}
+      TenantServiceResourceDto externalInfo,
+      TenantServiceResourceDto customfield) {}
 
   public record TenantServiceResourceDto(
       String size,

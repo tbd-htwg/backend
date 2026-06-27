@@ -255,8 +255,9 @@ public class TenantService {
         tenantRepository
             .findById(id)
             .orElseThrow(() -> new IllegalArgumentException("Tenant not found"));
-    if (entity.getTier() != TenantTier.ENTERPRISE) {
-      throw new IllegalStateException("Resource controls are only available for Enterprise tenants");
+    if (!entity.getTier().supportsResourceScaling()) {
+      throw new IllegalStateException(
+          "Resource controls are only available for Enterprise and local Develop tenants");
     }
     if (entity.getStatus() == TenantStatus.ARCHIVED || entity.getStatus() == TenantStatus.FAILED) {
       throw new IllegalStateException("Tenant resources can only be changed for active or provisioning tenants");
@@ -267,8 +268,10 @@ public class TenantService {
     entity.setResourceConfigJson(json);
     entity.setUpdatedAt(Instant.now());
     TenantEntity saved = tenantRepository.save(entity);
-    infrastructureProvisioner.updateEnterpriseTenantResources(
-        saved.getSlug(), resourceConfigService.toWorkflowPayload(config));
+    if (saved.getTier() == TenantTier.ENTERPRISE) {
+      infrastructureProvisioner.updateEnterpriseTenantResources(
+          saved.getSlug(), resourceConfigService.toWorkflowPayload(config));
+    }
     return tenantMapper.toDto(saved);
   }
 }
