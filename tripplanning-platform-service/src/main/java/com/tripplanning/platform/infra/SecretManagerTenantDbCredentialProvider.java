@@ -27,7 +27,7 @@ public class SecretManagerTenantDbCredentialProvider implements TenantDbCredenti
             ? tenant.getDbUser()
             : TenantNaming.dbUser(tenant.getSlug(), tier);
 
-    if (tier == TenantTier.FREE || tier == null) {
+    if (tier == TenantTier.FREE || tier == TenantTier.DEVELOP || tier == null) {
       return new DbCredentials(user, "");
     }
     if (projectId == null || projectId.isBlank()) {

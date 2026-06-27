@@ -369,7 +369,7 @@ Trip-service uses the **tbd-cloudappdev** dev bucket and signer SA, configured v
 
 | Setting | Default (local Minikube) |
 |---------|--------------------------|
-| Bucket | `tbd-test` |
+| Bucket | `tbd-cloudappdev-images-bucket` |
 | Signer SA | `tripplanning-image-url-sig@tbd-cloudappdev.iam.gserviceaccount.com` |
 
 Override in `.env` with `GCP_STORAGE_BUCKET_NAME` and `GCP_IMPERSONATE_SERVICE_ACCOUNT` if your console setup differs.
@@ -378,7 +378,7 @@ For **GKE / ms2** (`tbd-cloudappdev`), use the ms2 getting-started guide and Ter
 
 ### One-time setup (image uploads)
 
-1. **GCP console** (or `./scripts/local-dev.sh setup-gcs-iam`): bucket `tbd-test` and signer SA `tripplanning-image-url-sig` in project **tbd-cloudappdev**, plus IAM for your user to impersonate the SA.
+1. **GCP console** (or `./scripts/local-dev.sh setup-gcs-iam`): bucket `tbd-cloudappdev-images-bucket` and signer SA `tripplanning-image-url-sig` in project **tbd-cloudappdev**, plus IAM for your user to impersonate the SA.
 
 2. **Application Default Credentials** on your machine:
 

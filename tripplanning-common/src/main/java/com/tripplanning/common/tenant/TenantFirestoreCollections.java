@@ -17,4 +17,18 @@ public final class TenantFirestoreCollections {
     }
     return slug + "_likes";
   }
+
+  public static String customFields(String slug) {
+    if (slug == null || slug.isBlank() || TenantContext.FREE_SLUG.equals(slug)) {
+      return "custom_fields";
+    }
+    return slug + "_custom_fields";
+  }
+
+  public static String tripCustomFieldValues(String slug) {
+    if (slug == null || slug.isBlank() || TenantContext.FREE_SLUG.equals(slug)) {
+      return "trip_custom_field_values";
+    }
+    return slug + "_trip_custom_field_values";
+  }
 }

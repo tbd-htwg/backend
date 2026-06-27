@@ -39,8 +39,12 @@ public class TenantCacheKeyPrefix {
   }
 
   public Object qualifyUserPage(long userId, int page, int size) {
+    return qualifyUserPage(userId, false, page, size);
+  }
+
+  public Object qualifyUserPage(long userId, boolean includeHidden, int page, int size) {
     String p = prefix();
-    List<Object> key = List.of(userId, page, size);
+    List<Object> key = List.of(userId, includeHidden, page, size);
     return p.isEmpty() ? key : p + key;
   }
 

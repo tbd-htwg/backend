@@ -22,6 +22,7 @@ class TenantResourceConfigServiceTest {
     assertThat(defaults.trip().maxReplicas()).isEqualTo(4);
     assertThat(defaults.social().maxReplicas()).isEqualTo(3);
     assertThat(defaults.externalInfo().maxReplicas()).isEqualTo(3);
+    assertThat(defaults.customfield().maxReplicas()).isEqualTo(3);
     assertThat(service.toWorkflowPayload(defaults).toString()).contains("100m", "512Mi");
   }
 
@@ -32,7 +33,8 @@ class TenantResourceConfigServiceTest {
             true,
             new TenantDtos.TenantServiceResourceDto("MEDIUM", 1, 2, 4),
             new TenantDtos.TenantServiceResourceDto("SMALL", 1, 1, 3),
-            new TenantDtos.TenantServiceResourceDto("LARGE", 1, 1, 3));
+            new TenantDtos.TenantServiceResourceDto("LARGE", 1, 1, 3),
+            new TenantDtos.TenantServiceResourceDto("SMALL", 1, 1, 3));
 
     Map<String, Object> payload = service.toWorkflowPayload(config);
 
@@ -48,13 +50,31 @@ class TenantResourceConfigServiceTest {
   }
 
   @Test
+  void readLegacyResourceConfigWithoutCustomfield() {
+    String legacy =
+        """
+        {"autoscalingEnabled":true,
+         "trip":{"size":"SMALL","replicas":1,"minReplicas":1,"maxReplicas":4},
+         "social":{"size":"SMALL","replicas":1,"minReplicas":1,"maxReplicas":3},
+         "externalInfo":{"size":"SMALL","replicas":1,"minReplicas":1,"maxReplicas":3}}
+        """;
+
+    TenantDtos.TenantResourceConfigDto config = service.read(legacy);
+
+    assertThat(config.customfield()).isNotNull();
+    assertThat(config.customfield().size()).isEqualTo("SMALL");
+    assertThat(config.customfield().maxReplicas()).isEqualTo(3);
+  }
+
+  @Test
   void rejectsReplicaRangesOutsideGuardrails() {
     TenantDtos.TenantResourceConfigDto config =
         new TenantDtos.TenantResourceConfigDto(
             true,
             new TenantDtos.TenantServiceResourceDto("LARGE", 1, 6, 6),
             new TenantDtos.TenantServiceResourceDto("LARGE", 1, 6, 6),
-            new TenantDtos.TenantServiceResourceDto("LARGE", 1, 1, 6));
+            new TenantDtos.TenantServiceResourceDto("LARGE", 1, 1, 6),
+            null);
 
     assertThatThrownBy(() -> service.write(config))
         .isInstanceOf(IllegalArgumentException.class)
@@ -67,6 +87,7 @@ class TenantResourceConfigServiceTest {
         new TenantDtos.TenantResourceConfigDto(
             false,
             new TenantDtos.TenantServiceResourceDto("XL", 1, 1, 3),
+            null,
             null,
             null);
 

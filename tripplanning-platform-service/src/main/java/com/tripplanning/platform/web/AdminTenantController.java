@@ -89,6 +89,16 @@ public class AdminTenantController {
     }
   }
 
+  @PutMapping("/{id}/security")
+  public TenantDtos.TenantDto updateSecurity(
+      @PathVariable String id, @RequestBody TenantDtos.TenantSecurityUpdateRequest request) {
+    try {
+      return tenantService.updateSecurity(id, request);
+    } catch (IllegalArgumentException e) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+    }
+  }
+
   @PostMapping("/{id}/branding/icon")
   public TenantDtos.BrandingIconUploadResponse uploadBrandingIcon(
       @PathVariable String id, @RequestBody TenantDtos.BrandingIconUploadRequest request) {

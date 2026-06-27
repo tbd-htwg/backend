@@ -109,4 +109,12 @@ public class TenantEntity {
 
   @Column(name = "provisioning_steps_json", columnDefinition = "TEXT")
   private String provisioningStepsJson;
+
+  @Column(name = "public_trip_access", nullable = false)
+  @Builder.Default
+  private boolean publicTripAccess = true;
+
+  @Column(name = "public_image_access", nullable = false)
+  @Builder.Default
+  private boolean publicImageAccess = true;
 }

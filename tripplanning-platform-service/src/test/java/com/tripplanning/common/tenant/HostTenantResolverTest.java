@@ -40,6 +40,22 @@ class HostTenantResolverTest {
   }
 
   @Test
+  void resolvesDevelopFromLocalhost() {
+    assertThat(HostTenantResolver.resolveSlug("localhost:5173", HOST_BASE, ENTERPRISE_BASE))
+        .isEqualTo("develop");
+    assertThat(HostTenantResolver.resolveSlug("127.0.0.1:8080", HOST_BASE, ENTERPRISE_BASE))
+        .isEqualTo("develop");
+  }
+
+  @Test
+  void developTierFromSlug() {
+    assertThat(
+            HostTenantResolver.tierForSlug(
+                "develop", "localhost:5173", ENTERPRISE_BASE))
+        .isEqualTo("DEVELOP");
+  }
+
+  @Test
   void unknownHostFallsBackToFree() {
     assertThat(HostTenantResolver.resolveSlug("example.com", HOST_BASE, ENTERPRISE_BASE))
         .isEqualTo("free");

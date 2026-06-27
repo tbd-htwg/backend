@@ -37,6 +37,12 @@ public class TenantContextFilter extends OncePerRequestFilter {
   }
 
   @Override
+  protected boolean shouldNotFilter(HttpServletRequest request) {
+    String path = request.getRequestURI();
+    return path != null && path.startsWith("/actuator/");
+  }
+
+  @Override
   protected void doFilterInternal(
       HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
       throws ServletException, IOException {
@@ -46,7 +52,12 @@ public class TenantContextFilter extends OncePerRequestFilter {
               request.getHeader("X-Forwarded-Host"), request.getHeader("Host"));
       String slug = HostTenantResolver.resolveSlug(host, hostBase, enterpriseHostBase);
       TenantPlatformClient.TenantRuntime runtime = tenantPlatformClient.resolve(slug);
-      TenantContextHolder.set(new TenantContext(runtime.slug(), runtime.tier()));
+      TenantContextHolder.set(
+          new TenantContext(
+              runtime.slug(),
+              runtime.tier(),
+              runtime.publicTripAccess(),
+              runtime.publicImageAccess()));
 
       if (!"free".equals(slug)) {
         var auth = SecurityContextHolder.getContext().getAuthentication();

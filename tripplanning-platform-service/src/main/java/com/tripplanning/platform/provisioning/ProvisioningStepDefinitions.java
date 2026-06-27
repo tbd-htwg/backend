@@ -17,7 +17,7 @@ public final class ProvisioningStepDefinitions {
   public static List<TenantDtos.ProvisioningStepDto> initialSteps(TenantTier tier, boolean stubLabels) {
     return switch (tier) {
       case STANDARD -> standardSteps(0, null, stubLabels);
-      case ENTERPRISE -> enterpriseSteps(0, null, stubLabels);
+      case ENTERPRISE, DEVELOP -> enterpriseSteps(0, null, stubLabels);
       default -> List.of();
     };
   }
@@ -115,7 +115,7 @@ public final class ProvisioningStepDefinitions {
   public static List<TenantDtos.ProvisioningStepDto> completed(TenantTier tier, boolean stubLabels) {
     return switch (tier) {
       case STANDARD -> standardSteps(5, null, stubLabels);
-      case ENTERPRISE -> enterpriseSteps(7, null, stubLabels);
+      case ENTERPRISE, DEVELOP -> enterpriseSteps(7, null, stubLabels);
       default -> List.of();
     };
   }

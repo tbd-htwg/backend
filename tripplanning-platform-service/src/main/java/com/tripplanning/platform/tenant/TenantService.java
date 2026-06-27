@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tripplanning.platform.branding.BrandingIconService;
+import com.tripplanning.platform.client.TripUserClient;
 import com.tripplanning.platform.config.PlatformProperties;
 import com.tripplanning.platform.infra.TenantInfrastructureProvisioner;
 import com.tripplanning.platform.provisioning.ProvisioningStepDefinitions;
@@ -29,6 +30,7 @@ public class TenantService {
   private final BrandingIconService brandingIconService;
   private final TenantResourceConfigService resourceConfigService;
   private final TenantInfrastructureProvisioner infrastructureProvisioner;
+  private final TripUserClient tripUserClient;
 
   public List<TenantDtos.TenantDto> list(boolean includeArchived, String tierFilter, String statusFilter) {
     return tenantRepository.findAllByOrderByCreatedAtDesc().stream()
@@ -85,6 +87,9 @@ public class TenantService {
     TenantTier tier = TenantTier.valueOf(request.tier().trim().toUpperCase());
     if (tier == TenantTier.FREE) {
       throw new IllegalArgumentException("Free tier cannot be created via admin API");
+    }
+    if (tier == TenantTier.DEVELOP) {
+      throw new IllegalArgumentException("Develop tier is reserved for the local JVM environment");
     }
     validateGeneratedResourceNames(slug, tier);
 
@@ -157,6 +162,20 @@ public class TenantService {
     }
     entity.setUpdatedAt(Instant.now());
     return tenantMapper.toDto(tenantRepository.save(entity));
+  }
+
+  @Transactional
+  public TenantDtos.TenantDto updateSecurity(String id, TenantDtos.TenantSecurityUpdateRequest request) {
+    TenantEntity entity =
+        tenantRepository
+            .findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("Tenant not found"));
+    entity.setPublicTripAccess(request.publicTripAccess());
+    entity.setPublicImageAccess(request.publicImageAccess());
+    entity.setUpdatedAt(Instant.now());
+    TenantEntity saved = tenantRepository.save(entity);
+    tripUserClient.evictTenantRuntimeCache(TripUserClient.hostHeaderFromUrl(saved.getHostUrl()));
+    return tenantMapper.toDto(saved);
   }
 
   @Transactional
@@ -236,8 +255,9 @@ public class TenantService {
         tenantRepository
             .findById(id)
             .orElseThrow(() -> new IllegalArgumentException("Tenant not found"));
-    if (entity.getTier() != TenantTier.ENTERPRISE) {
-      throw new IllegalStateException("Resource controls are only available for Enterprise tenants");
+    if (!entity.getTier().supportsResourceScaling()) {
+      throw new IllegalStateException(
+          "Resource controls are only available for Enterprise and local Develop tenants");
     }
     if (entity.getStatus() == TenantStatus.ARCHIVED || entity.getStatus() == TenantStatus.FAILED) {
       throw new IllegalStateException("Tenant resources can only be changed for active or provisioning tenants");
@@ -248,8 +268,10 @@ public class TenantService {
     entity.setResourceConfigJson(json);
     entity.setUpdatedAt(Instant.now());
     TenantEntity saved = tenantRepository.save(entity);
-    infrastructureProvisioner.updateEnterpriseTenantResources(
-        saved.getSlug(), resourceConfigService.toWorkflowPayload(config));
+    if (saved.getTier() == TenantTier.ENTERPRISE) {
+      infrastructureProvisioner.updateEnterpriseTenantResources(
+          saved.getSlug(), resourceConfigService.toWorkflowPayload(config));
+    }
     return tenantMapper.toDto(saved);
   }
 }

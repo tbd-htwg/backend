@@ -10,10 +10,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import com.tripplanning.common.client.SocialServiceClient;
 import com.tripplanning.images.ImageService;
+import com.tripplanning.images.TripFeedLocationImagesHelper;
 import com.tripplanning.search.TripSearchDto;
 import com.tripplanning.search.TripSimilarityPort;
 import com.tripplanning.trip.TripRepository;
@@ -53,24 +55,37 @@ public class TripFeedService {
 
     private final TripFeedCachedReader cachedReader;
     private final ImageService imageService;
+    private final TripFeedLocationImagesHelper tripFeedLocationImagesHelper;
     private final TripRepository tripRepository;
     private final SocialServiceClient socialServiceClient;
     private final TripSimilarityPort tripSimilarityPort;
 
-    public TripFeedPage<TripFeedItem> feed(int page, int size) {
+    public TripFeedPage<TripFeedItem> feed(int page, int size, Authentication authentication) {
+        TripAccessHelper.requirePublicTripAccessOrAuth(authentication);
         return materialise(cachedReader.feedRaw(safePage(page), safeSize(size)), SOURCE_LATEST);
     }
 
-    public TripFeedPage<TripFeedItem> feedByUser(long userId, int page, int size) {
-        return materialise(cachedReader.feedByUserRaw(userId, safePage(page), safeSize(size)));
+    public TripFeedPage<TripFeedItem> feedByUser(
+            long userId, int page, int size, Authentication authentication) {
+        TripAccessHelper.requirePublicTripAccessOrAuth(authentication);
+        Long viewerUserId = TripAccessHelper.viewerUserId(authentication);
+        boolean includeHidden = viewerUserId != null && viewerUserId == userId;
+        return materialise(
+                cachedReader.feedByUserRaw(userId, includeHidden, safePage(page), safeSize(size)));
     }
 
-    public TripFeedPage<TripFeedItem> feedLikedBy(long userId, int page, int size) {
+    public TripFeedPage<TripFeedItem> feedLikedBy(
+            long userId, int page, int size, Authentication authentication) {
+        TripAccessHelper.requirePublicTripAccessOrAuth(authentication);
         return materialise(cachedReader.feedLikedByRaw(userId, safePage(page), safeSize(size)));
     }
 
-    public TripFeedDetail detail(long tripId) {
-        return materialiseDetail(cachedReader.detailRaw(tripId));
+    public TripFeedDetail detail(long tripId, Authentication authentication) {
+        TripAccessHelper.requirePublicTripAccessOrAuth(authentication);
+        Long viewerUserId = TripAccessHelper.viewerUserId(authentication);
+        TripFeedDetailRaw raw = cachedReader.detailRaw(tripId);
+        TripAccessHelper.assertTripReadable(raw, viewerUserId);
+        return materialiseDetail(raw);
     }
 
     public boolean tripExists(long tripId) {
@@ -86,7 +101,9 @@ public class TripFeedService {
      * @param page   zero-based page index
      * @param size   page size
      */
-    public TripFeedPage<TripFeedItem> recommendedFeed(long userId, int page, int size) {
+    public TripFeedPage<TripFeedItem> recommendedFeed(
+            long userId, int page, int size, Authentication authentication) {
+        TripAccessHelper.requirePublicTripAccessOrAuth(authentication);
         List<Long> likedIds = socialServiceClient.getLikedTripIdsForUser(userId);
         if (likedIds == null) {
             likedIds = List.of();
@@ -127,7 +144,7 @@ public class TripFeedService {
             log.info(
                     "recommendedFeed userId={} referenceIds=[] mltTotalHits=0 fallback=true reason=no-anchors",
                     userId);
-            return withSource(feed(page, size), SOURCE_LATEST_FALLBACK);
+            return withSource(feed(page, size, authentication), SOURCE_LATEST_FALLBACK);
         }
 
         List<Long> excludeList = new ArrayList<>(excludeIds);
@@ -140,7 +157,7 @@ public class TripFeedService {
                     "recommendedFeed userId={} referenceIds={} mltTotalHits=0 fallback=true",
                     userId,
                     referenceIds);
-            return withSource(feed(page, size), SOURCE_LATEST_FALLBACK);
+            return withSource(feed(page, size, authentication), SOURCE_LATEST_FALLBACK);
         }
 
         log.info(
@@ -150,9 +167,10 @@ public class TripFeedService {
                 similar.getTotalElements());
 
         List<TripFeedItem> items =
-                similar.getContent().stream()
-                        .map(this::searchDtoToFeedItem)
-                        .collect(Collectors.toList());
+                withHasLocationImages(
+                        similar.getContent().stream()
+                                .map(this::searchDtoToFeedItem)
+                                .collect(Collectors.toList()));
 
         return new TripFeedPage<>(
                 items,
@@ -192,7 +210,9 @@ public class TripFeedService {
                 author,
                 dto.getLocations() != null ? dto.getLocations() : List.of(),
                 dto.getAccommodationNames() != null ? dto.getAccommodationNames() : List.of(),
-                dto.getTransportRoutes() != null ? dto.getTransportRoutes() : List.of());
+                dto.getTransportRoutes() != null ? dto.getTransportRoutes() : List.of(),
+                Boolean.TRUE.equals(dto.getHasLocationImages()),
+                true);
     }
 
     private TripFeedPage<TripFeedItem> materialise(TripFeedPageRaw raw) {
@@ -207,6 +227,11 @@ public class TripFeedService {
         }
         List<String> signedAuthorUrls = signPathsInOrder(authorPaths);
 
+        List<TripFeedItem> items = withHasLocationImages(buildItems(rawItems, signedAuthorUrls));
+        return new TripFeedPage<>(items, raw.page(), raw.size(), raw.totalItems(), raw.totalPages(), source);
+    }
+
+    private List<TripFeedItem> buildItems(List<TripFeedItemRaw> rawItems, List<String> signedAuthorUrls) {
         List<TripFeedItem> items = new ArrayList<>(rawItems.size());
         for (int i = 0; i < rawItems.size(); i++) {
             TripFeedItemRaw item = rawItems.get(i);
@@ -223,9 +248,35 @@ public class TripFeedService {
                                     signedAuthorUrls.get(i)),
                             item.locations(),
                             item.accommodationNames(),
-                            item.transportRoutes()));
+                            item.transportRoutes(),
+                            false,
+                            item.visible()));
         }
-        return new TripFeedPage<>(items, raw.page(), raw.size(), raw.totalItems(), raw.totalPages(), source);
+        return items;
+    }
+
+    private List<TripFeedItem> withHasLocationImages(List<TripFeedItem> items) {
+        if (items.isEmpty()) {
+            return items;
+        }
+        List<Long> ids = items.stream().map(TripFeedItem::id).toList();
+        Set<Long> withImages = tripFeedLocationImagesHelper.tripIdsWithLocationImages(ids);
+        return items.stream()
+                .map(
+                        item ->
+                                new TripFeedItem(
+                                        item.id(),
+                                        item.title(),
+                                        item.destination(),
+                                        item.startDate(),
+                                        item.shortDescription(),
+                                        item.author(),
+                                        item.locations(),
+                                        item.accommodationNames(),
+                                        item.transportRoutes(),
+                                        withImages.contains(item.id()),
+                                        item.visible()))
+                .toList();
     }
 
     private TripFeedDetail materialiseDetail(TripFeedDetailRaw raw) {
@@ -274,6 +325,7 @@ public class TripFeedService {
                 raw.startDate(),
                 raw.shortDescription(),
                 raw.longDescription(),
+                raw.visible(),
                 new TripFeedAuthor(raw.author().id(), raw.author().name(), authorUrl),
                 stops,
                 raw.accommodations(),
