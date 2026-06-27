@@ -134,7 +134,7 @@ class LikedFeedIntegrationTest {
         when(socialServiceClient.getLikedTripIdsForUser(viewer.getId()))
                 .thenReturn(List.of(likedTrip.getId()));
 
-        tripFeedService.feedLikedBy(viewer.getId(), 0, 10);
+        tripFeedService.feedLikedBy(viewer.getId(), 0, 10, null);
         assertThat(cacheManager.getCache(CacheConfig.TRIP_FEED_LIKED_BY).get(List.of(viewer.getId(), 0, 10)))
                 .isNotNull();
     }

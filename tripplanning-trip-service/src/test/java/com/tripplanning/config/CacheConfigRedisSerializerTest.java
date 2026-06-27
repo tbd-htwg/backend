@@ -34,7 +34,8 @@ class CacheConfigRedisSerializerTest {
                                         new TripFeedAuthorRaw(2L, "Alice", "avatars/a.jpg"),
                                         List.of("Paris"),
                                         List.of(),
-                                        List.of())),
+                                        List.of(),
+                                        true)),
                         0,
                         10,
                         1L,
@@ -61,6 +62,7 @@ class CacheConfigRedisSerializerTest {
                         LocalDate.of(2024, 6, 1),
                         "short",
                         "long",
+                        true,
                         new TripFeedAuthorRaw(2L, "Alice", ""),
                         List.of(),
                         List.of(
