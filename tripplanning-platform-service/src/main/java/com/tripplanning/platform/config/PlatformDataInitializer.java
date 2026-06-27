@@ -6,8 +6,11 @@ import java.util.Arrays;
 
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
+import com.tripplanning.common.tenant.HostTenantResolver;
+import com.tripplanning.platform.infra.IdentityPlatformTenantIds;
 import com.tripplanning.platform.provisioning.ProvisioningStepDefinitions;
 import com.tripplanning.platform.tenant.PlatformAdminEntity;
 import com.tripplanning.platform.tenant.PlatformAdminRepository;
@@ -28,11 +31,19 @@ public class PlatformDataInitializer implements ApplicationRunner {
   private final PlatformAdminRepository platformAdminRepository;
   private final ProvisioningJson provisioningJson;
   private final PlatformProperties platformProperties;
+  private final Environment environment;
 
   @Override
   public void run(ApplicationArguments args) {
     seedFreeTenant();
+    if (isLocalProfile()) {
+      seedDevelopTenant();
+    }
     seedBootstrapAdmin();
+  }
+
+  private boolean isLocalProfile() {
+    return java.util.Arrays.asList(environment.getActiveProfiles()).contains("local");
   }
 
   private void seedFreeTenant() {
@@ -102,6 +113,64 @@ public class PlatformDataInitializer implements ApplicationRunner {
               }
               if (changed) {
                 tenantRepository.save(free);
+              }
+            });
+  }
+
+  private void seedDevelopTenant() {
+    if (tenantRepository.existsBySlug(HostTenantResolver.DEVELOP_SLUG)) {
+      upgradeDevelopTenantForLocalStubAuth();
+      return;
+    }
+    String slug = HostTenantResolver.DEVELOP_SLUG;
+    String hostBase = platformProperties.getHostBase();
+    Instant now = Instant.now();
+    boolean stubLabels = platformProperties.getProvisioning().isUseStubs();
+    TenantEntity develop =
+        TenantEntity.builder()
+            .id("tenant-develop")
+            .slug(slug)
+            .displayName("Local Development")
+            .tier(TenantTier.DEVELOP)
+            .status(TenantStatus.ACTIVE)
+            .hostUrl(
+                TenantNaming.hostUrl(
+                    slug,
+                    TenantTier.DEVELOP,
+                    hostBase,
+                    platformProperties.getEnterpriseHostBase()))
+            .namespace(TenantNaming.namespace(slug, TenantTier.DEVELOP))
+            .createdAt(now)
+            .updatedAt(now)
+            .dbName(TenantNaming.dbName(slug, TenantTier.DEVELOP))
+            .searchIndex(TenantNaming.searchIndex(slug, TenantTier.DEVELOP))
+            .firestoreDatabase("(default)-develop")
+            .gcsBucket(TenantNaming.gcsBucket(slug, TenantTier.DEVELOP))
+            .frontendPath(TenantNaming.frontendPath(slug, TenantTier.DEVELOP))
+            .imageTag(TenantNaming.imageTag(slug, TenantTier.DEVELOP))
+            .estimatedMonthlyCostEur(TenantNaming.estimatedCost(TenantTier.DEVELOP))
+            .headerTitle("Trip Planner (Dev)")
+            .enabledAuthProvidersJson(
+                provisioningJson.writeProviders(java.util.List.of("google", "password")))
+            .provisioningStepsJson(
+                provisioningJson.writeSteps(
+                    ProvisioningStepDefinitions.completed(TenantTier.DEVELOP, stubLabels)))
+            .build();
+    tenantRepository.save(develop);
+  }
+
+  /** Local stub mode uses the shared Firebase project realm, not fake stub-idp-* tenant IDs. */
+  private void upgradeDevelopTenantForLocalStubAuth() {
+    if (!platformProperties.getProvisioning().isUseStubs()) {
+      return;
+    }
+    tenantRepository
+        .findBySlug(HostTenantResolver.DEVELOP_SLUG)
+        .ifPresent(
+            develop -> {
+              if (IdentityPlatformTenantIds.isStubTenantId(develop.getIdentityPlatformTenantId())) {
+                develop.setIdentityPlatformTenantId(null);
+                tenantRepository.save(develop);
               }
             });
   }

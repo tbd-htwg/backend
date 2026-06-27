@@ -88,6 +88,9 @@ public class TenantService {
     if (tier == TenantTier.FREE) {
       throw new IllegalArgumentException("Free tier cannot be created via admin API");
     }
+    if (tier == TenantTier.DEVELOP) {
+      throw new IllegalArgumentException("Develop tier is reserved for the local JVM environment");
+    }
     validateGeneratedResourceNames(slug, tier);
 
     Instant now = Instant.now();

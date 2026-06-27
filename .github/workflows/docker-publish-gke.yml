@@ -12,6 +12,7 @@ on:
       - "tripplanning-trip-service/**"
       - "tripplanning-social-service/**"
       - "tripplanning-external-info-service/**"
+      - "tripplanning-customfield-service/**"
       - "tripplanning-platform-service/**"
       - "tripplanning-seed-job/**"
       - ".github/workflows/docker-publish-gke.yml"
@@ -67,6 +68,7 @@ jobs:
           social=false
           external_info=false
           platform=false
+          customfield=false
           seed_job=false
 
           if printf '%s\n' "${changed_files}" | grep -Eq '^(__manual__|Dockerfile$|pom.xml$|tripplanning-common/|\.github/workflows/docker-publish-gke\.yml$)'; then
@@ -83,6 +85,9 @@ jobs:
           fi
           if [[ "${all}" == "true" ]] || printf '%s\n' "${changed_files}" | grep -q '^tripplanning-platform-service/'; then
             platform=true
+          fi
+          if [[ "${all}" == "true" ]] || printf '%s\n' "${changed_files}" | grep -q '^tripplanning-customfield-service/'; then
+            customfield=true
           fi
           if [[ "${all}" == "true" ]] || printf '%s\n' "${changed_files}" | grep -q '^tripplanning-seed-job/'; then
             seed_job=true
@@ -113,6 +118,7 @@ jobs:
           add_service "${social}" "social" "social" "tripplanning-social-service" "social-service"
           add_service "${external_info}" "external-info" "external-info" "tripplanning-external-info-service" "external-info-service"
           add_service "${platform}" "platform" "platform" "tripplanning-platform-service" "platform-service"
+          add_service "${customfield}" "customfield" "customfield" "tripplanning-customfield-service" "customfield-service"
           add_service "${seed_job}" "seed-job" "seed-job" "tripplanning-seed-job" ""
 
           echo "matrix=${matrix}" >> "${GITHUB_OUTPUT}"

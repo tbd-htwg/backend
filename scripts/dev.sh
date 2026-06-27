@@ -5,8 +5,8 @@
 # Usage:
 #   ./scripts/dev.sh [start|stop|restart|status|logs [service]]
 #
-# Services: valkey, firestore, external-info, social, trip, platform
-# API: trip :8080, social :8081, external-info :8082, platform :8083
+# Services: valkey, firestore, external-info, social, customfield, trip, platform
+# API: trip :8080, social :8081, external-info :8082, platform :8083, customfield :8084
 # Frontend: cd ../frontend && npm run dev
 set -euo pipefail
 
@@ -50,13 +50,16 @@ JWT_SECRET="${JWT_SECRET:-local-dev-only-change-me-32bytes-min!!}"
 INTERNAL_SECRET="${INTERNAL_SECRET:-dev-internal-service-secret}"
 TRIPPLANNING_AUTH_JWT_SECRET="${TRIPPLANNING_AUTH_JWT_SECRET:-${JWT_SECRET}}"
 TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID="${TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID:-tbd-cloudappdev}"
+CUSTOMFIELD_PORT="${CUSTOMFIELD_PORT:-8084}"
+CUSTOMFIELD_URL="${TRIPPLANNING_CUSTOMFIELD_SERVICE_URL:-http://localhost:${CUSTOMFIELD_PORT}}"
 
-ALL_SERVICES=(valkey firestore external-info social trip platform)
+ALL_SERVICES=(valkey firestore external-info social customfield trip platform)
 
 # name:port:maven-module (spring-boot:run forks a child JVM — stop must free the port too)
 JAVA_SERVICES=(
   "external-info:8082:tripplanning-external-info-service"
   "social:8081:tripplanning-social-service"
+  "customfield:${CUSTOMFIELD_PORT}:tripplanning-customfield-service"
   "trip:8080:tripplanning-trip-service"
   "platform:8083:tripplanning-platform-service"
 )
@@ -126,20 +129,69 @@ kill_port() {
   local port="$1"
   local pids
   pids="$(pids_on_port "${port}")"
-  if [[ -z "${pids// }" ]]; then
-    return 0
+  if [[ -n "${pids// }" ]]; then
+    echo "Freeing port ${port} (pid(s): ${pids})"
+    # shellcheck disable=SC2086
+    kill ${pids} 2>/dev/null || true
+    sleep 1
+    # shellcheck disable=SC2086
+    kill -9 ${pids} 2>/dev/null || true
   fi
-  echo "Freeing port ${port} (pid(s): ${pids})"
-  # shellcheck disable=SC2086
-  kill ${pids} 2>/dev/null || true
-  sleep 1
-  # shellcheck disable=SC2086
-  kill -9 ${pids} 2>/dev/null || true
+  # Minikube/kubectl port-forward often leaves docker-proxy bound without fuser/lsof visibility.
+  pids="$(pgrep -f "docker-proxy.*-host-port ${port} " 2>/dev/null | tr '\n' ' ' || true)"
+  if [[ -n "${pids// }" ]]; then
+    echo "Freeing docker-proxy on port ${port} (pid(s): ${pids})"
+    # shellcheck disable=SC2086
+    kill ${pids} 2>/dev/null || true
+    sleep 1
+  fi
+}
+
+port_is_listening() {
+  local port="$1"
+  if command -v ss >/dev/null 2>&1; then
+    ss -H -ltn "sport = :${port}" 2>/dev/null | grep -q .
+    return $?
+  fi
+  port_in_use_by_pid "${port}"
+}
+
+port_in_use_by_pid() {
+  local port="$1"
+  [[ -n "$(pids_on_port "${port}")" ]]
 }
 
 port_in_use() {
   local port="$1"
-  [[ -n "$(pids_on_port "${port}")" ]]
+  port_is_listening "${port}" || port_in_use_by_pid "${port}"
+}
+
+port_blocker_hint() {
+  local port="$1"
+  echo "Port ${port} is already in use and could not be freed."
+  echo "  Common cause: a leftover Minikube/Docker port-forward (docker-proxy)."
+  echo "  Try: pgrep -af 'docker-proxy.*-host-port ${port} '"
+  echo "  Or use another port: CUSTOMFIELD_PORT=8085 TRIPPLANNING_CUSTOMFIELD_SERVICE_URL=http://localhost:8085 ./scripts/dev.sh start"
+}
+
+ensure_port_available() {
+  local name="$1"
+  local port="$2"
+  local module="$3"
+  if service_running "${name}" && health_ok "${port}"; then
+    return 0
+  fi
+  if port_is_listening "${port}" || port_in_use_by_pid "${port}"; then
+    echo "WARN: port ${port} in use (${name} orphan or foreign listener?) — freeing"
+    stop_java_service "${name}" "${port}" "${module}"
+    sleep 1
+  fi
+  if port_is_listening "${port}"; then
+    echo "ERROR: ${name} cannot bind to port ${port}."
+    port_blocker_hint "${port}"
+    ss -tln 2>/dev/null | grep ":${port} " || true
+    exit 1
+  fi
 }
 
 stop_service() {
@@ -378,7 +430,8 @@ cmd_start() {
   start_and_wait external-info tripplanning-external-info-service 8082 \
     "${REDIS_ENV[@]}" \
     TRIPPLANNING_AUTH_JWT_SECRET="${TRIPPLANNING_AUTH_JWT_SECRET}" \
-    TRIPPLANNING_INTERNAL_SECRET="${INTERNAL_SECRET}"
+    TRIPPLANNING_INTERNAL_SECRET="${INTERNAL_SECRET}" \
+    GOOGLE_MAPS_API_KEY="${GOOGLE_MAPS_API_KEY:-}"
 
   start_and_wait social tripplanning-social-service 8081 \
     "${REDIS_ENV[@]}" \
@@ -390,6 +443,25 @@ cmd_start() {
     SPRING_CLOUD_GCP_FIRESTORE_HOST_PORT=localhost:9090 \
     SPRING_CLOUD_GCP_FIRESTORE_EMULATOR_ENABLED=true \
     GOOGLE_CLOUD_PROJECT="${TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID}"
+
+  start_and_wait customfield tripplanning-customfield-service 8084 \
+    SPRING_PROFILES_ACTIVE=local \
+    TRIPPLANNING_AUTH_JWT_SECRET="${TRIPPLANNING_AUTH_JWT_SECRET}" \
+    TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID="${TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID}" \
+    TRIPPLANNING_TRIP_SERVICE_URL=http://localhost:8080 \
+    TRIPPLANNING_INTERNAL_SECRET="${INTERNAL_SECRET}" \
+    SPRING_CLOUD_GCP_FIRESTORE_HOST_PORT=localhost:9090 \
+    SPRING_CLOUD_GCP_FIRESTORE_EMULATOR_ENABLED=true \
+    GOOGLE_CLOUD_PROJECT="${TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID}"
+
+  start_and_wait platform tripplanning-platform-service 8083 \
+    SPRING_PROFILES_ACTIVE=local \
+    TRIPPLANNING_AUTH_JWT_SECRET="${TRIPPLANNING_AUTH_JWT_SECRET}" \
+    TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID="${TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID}" \
+    TRIPPLANNING_TRIP_SERVICE_URL=http://localhost:8080 \
+    TRIPPLANNING_CUSTOMFIELD_SERVICE_URL=http://localhost:8084 \
+    TRIPPLANNING_INTERNAL_SECRET="${INTERNAL_SECRET}" \
+    TRIPPLANNING_PLATFORM_USE_STUBS="${TRIPPLANNING_PLATFORM_USE_STUBS:-true}"
 
   start_and_wait trip tripplanning-trip-service 8080 \
     "${REDIS_ENV[@]}" \
@@ -403,14 +475,6 @@ cmd_start() {
     TRIPPLANNING_PLATFORM_BASE_URL=http://localhost:8083 \
     TRIPPLANNING_INTERNAL_SECRET="${INTERNAL_SECRET}"
 
-  start_and_wait platform tripplanning-platform-service 8083 \
-    SPRING_PROFILES_ACTIVE=local \
-    TRIPPLANNING_AUTH_JWT_SECRET="${TRIPPLANNING_AUTH_JWT_SECRET}" \
-    TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID="${TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID}" \
-    TRIPPLANNING_TRIP_SERVICE_URL=http://localhost:8080 \
-    TRIPPLANNING_INTERNAL_SECRET="${INTERNAL_SECRET}" \
-    TRIPPLANNING_PLATFORM_USE_STUBS="${TRIPPLANNING_PLATFORM_USE_STUBS:-true}"
-
   if [[ "${TRIPPLANNING_PLATFORM_USE_STUBS:-true}" == "true" ]]; then
     echo ""
     echo "WARN: Provisioning STUB mode (TRIPPLANNING_PLATFORM_USE_STUBS=true) — no real GCP/Terraform resources"
@@ -421,7 +485,9 @@ cmd_start() {
   echo "  social-service        http://localhost:8081"
   echo "  external-info-service http://localhost:8082"
   echo "  platform-service      http://localhost:8083"
+  echo "  customfield-service   http://localhost:8084"
   echo "  Valkey (cache)        localhost:${VALKEY_PORT}"
+  echo "  Local tenant slug     develop (http://localhost:5173 → tenant-develop)"
   echo "  Logs: ${LOG_DIR}/"
   echo "  Frontend: cd ${REPO_ROOT}/frontend && npm run dev"
 }
@@ -446,7 +512,7 @@ cmd_status() {
   else
     echo "valkey: stopped"
   fi
-  for name in firestore external-info social trip platform; do
+  for name in firestore external-info social customfield trip platform; do
     if service_running "${name}"; then
       echo "${name}: running (pid $(cat "${PID_DIR}/${name}.pid"))"
     else
