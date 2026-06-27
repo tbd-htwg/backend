@@ -175,10 +175,6 @@ ingressRoutes:
     service: platform-service
     port: 8083
     pathType: Prefix
-  - path: /api/v2/admin/custom-fields
-    service: customfield-service
-    port: 8084
-    pathType: Prefix
   - path: /api/v2/admin
     service: platform-service
     port: 8083

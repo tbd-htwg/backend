@@ -48,23 +48,16 @@ public class TenantContextFilter extends OncePerRequestFilter {
       String host =
           HostTenantResolver.effectiveHost(
               request.getHeader("X-Forwarded-Host"), request.getHeader("Host"));
-      String headerSlug = request.getHeader(AdminCustomFieldController.ADMIN_TENANT_SLUG_HEADER);
-      String slug =
-          headerSlug != null && !headerSlug.isBlank()
-              ? normalizeSlug(headerSlug)
-              : HostTenantResolver.resolveSlug(host, hostBase, enterpriseHostBase);
+      String slug = HostTenantResolver.resolveSlug(host, hostBase, enterpriseHostBase);
       String tier = HostTenantResolver.tierForSlug(slug, host, enterpriseHostBase);
       TenantContextHolder.set(new TenantContext(slug, tier));
 
-      boolean adminCustomFields =
-          request.getRequestURI() != null
-              && request.getRequestURI().startsWith("/api/v2/admin/custom-fields");
       boolean publicTripFieldsRead =
           "GET".equalsIgnoreCase(request.getMethod())
               && request.getRequestURI() != null
               && request.getRequestURI().matches("/api/v2/trips/\\d+/custom-fields");
 
-      if (!"free".equals(slug) && !publicTripFieldsRead && !adminCustomFields) {
+      if (!"free".equals(slug) && !publicTripFieldsRead) {
         var auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.getPrincipal() instanceof Jwt jwt) {
           String tokenSlug = jwt.getClaimAsString("tenant_slug");
