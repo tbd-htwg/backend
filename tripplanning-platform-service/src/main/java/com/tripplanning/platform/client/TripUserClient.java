@@ -1,10 +1,12 @@
 package com.tripplanning.platform.client;
 
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
@@ -25,8 +27,10 @@ public class TripUserClient {
   private final TenantRepository tenantRepository;
   private final String hostBase;
   private final String enterpriseHostBase;
+  private final boolean useLocalServices;
 
   public TripUserClient(
+      Environment environment,
       @Value("${tripplanning.services.trip-base-url:http://localhost:8080}") String baseUrl,
       @Value("${tripplanning.services.internal-secret:}") String internalSecret,
       @Value("${tripplanning.platform.host-base:k8s.tbd-htwg.de}") String hostBase,
@@ -38,6 +42,7 @@ public class TripUserClient {
     this.hostBase = hostBase;
     this.enterpriseHostBase = enterpriseHostBase;
     this.tenantRepository = tenantRepository;
+    this.useLocalServices = Arrays.asList(environment.getActiveProfiles()).contains("local");
     this.webClientBuilder =
         WebClient.builder().defaultHeader(HttpHeaders.ACCEPT, "application/json");
   }
@@ -154,6 +159,11 @@ public class TripUserClient {
         .findBySlug(slug)
         .map(
             tenant -> {
+              if (useLocalServices
+                  || tenant.getTier() == TenantTier.DEVELOP
+                  || tenant.getTier() == TenantTier.FREE) {
+                return freeBaseUrl;
+              }
               if (tenant.getTier() == TenantTier.STANDARD) {
                 return "http://trip-service.tripplanning-standard.svc.cluster.local:8080";
               }

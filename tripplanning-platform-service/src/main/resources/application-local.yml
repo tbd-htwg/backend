@@ -1,4 +1,5 @@
 # Local development: enable dev-login and Firebase against the shared dev project.
+# localhost / 127.0.0.1 resolve to the seeded develop tenant (enterprise-capable, stub stack).
 spring:
   config:
     activate:

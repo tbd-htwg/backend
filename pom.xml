@@ -25,6 +25,7 @@
     <module>tripplanning-social-service</module>
     <module>tripplanning-external-info-service</module>
     <module>tripplanning-platform-service</module>
+    <module>tripplanning-customfield-service</module>
     <module>tripplanning-seed-job</module>
   </modules>
 

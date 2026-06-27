@@ -3,6 +3,8 @@ package com.tripplanning.common.tenant;
 public final class HostTenantResolver {
 
   public static final String DEFAULT_ENTERPRISE_HOST_BASE = "enterprise.k8s.tbd-htwg.de";
+  /** Slug for the local JVM develop tenant ({@code localhost} / {@code 127.0.0.1}). */
+  public static final String DEVELOP_SLUG = "develop";
 
   private HostTenantResolver() {}
 
@@ -29,6 +31,9 @@ public final class HostTenantResolver {
       return TenantContext.FREE_SLUG;
     }
     String host = hostHeader.split(":")[0].trim().toLowerCase();
+    if (isLocalDevHost(host)) {
+      return DEVELOP_SLUG;
+    }
     String base = hostBase == null ? "" : hostBase.trim().toLowerCase();
     if (base.isEmpty() || host.equals(base)) {
       return TenantContext.FREE_SLUG;
@@ -66,5 +71,27 @@ public final class HostTenantResolver {
             ? DEFAULT_ENTERPRISE_HOST_BASE
             : enterpriseHostBase.trim().toLowerCase();
     return host.endsWith("." + entBase);
+  }
+
+  public static boolean isLocalDevHost(String hostHeader) {
+    if (hostHeader == null || hostHeader.isBlank()) {
+      return false;
+    }
+    String host = hostHeader.split(":")[0].trim().toLowerCase();
+    return "localhost".equals(host) || "127.0.0.1".equals(host);
+  }
+
+  /** Resolves tier label when platform DB is unavailable (social/customfield filters). */
+  public static String tierForSlug(String slug, String hostHeader, String enterpriseHostBase) {
+    if (TenantContext.FREE_SLUG.equals(slug)) {
+      return "FREE";
+    }
+    if (DEVELOP_SLUG.equals(slug)) {
+      return "DEVELOP";
+    }
+    if (isEnterpriseHost(hostHeader, enterpriseHostBase)) {
+      return "ENTERPRISE";
+    }
+    return "STANDARD";
   }
 }

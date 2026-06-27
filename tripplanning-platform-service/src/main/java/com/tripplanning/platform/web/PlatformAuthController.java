@@ -14,6 +14,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.tripplanning.common.tenant.HostTenantResolver;
 import com.tripplanning.platform.auth.FirebaseCredentialVerifier;
+import com.tripplanning.platform.infra.IdentityPlatformTenantIds;
 import com.tripplanning.platform.auth.PlatformAdminService;
 import com.tripplanning.platform.auth.PlatformAppJwtService;
 import com.tripplanning.platform.client.TripUserClient;
@@ -127,7 +128,8 @@ public class PlatformAuthController {
         tenantRepository
             .findBySlug(tenantSlug)
             .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantSlug));
-    String expectedTenantId = tenant.getIdentityPlatformTenantId();
+    String expectedTenantId =
+        IdentityPlatformTenantIds.effectiveTenantId(tenant.getIdentityPlatformTenantId());
     String tokenTenantId = firebaseCredentialVerifier.tenantIdFromToken(payload);
 
     if (expectedTenantId == null || expectedTenantId.isBlank()) {

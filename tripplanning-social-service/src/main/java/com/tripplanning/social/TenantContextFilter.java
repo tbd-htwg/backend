@@ -42,7 +42,7 @@ public class TenantContextFilter extends OncePerRequestFilter {
           HostTenantResolver.effectiveHost(
               request.getHeader("X-Forwarded-Host"), request.getHeader("Host"));
       String slug = HostTenantResolver.resolveSlug(host, hostBase, enterpriseHostBase);
-      String tier = tierForHost(slug, host, enterpriseHostBase);
+      String tier = HostTenantResolver.tierForSlug(slug, host, enterpriseHostBase);
       TenantContextHolder.set(new TenantContext(slug, tier));
 
       if (!"free".equals(slug)) {
@@ -60,15 +60,5 @@ public class TenantContextFilter extends OncePerRequestFilter {
     } finally {
       TenantContextHolder.clear();
     }
-  }
-
-  private static String tierForHost(String slug, String host, String enterpriseHostBase) {
-    if ("free".equals(slug)) {
-      return "FREE";
-    }
-    if (HostTenantResolver.isEnterpriseHost(host, enterpriseHostBase)) {
-      return "ENTERPRISE";
-    }
-    return "STANDARD";
   }
 }

@@ -1,6 +1,7 @@
-package com.tripplanning.tenant;
+package com.tripplanning.customfield;
 
 import java.io.IOException;
+import java.util.Locale;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.annotation.Order;
@@ -24,22 +25,19 @@ public class TenantContextFilter extends OncePerRequestFilter {
 
   private final String hostBase;
   private final String enterpriseHostBase;
-  private final TenantPlatformClient tenantPlatformClient;
 
   public TenantContextFilter(
       @Value("${tripplanning.platform.host-base:k8s.tbd-htwg.de}") String hostBase,
       @Value("${tripplanning.platform.enterprise-host-base:enterprise.k8s.tbd-htwg.de}")
-          String enterpriseHostBase,
-      TenantPlatformClient tenantPlatformClient) {
+          String enterpriseHostBase) {
     this.hostBase = hostBase;
     this.enterpriseHostBase = enterpriseHostBase;
-    this.tenantPlatformClient = tenantPlatformClient;
   }
 
   @Override
   protected boolean shouldNotFilter(HttpServletRequest request) {
     String path = request.getRequestURI();
-    return path != null && path.startsWith("/actuator/");
+    return path != null && (path.startsWith("/internal/") || path.startsWith("/actuator/"));
   }
 
   @Override
@@ -51,10 +49,15 @@ public class TenantContextFilter extends OncePerRequestFilter {
           HostTenantResolver.effectiveHost(
               request.getHeader("X-Forwarded-Host"), request.getHeader("Host"));
       String slug = HostTenantResolver.resolveSlug(host, hostBase, enterpriseHostBase);
-      TenantPlatformClient.TenantRuntime runtime = tenantPlatformClient.resolve(slug);
-      TenantContextHolder.set(new TenantContext(runtime.slug(), runtime.tier()));
+      String tier = HostTenantResolver.tierForSlug(slug, host, enterpriseHostBase);
+      TenantContextHolder.set(new TenantContext(slug, tier));
 
-      if (!"free".equals(slug)) {
+      boolean publicTripFieldsRead =
+          "GET".equalsIgnoreCase(request.getMethod())
+              && request.getRequestURI() != null
+              && request.getRequestURI().matches("/api/v2/trips/\\d+/custom-fields");
+
+      if (!"free".equals(slug) && !publicTripFieldsRead) {
         var auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.getPrincipal() instanceof Jwt jwt) {
           String tokenSlug = jwt.getClaimAsString("tenant_slug");
@@ -69,5 +72,9 @@ public class TenantContextFilter extends OncePerRequestFilter {
     } finally {
       TenantContextHolder.clear();
     }
+  }
+
+  public static String normalizeSlug(String slug) {
+    return slug == null ? "" : slug.trim().toLowerCase(Locale.ROOT);
   }
 }
