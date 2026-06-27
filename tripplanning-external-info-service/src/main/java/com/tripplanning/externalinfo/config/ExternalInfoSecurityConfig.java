@@ -75,6 +75,8 @@ public class ExternalInfoSecurityConfig {
                                         .permitAll()
                                         .pathMatchers("/actuator/health", "/actuator/health/**")
                                         .permitAll()
+                                        .pathMatchers("/actuator/prometheus")
+                                        .permitAll()
                                         .pathMatchers("/api/v1/**")
                                         .permitAll()
                                         .pathMatchers("/internal/**")

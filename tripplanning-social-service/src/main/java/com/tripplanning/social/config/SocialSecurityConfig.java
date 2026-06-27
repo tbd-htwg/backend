@@ -76,6 +76,8 @@ public class SocialSecurityConfig {
                                         .permitAll()
                                         .requestMatchers("/actuator/health", "/actuator/health/**")
                                         .permitAll()
+                                        .requestMatchers("/actuator/prometheus")
+                                        .permitAll()
                                         .requestMatchers("/internal/**")
                                         .permitAll()
                                         .requestMatchers(ant(HttpMethod.POST, "/api/v2/trips/*/like"))

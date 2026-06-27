@@ -98,6 +98,8 @@ public class SecurityConfig {
                     .permitAll()
                     .requestMatchers("/actuator/health", "/actuator/health/**")
                     .permitAll()
+                    .requestMatchers("/actuator/prometheus")
+                    .permitAll()
                     .requestMatchers("/internal/**")
                     .permitAll()
                     .requestMatchers(AntPathRequestMatcher.antMatcher(HttpMethod.GET, "/api/search/**"))
