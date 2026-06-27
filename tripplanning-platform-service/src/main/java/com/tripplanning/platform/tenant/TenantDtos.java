@@ -42,7 +42,8 @@ public final class TenantDtos {
       boolean titleRetractToInitials,
       boolean invertHeaderIcon,
       String frontendPath,
-      String imageTag) {}
+      String imageTag,
+      TenantResourceConfigDto resourceConfig) {}
 
   public record TenantCreateRequest(
       @NotBlank
@@ -60,6 +61,18 @@ public final class TenantDtos {
       String iconUrl,
       Boolean titleRetractToInitials,
       Boolean invertHeaderIcon) {}
+
+  public record TenantResourceConfigDto(
+      boolean autoscalingEnabled,
+      TenantServiceResourceDto trip,
+      TenantServiceResourceDto social,
+      TenantServiceResourceDto externalInfo) {}
+
+  public record TenantServiceResourceDto(
+      String size,
+      Integer replicas,
+      Integer minReplicas,
+      Integer maxReplicas) {}
 
   public record BrandingIconUploadRequest(String fileName, String contentType) {}
 

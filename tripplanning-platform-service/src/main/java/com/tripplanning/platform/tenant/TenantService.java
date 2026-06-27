@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tripplanning.platform.branding.BrandingIconService;
 import com.tripplanning.platform.config.PlatformProperties;
+import com.tripplanning.platform.infra.TenantInfrastructureProvisioner;
 import com.tripplanning.platform.provisioning.ProvisioningStepDefinitions;
 import com.tripplanning.platform.provisioning.TenantProvisioningService;
 
@@ -26,6 +27,8 @@ public class TenantService {
   private final TenantProvisioningService provisioningService;
   private final ApplicationEventPublisher eventPublisher;
   private final BrandingIconService brandingIconService;
+  private final TenantResourceConfigService resourceConfigService;
+  private final TenantInfrastructureProvisioner infrastructureProvisioner;
 
   public List<TenantDtos.TenantDto> list(boolean includeArchived, String tierFilter, String statusFilter) {
     return tenantRepository.findAllByOrderByCreatedAtDesc().stream()
@@ -224,5 +227,29 @@ public class TenantService {
 
   public void retry(String id) {
     provisioningService.retry(id);
+  }
+
+  @Transactional
+  public TenantDtos.TenantDto updateResources(
+      String id, TenantDtos.TenantResourceConfigDto request) {
+    TenantEntity entity =
+        tenantRepository
+            .findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("Tenant not found"));
+    if (entity.getTier() != TenantTier.ENTERPRISE) {
+      throw new IllegalStateException("Resource controls are only available for Enterprise tenants");
+    }
+    if (entity.getStatus() == TenantStatus.ARCHIVED || entity.getStatus() == TenantStatus.FAILED) {
+      throw new IllegalStateException("Tenant resources can only be changed for active or provisioning tenants");
+    }
+
+    String json = resourceConfigService.write(request);
+    TenantDtos.TenantResourceConfigDto config = resourceConfigService.read(json);
+    entity.setResourceConfigJson(json);
+    entity.setUpdatedAt(Instant.now());
+    TenantEntity saved = tenantRepository.save(entity);
+    infrastructureProvisioner.updateEnterpriseTenantResources(
+        saved.getSlug(), resourceConfigService.toWorkflowPayload(config));
+    return tenantMapper.toDto(saved);
   }
 }

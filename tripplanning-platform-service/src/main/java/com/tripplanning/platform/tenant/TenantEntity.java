@@ -104,6 +104,9 @@ public class TenantEntity {
   @Column(name = "image_tag", length = 128)
   private String imageTag;
 
+  @Column(name = "resource_config_json", columnDefinition = "TEXT")
+  private String resourceConfigJson;
+
   @Column(name = "provisioning_steps_json", columnDefinition = "TEXT")
   private String provisioningStepsJson;
 }

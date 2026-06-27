@@ -45,7 +45,21 @@ public class GithubTenantInfrastructureProvisioner implements TenantInfrastructu
     dispatch(payload, platformProperties.getGithub().getEnterpriseEventType());
   }
 
+  @Override
+  public void updateEnterpriseTenantResources(String slug, Map<String, Object> resourceProfile) {
+    Map<String, Object> clientPayload = new LinkedHashMap<>();
+    clientPayload.put("slug", slug);
+    clientPayload.put("tier", TenantTier.ENTERPRISE.name());
+    clientPayload.put("resourceProfile", resourceProfile);
+    dispatch(clientPayload, platformProperties.getGithub().getEnterpriseResourceEventType(), slug, TenantTier.ENTERPRISE);
+  }
+
   private void dispatch(TenantDispatchPayload payload, String eventType) {
+    dispatch(buildClientPayload(payload), eventType, payload.slug(), payload.tier());
+  }
+
+  private void dispatch(
+      Map<String, Object> clientPayload, String eventType, String slug, TenantTier tier) {
     var github = platformProperties.getGithub();
     String url = github.getDispatchUrl();
     String token = github.getDispatchToken();
@@ -53,13 +67,11 @@ public class GithubTenantInfrastructureProvisioner implements TenantInfrastructu
     if (url == null || url.isBlank() || token == null || token.isBlank()) {
       log.warn(
           "[stub] GitHub dispatch not configured — tier={}, slug={}, displayName={}",
-          payload.tier(),
-          payload.slug(),
-          payload.displayName());
+          tier,
+          slug,
+          clientPayload.getOrDefault("displayName", ""));
       return;
     }
-
-    Map<String, Object> clientPayload = buildClientPayload(payload);
 
     Map<String, Object> body =
         Map.of("event_type", eventType, "client_payload", clientPayload);
@@ -76,7 +88,7 @@ public class GithubTenantInfrastructureProvisioner implements TenantInfrastructu
         .block();
 
     log.info(
-        "Dispatched {} tenant provisioning for slug={}", payload.tier(), payload.slug());
+        "Dispatched {} tenant infrastructure event {} for slug={}", tier, eventType, slug);
   }
 
   static Map<String, Object> buildClientPayload(TenantDispatchPayload payload) {

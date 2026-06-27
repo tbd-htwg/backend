@@ -39,6 +39,7 @@ public class PlatformProperties {
     private String dispatchToken = "";
     private String standardEventType = "tenant-created-standard";
     private String enterpriseEventType = "tenant-created-enterprise";
+    private String enterpriseResourceEventType = "tenant-updated-enterprise-resources";
   }
 
   @Getter

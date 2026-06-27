@@ -15,6 +15,7 @@ public class TenantMapper {
 
   private final ProvisioningJson provisioningJson;
   private final BrandingIconService brandingIconService;
+  private final TenantResourceConfigService resourceConfigService;
 
   public TenantDtos.TenantDto toDto(TenantEntity entity) {
     return toDto(entity, Collections.emptyList());
@@ -46,7 +47,8 @@ public class TenantMapper {
         entity.isTitleRetractToInitials(),
         entity.isInvertHeaderIcon(),
         entity.getFrontendPath(),
-        entity.getImageTag());
+        entity.getImageTag(),
+        resourceConfigService.read(entity.getResourceConfigJson()));
   }
 
   public TenantDtos.PublicTenantConfigDto toPublicConfig(TenantEntity entity) {
