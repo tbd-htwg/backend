@@ -44,6 +44,7 @@ public class CustomFieldSecurityConfig {
             "Accept",
             "Origin",
             "X-Internal-Secret",
+            "X-Admin-Tenant-Slug",
             TestBearerImpersonationFilter.ACT_AS_HEADER));
     config.setExposedHeaders(List.of("WWW-Authenticate"));
     config.setAllowCredentials(true);
