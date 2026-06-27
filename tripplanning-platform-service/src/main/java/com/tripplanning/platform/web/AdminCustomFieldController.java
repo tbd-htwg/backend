@@ -92,7 +92,11 @@ public class AdminCustomFieldController {
       if (e.getStatusCode().is4xxClientError()) {
         throw new ResponseStatusException(HttpStatus.valueOf(e.getStatusCode().value()), e.getResponseBodyAsString());
       }
-      throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Custom field service unavailable");
+      String detail = e.getResponseBodyAsString();
+      if (detail == null || detail.isBlank()) {
+        detail = e.getMessage();
+      }
+      throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Custom field service unavailable: " + detail);
     } catch (IllegalStateException e) {
       throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, e.getMessage());
     }
