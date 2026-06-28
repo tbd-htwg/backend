@@ -270,10 +270,21 @@ jobs:
               2>/dev/null || true
           }
 
+          deployment_annotation() {
+            local namespace="$1"
+            local deployment="$2"
+            local annotation="$3"
+            kubectl -n "${namespace}" get "deployment/${deployment}" \
+              -o "jsonpath={.metadata.annotations.${annotation}}" \
+              2>/dev/null || true
+          }
+
           refresh_deployment_info() {
             local namespace="$1"
             local tier="free"
             local tenant_id="free"
+            local built_at
+            built_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
             case "${namespace}" in
               tripplanning-standard)
                 tier="standard"
@@ -293,13 +304,31 @@ jobs:
               local container="$3"
               local enabled="$4"
               local image
+              local commit
+              local run_id
               image="$(deployment_image "${namespace}" "${deployment}" "${container}")"
+              commit="$(deployment_annotation "${namespace}" "${deployment}" "tripplanning\\.htwg\\.dev/deploy-commit")"
+              run_id="$(deployment_annotation "${namespace}" "${deployment}" "tripplanning\\.htwg\\.dev/deploy-run-id")"
+              if [[ -z "${commit}" && "${image##*:}" =~ ^[0-9a-f]{40}$ ]]; then
+                commit="${image##*:}"
+              fi
               services="$(
                 jq -c \
                   --arg key "${key}" \
                   --arg image "${image}" \
+                  --arg commit "${commit}" \
+                  --arg runId "${run_id}" \
+                  --arg builtAt "${built_at}" \
                   --argjson enabled "${enabled}" \
-                  '. + {($key): {enabled: $enabled, image: $image, tag: (if $image == "" then "" else ($image | split(":") | last) end)}}' \
+                  '. + {($key): {
+                    enabled: $enabled,
+                    image: $image,
+                    tag: (if $image == "" then "" else ($image | split(":") | last) end),
+                    commit: $commit,
+                    shortCommit: (if $commit == "" then "" else $commit[0:12] end),
+                    runId: $runId,
+                    builtAt: $builtAt
+                  }}' \
                   <<<"${services}"
               )"
             }
@@ -314,10 +343,26 @@ jobs:
               add_service_info customfield customfield-service customfield-service false
             fi
             platform_image="$(deployment_image tripplanning-system platform-service platform-service)"
+            platform_commit="$(deployment_annotation tripplanning-system platform-service "tripplanning\\.htwg\\.dev/deploy-commit")"
+            platform_run_id="$(deployment_annotation tripplanning-system platform-service "tripplanning\\.htwg\\.dev/deploy-run-id")"
+            if [[ -z "${platform_commit}" && "${platform_image##*:}" =~ ^[0-9a-f]{40}$ ]]; then
+              platform_commit="${platform_image##*:}"
+            fi
             services="$(
               jq -c \
                 --arg image "${platform_image}" \
-                '. + {platform: {enabled: true, image: $image, tag: (if $image == "" then "" else ($image | split(":") | last) end)}}' \
+                --arg commit "${platform_commit}" \
+                --arg runId "${platform_run_id}" \
+                --arg builtAt "${built_at}" \
+                '. + {platform: {
+                  enabled: true,
+                  image: $image,
+                  tag: (if $image == "" then "" else ($image | split(":") | last) end),
+                  commit: $commit,
+                  shortCommit: (if $commit == "" then "" else $commit[0:12] end),
+                  runId: $runId,
+                  builtAt: $builtAt
+                }}' \
                 <<<"${services}"
             )"
 
@@ -325,8 +370,10 @@ jobs:
               --arg environment "${DEPLOY_ENVIRONMENT}" \
               --arg branch "${GITHUB_REF_NAME}" \
               --arg commit "${GITHUB_SHA}" \
+              --arg shortCommit "${GITHUB_SHA::12}" \
               --arg repository "${GITHUB_REPOSITORY}" \
               --arg runId "${GITHUB_RUN_ID}" \
+              --arg builtAt "${built_at}" \
               --arg tier "${tier}" \
               --arg tenantId "${tenant_id}" \
               --argjson services "${services}" \
@@ -334,14 +381,16 @@ jobs:
                 environment: $environment,
                 branch: $branch,
                 commit: $commit,
+                shortCommit: $shortCommit,
                 repository: $repository,
                 runId: $runId,
+                builtAt: $builtAt,
                 tier: $tier,
                 tenantId: $tenantId,
                 services: $services
               }' > /tmp/deployment-info.json
 
-            kubectl -n "${namespace}" create configmap api-router-deployment-info \
+            kubectl -n "${namespace}" create configmap api-router-live-deployment-info \
               --from-file=deployment-info.json=/tmp/deployment-info.json \
               --dry-run=client \
               -o yaml > /tmp/deployment-info-configmap.yaml
