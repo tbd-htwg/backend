@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.reactive.function.client.WebClientRequestException;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -97,6 +98,9 @@ public class AdminCustomFieldController {
         detail = e.getMessage();
       }
       throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Custom field service unavailable: " + detail);
+    } catch (WebClientRequestException e) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_GATEWAY, "Custom field service unavailable: " + e.getMessage());
     } catch (IllegalStateException e) {
       throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, e.getMessage());
     }
