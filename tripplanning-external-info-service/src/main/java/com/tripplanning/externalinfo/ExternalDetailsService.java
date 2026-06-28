@@ -32,7 +32,7 @@ public class ExternalDetailsService {
     private final WeatherApi weatherApi;
     private final ViatorApi viatorApi;
 
-    /** Legacy combined payload (still includes Viator). */
+    /** Legacy combined dsdsdpayload (still includes Viator). */
     public Mono<TripExternalInfo> tripExternalInfo(
             String placeId, Double lat, Double lon, String countryCode, String cityName) {
         return resolveGeo(placeId, lat, lon, countryCode, cityName)
