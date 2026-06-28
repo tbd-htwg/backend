@@ -14,10 +14,13 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.tripplanning.common.tenant.HostTenantResolver;
 import com.tripplanning.platform.auth.FirebaseCredentialVerifier;
+import com.tripplanning.platform.infra.IdentityPlatformTenantIds;
 import com.tripplanning.platform.auth.PlatformAdminService;
 import com.tripplanning.platform.auth.PlatformAppJwtService;
 import com.tripplanning.platform.client.TripUserClient;
 import com.tripplanning.platform.tenant.TenantDtos;
+import com.tripplanning.platform.tenant.TenantEntity;
+import com.tripplanning.platform.tenant.TenantRepository;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -29,6 +32,7 @@ public class PlatformAuthController {
   private final PlatformAdminService platformAdminService;
   private final PlatformAppJwtService platformAppJwtService;
   private final TripUserClient tripUserClient;
+  private final TenantRepository tenantRepository;
   private final String hostBase;
   private final String enterpriseHostBase;
 
@@ -37,6 +41,7 @@ public class PlatformAuthController {
       PlatformAdminService platformAdminService,
       PlatformAppJwtService platformAppJwtService,
       TripUserClient tripUserClient,
+      TenantRepository tenantRepository,
       @Value("${tripplanning.platform.host-base:k8s.tbd-htwg.de}") String hostBase,
       @Value("${tripplanning.platform.enterprise-host-base:enterprise.k8s.tbd-htwg.de}")
           String enterpriseHostBase) {
@@ -44,6 +49,7 @@ public class PlatformAuthController {
     this.platformAdminService = platformAdminService;
     this.platformAppJwtService = platformAppJwtService;
     this.tripUserClient = tripUserClient;
+    this.tenantRepository = tenantRepository;
     this.hostBase = hostBase;
     this.enterpriseHostBase = enterpriseHostBase;
   }
@@ -76,6 +82,7 @@ public class PlatformAuthController {
       String picture = payload.getClaimAsString("picture");
       String forwardedHost = forwardedHost(request);
       String tenantSlug = resolveTenantSlug(forwardedHost);
+      validateIdentityTenant(payload, tenantSlug);
       TenantDtos.UserResponseDto user =
           tripUserClient.provisionIdentity(
               forwardedHost, payload.getSubject(), email, name, picture);
@@ -114,5 +121,28 @@ public class PlatformAuthController {
 
   private String resolveTenantSlug(String host) {
     return HostTenantResolver.resolveSlug(host, hostBase, enterpriseHostBase);
+  }
+
+  private void validateIdentityTenant(Jwt payload, String tenantSlug) {
+    TenantEntity tenant =
+        tenantRepository
+            .findBySlug(tenantSlug)
+            .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantSlug));
+    String expectedTenantId =
+        IdentityPlatformTenantIds.effectiveTenantId(tenant.getIdentityPlatformTenantId());
+    String tokenTenantId = firebaseCredentialVerifier.tenantIdFromToken(payload);
+
+    if (expectedTenantId == null || expectedTenantId.isBlank()) {
+      if (tokenTenantId != null && !tokenTenantId.isBlank()) {
+        throw new IllegalArgumentException(
+            "Tenant-scoped identity token cannot be used on the platform realm");
+      }
+      return;
+    }
+
+    if (!expectedTenantId.equals(tokenTenantId)) {
+      throw new IllegalArgumentException(
+          "Identity token tenant does not match the requested application tenant");
+    }
   }
 }

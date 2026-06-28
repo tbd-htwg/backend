@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,10 +28,11 @@ public class TripSearchController {
     public ResponseEntity<Page<TripSearchDto>> searchTrips(
             @RequestParam(name = "q", required = false) String query,
             @RequestParam(name = "page", defaultValue = "0") int page,
-            @RequestParam(name = "size", defaultValue = "" + DEFAULT_SIZE) int size) {
+            @RequestParam(name = "size", defaultValue = "" + DEFAULT_SIZE) int size,
+            Authentication authentication) {
         int safePage = Math.max(0, page);
         int safeSize = Math.min(Math.max(1, size), MAX_SIZE);
-        return ResponseEntity.ok(tripSearchService.search(query, safePage, safeSize));
+        return ResponseEntity.ok(tripSearchService.search(query, safePage, safeSize, authentication));
     }
 
     /**

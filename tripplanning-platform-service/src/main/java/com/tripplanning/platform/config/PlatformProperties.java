@@ -13,6 +13,7 @@ public class PlatformProperties {
   private String hostBase = "k8s.tbd-htwg.de";
   private String enterpriseHostBase = "enterprise.k8s.tbd-htwg.de";
   private String bootstrapAdminEmail = "admin@platform.demo";
+  private String additionalAdminEmails = "";
   private Provisioning provisioning = new Provisioning();
   private Github github = new Github();
   private StandardPostgres standardPostgres = new StandardPostgres();
@@ -38,6 +39,7 @@ public class PlatformProperties {
     private String dispatchToken = "";
     private String standardEventType = "tenant-created-standard";
     private String enterpriseEventType = "tenant-created-enterprise";
+    private String enterpriseResourceEventType = "tenant-updated-enterprise-resources";
   }
 
   @Getter

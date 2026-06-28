@@ -21,7 +21,9 @@ public class TenantPlatformClient {
       String dbPassword,
       String searchIndex,
       String gcsBucket,
-      String objectPrefix) {}
+      String objectPrefix,
+      boolean publicTripAccess,
+      boolean publicImageAccess) {}
 
   private static final Duration CACHE_TTL = Duration.ofMinutes(5);
 
@@ -42,42 +44,58 @@ public class TenantPlatformClient {
 
   public TenantRuntime resolve(String slug) {
     if (slug == null || slug.isBlank() || "free".equals(slug)) {
-      return new TenantRuntime("free", "FREE", "tripplanning", "tripplanning_app", "", "tripentity", null, "");
+      return new TenantRuntime(
+          "free", "FREE", "tripplanning", "tripplanning_app", "", "tripentity", null, "", true, true);
     }
     CachedRuntime cached = cache.get(slug);
     if (cached != null && cached.expiresAt().isAfter(Instant.now())) {
       return cached.runtime();
     }
-    TenantRuntime loaded = loadRuntime(slug);
-    cache.put(slug, new CachedRuntime(loaded, Instant.now().plus(CACHE_TTL)));
-    return loaded;
+    try {
+      TenantRuntime loaded = loadRuntime(slug);
+      cache.put(slug, new CachedRuntime(loaded, Instant.now().plus(CACHE_TTL)));
+      return loaded;
+    } catch (Exception exception) {
+      if (internalSecret == null || internalSecret.isBlank()) {
+        return devFallback(slug);
+      }
+      throw new IllegalStateException("Could not resolve runtime for tenant " + slug, exception);
+    }
   }
 
   private TenantRuntime loadRuntime(String slug) {
-    try {
-      Map<?, ?> body =
-          webClient
-              .get()
-              .uri("/internal/tenants/{slug}", slug)
-              .header("X-Internal-Secret", internalSecret)
-              .retrieve()
-              .bodyToMono(Map.class)
-              .block(Duration.ofSeconds(5));
-      if (body != null) {
-        return new TenantRuntime(
-            String.valueOf(body.get("slug")),
-            String.valueOf(body.get("tier")),
-            String.valueOf(body.get("dbName")),
-            stringOrNull(body.get("dbUser")),
-            stringOrNull(body.get("dbPassword")),
-            String.valueOf(body.get("searchIndex")),
-            stringOrNull(body.get("gcsBucket")),
-            stringOrNull(body.get("objectPrefix")));
-      }
-    } catch (Exception ignored) {
-      // Platform service may be unavailable in local dev — use naming conventions.
+    Map<?, ?> body =
+        webClient
+            .get()
+            .uri("/internal/tenants/{slug}", slug)
+            .header("X-Internal-Secret", internalSecret)
+            .retrieve()
+            .bodyToMono(Map.class)
+            .block(Duration.ofSeconds(15));
+    if (body == null) {
+      throw new IllegalStateException("Platform returned an empty tenant runtime");
     }
-    return devFallback(slug);
+    return new TenantRuntime(
+        String.valueOf(body.get("slug")),
+        String.valueOf(body.get("tier")),
+        String.valueOf(body.get("dbName")),
+        stringOrNull(body.get("dbUser")),
+        stringOrNull(body.get("dbPassword")),
+        String.valueOf(body.get("searchIndex")),
+        stringOrNull(body.get("gcsBucket")),
+        stringOrNull(body.get("objectPrefix")),
+        readBoolean(body.get("publicTripAccess"), true),
+        readBoolean(body.get("publicImageAccess"), true));
+  }
+
+  private static boolean readBoolean(Object value, boolean defaultValue) {
+    if (value == null) {
+      return defaultValue;
+    }
+    if (value instanceof Boolean b) {
+      return b;
+    }
+    return Boolean.parseBoolean(String.valueOf(value));
   }
 
   private static String stringOrNull(Object value) {
@@ -92,7 +110,7 @@ public class TenantPlatformClient {
     String db = "tripplanning_std_" + slug.replace('-', '_');
     String user = "tripplanning_app_" + slug.replace('-', '_');
     return new TenantRuntime(
-        slug, "STANDARD", db, user, "", "tripentity-" + slug, null, "std/" + slug + "/");
+        slug, "STANDARD", db, user, "", "tripentity-" + slug, null, "std/" + slug + "/", true, true);
   }
 
   public void evict(String slug) {

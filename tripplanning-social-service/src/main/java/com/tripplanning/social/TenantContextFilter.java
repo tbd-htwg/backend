@@ -4,6 +4,8 @@ import java.io.IOException;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.annotation.Order;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -40,21 +42,23 @@ public class TenantContextFilter extends OncePerRequestFilter {
           HostTenantResolver.effectiveHost(
               request.getHeader("X-Forwarded-Host"), request.getHeader("Host"));
       String slug = HostTenantResolver.resolveSlug(host, hostBase, enterpriseHostBase);
-      String tier = tierForHost(slug, host, enterpriseHostBase);
+      String tier = HostTenantResolver.tierForSlug(slug, host, enterpriseHostBase);
       TenantContextHolder.set(new TenantContext(slug, tier));
+
+      if (!"free".equals(slug)) {
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.getPrincipal() instanceof Jwt jwt) {
+          String tokenSlug = jwt.getClaimAsString("tenant_slug");
+          if (tokenSlug == null || tokenSlug.isBlank() || !tokenSlug.equals(slug)) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Tenant mismatch");
+            return;
+          }
+        }
+      }
+
       filterChain.doFilter(request, response);
     } finally {
       TenantContextHolder.clear();
     }
-  }
-
-  private static String tierForHost(String slug, String host, String enterpriseHostBase) {
-    if ("free".equals(slug)) {
-      return "FREE";
-    }
-    if (HostTenantResolver.isEnterpriseHost(host, enterpriseHostBase)) {
-      return "ENTERPRISE";
-    }
-    return "STANDARD";
   }
 }

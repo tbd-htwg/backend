@@ -10,11 +10,13 @@ tripplanning:
     jwt-expiration-seconds: ${TRIPPLANNING_AUTH_JWT_EXPIRATION_SECONDS:43200}
   services:
     trip-base-url: ${TRIPPLANNING_TRIP_SERVICE_URL:http://localhost:8080}
+    customfield-base-url: ${TRIPPLANNING_CUSTOMFIELD_SERVICE_URL:http://localhost:8084}
     internal-secret: ${TRIPPLANNING_INTERNAL_SECRET:}
   platform:
     host-base: ${TRIPPLANNING_PLATFORM_HOST_BASE:k8s.tbd-htwg.de}
     enterprise-host-base: ${TRIPPLANNING_PLATFORM_ENTERPRISE_HOST_BASE:enterprise.k8s.tbd-htwg.de}
     bootstrap-admin-email: ${TRIPPLANNING_PLATFORM_BOOTSTRAP_ADMIN_EMAIL:admin@platform.demo}
+    additional-admin-emails: ${TRIPPLANNING_PLATFORM_ADDITIONAL_ADMIN_EMAILS:}
     gcp:
       project-id: ${TRIPPLANNING_PLATFORM_GCP_PROJECT_ID:}
     provisioning:
@@ -43,6 +45,13 @@ management:
         enabled: true
 
 spring:
+  cloud:
+    gcp:
+      storage:
+        bucket-name: ${SPRING_CLOUD_GCP_STORAGE_BUCKET_NAME:}
+      impersonate-service-account: ${SPRING_CLOUD_GCP_IMPERSONATE_SERVICE_ACCOUNT:}
+      sql:
+        enabled: false
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:h2:mem:platform;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH}
     username: ${SPRING_DATASOURCE_USERNAME:sa}

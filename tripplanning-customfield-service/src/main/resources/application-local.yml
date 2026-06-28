@@ -1,0 +1,26 @@
+spring:
+  config:
+    activate:
+      on-profile: local
+
+  cloud:
+    gcp:
+      project-id: ${GOOGLE_CLOUD_PROJECT:${TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID:tbd-cloudappdev}}
+      firestore:
+        database-id: ${GCP_FIRESTORE_DATABASE_ID:(default)}
+        host-port: ${SPRING_CLOUD_GCP_FIRESTORE_HOST_PORT:localhost:9090}
+        emulator:
+          enabled: ${SPRING_CLOUD_GCP_FIRESTORE_EMULATOR_ENABLED:true}
+
+server:
+  error:
+    include-message: always
+
+tripplanning:
+  cors:
+    allowed-origins: http://localhost:5173,http://127.0.0.1:5173
+  auth:
+    firebase-project-id: ${TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID:tbd-cloudappdev}
+    jwt-secret: ${TRIPPLANNING_AUTH_JWT_SECRET:local-dev-only-change-me-32bytes-min!!}
+  services:
+    trip-base-url: ${TRIPPLANNING_TRIP_SERVICE_URL:http://localhost:8080}

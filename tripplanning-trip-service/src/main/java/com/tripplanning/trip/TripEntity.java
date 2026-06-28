@@ -34,6 +34,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded;
 
@@ -118,6 +119,11 @@ public class TripEntity {
 
   @Column(nullable = false, columnDefinition = "TEXT")
   private String longDescription;
+
+  @Column(nullable = false)
+  @Builder.Default
+  @GenericField
+  private boolean visible = true;
 
   @JsonIgnore
   public List<String> getAccommodationNames() {

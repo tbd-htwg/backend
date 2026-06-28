@@ -28,7 +28,9 @@ public final class TripFeedDtos {
             TripFeedAuthor author,
             List<String> locations,
             List<String> accommodationNames,
-            List<String> transportRoutes) {}
+            List<String> transportRoutes,
+            boolean hasLocationImages,
+            boolean visible) {}
 
     /** Trip detail response: trip header, author, stops with image URLs, accommodations, transports. */
     public record TripFeedDetail(
@@ -39,6 +41,7 @@ public final class TripFeedDtos {
             LocalDate startDate,
             String shortDescription,
             String longDescription,
+            boolean visible,
             TripFeedAuthor author,
             List<TripFeedDetailStop> stops,
             List<TripFeedAccommodation> accommodations,

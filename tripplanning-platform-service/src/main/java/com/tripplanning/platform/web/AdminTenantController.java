@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+import jakarta.servlet.http.HttpServletRequest;
+
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import com.tripplanning.platform.client.TripUserClient;
@@ -72,6 +74,56 @@ public class AdminTenantController {
       return tenantService.updateBranding(id, request);
     } catch (IllegalArgumentException e) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+    }
+  }
+
+  @PutMapping("/{id}/resources")
+  public TenantDtos.TenantDto updateResources(
+      @PathVariable String id, @RequestBody TenantDtos.TenantResourceConfigDto request) {
+    try {
+      return tenantService.updateResources(id, request);
+    } catch (IllegalArgumentException e) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+    } catch (IllegalStateException e) {
+      throw new ResponseStatusException(HttpStatus.CONFLICT, e.getMessage());
+    }
+  }
+
+  @PutMapping("/{id}/security")
+  public TenantDtos.TenantDto updateSecurity(
+      @PathVariable String id, @RequestBody TenantDtos.TenantSecurityUpdateRequest request) {
+    try {
+      return tenantService.updateSecurity(id, request);
+    } catch (IllegalArgumentException e) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+    }
+  }
+
+  @PostMapping("/{id}/branding/icon")
+  public TenantDtos.BrandingIconUploadResponse uploadBrandingIcon(
+      @PathVariable String id, @RequestBody TenantDtos.BrandingIconUploadRequest request) {
+    try {
+      return tenantService.uploadBrandingIcon(id, request);
+    } catch (IllegalArgumentException e) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+    } catch (IllegalStateException e) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+    }
+  }
+
+  @PutMapping("/{id}/branding/icon/stub-upload/{token}")
+  public TenantDtos.BrandingIconUploadResponse completeStubBrandingIconUpload(
+      @PathVariable String id,
+      @PathVariable String token,
+      HttpServletRequest request) {
+    try {
+      byte[] body = request.getInputStream().readAllBytes();
+      String dataUrl = tenantService.completeStubBrandingIconUpload(id, token, body);
+      return new TenantDtos.BrandingIconUploadResponse("", dataUrl, dataUrl, request.getContentType());
+    } catch (IllegalArgumentException e) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+    } catch (java.io.IOException e) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to read upload body");
     }
   }
 

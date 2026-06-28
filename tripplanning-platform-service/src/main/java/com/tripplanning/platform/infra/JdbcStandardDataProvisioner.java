@@ -9,7 +9,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.Duration;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import com.tripplanning.platform.config.PlatformProperties;
@@ -18,8 +18,9 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component
-@ConditionalOnExpression(
-    "'${tripplanning.platform.standard-postgres.jdbc-url:}'.length() > 0")
+@ConditionalOnProperty(
+    name = "tripplanning.platform.provisioning.use-stubs",
+    havingValue = "false")
 public class JdbcStandardDataProvisioner implements StandardDataProvisioner {
 
   private final PlatformProperties platformProperties;

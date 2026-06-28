@@ -36,12 +36,12 @@ public class ProvisioningJson {
 
   public List<String> readProviders(String json) {
     if (json == null || json.isBlank()) {
-      return List.of("google", "password");
+      return List.of("password");
     }
     try {
       return objectMapper.readValue(json, new TypeReference<>() {});
     } catch (JsonProcessingException e) {
-      return List.of("google", "password");
+      return List.of("password");
     }
   }
 

@@ -1,13 +1,16 @@
 package com.tripplanning.platform.infra;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component
-@ConditionalOnExpression("'${tripplanning.platform.standard-postgres.jdbc-url:}'.isEmpty()")
+@ConditionalOnProperty(
+    name = "tripplanning.platform.provisioning.use-stubs",
+    havingValue = "true",
+    matchIfMissing = true)
 public class StubStandardDataProvisioner implements StandardDataProvisioner {
 
   @Override

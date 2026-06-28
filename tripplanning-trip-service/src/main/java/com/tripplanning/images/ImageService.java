@@ -27,6 +27,7 @@ import com.google.cloud.storage.BlobInfo;
 import com.google.cloud.storage.HttpMethod;
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageException;
+import com.tripplanning.common.tenant.TenantContext;
 import com.tripplanning.common.tenant.TenantContextHolder;
 import com.tripplanning.tenant.TenantPlatformClient;
 import com.tripplanning.tripLocation.TripLocationImageEntity;
@@ -140,7 +141,7 @@ public class ImageService {
         return createSignedUrl(blobInfo, HttpMethod.GET).toString();
     }
 
-    /** Signed read URL only for authenticated requests. */
+    /** Signed read URL when tenant allows public images or the caller is authenticated. */
     public String createSignedReadUrlIfAuthenticated(String objectName) {
         if (objectName == null || objectName.isBlank()) {
             return null;
@@ -149,7 +150,7 @@ public class ImageService {
         if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
             return trimmed;
         }
-        if (!isAuthenticatedJwtRequest()) {
+        if (!maySignReadUrl()) {
             return null;
         }
         return createSignedReadUrl(objectName);
@@ -164,7 +165,7 @@ public class ImageService {
         if (objectNames == null || objectNames.isEmpty()) {
             return List.of();
         }
-        if (!isAuthenticatedJwtRequest()) {
+        if (!maySignReadUrl()) {
             return Collections.nCopies(objectNames.size(), null);
         }
         List<Future<String>> futures = new ArrayList<>(objectNames.size());
@@ -187,7 +188,15 @@ public class ImageService {
 
     /** Whether the current request may receive signed GCS read URLs. */
     public boolean isAuthenticatedForSigning() {
-        return isAuthenticatedJwtRequest();
+        return maySignReadUrl();
+    }
+
+    private boolean maySignReadUrl() {
+        if (isAuthenticatedJwtRequest()) {
+            return true;
+        }
+        TenantContext ctx = TenantContextHolder.get();
+        return ctx == null || ctx.publicImageAccess();
     }
 
     public void deleteStoredObjectByPath(String objectName, String requiredNamePrefix) {

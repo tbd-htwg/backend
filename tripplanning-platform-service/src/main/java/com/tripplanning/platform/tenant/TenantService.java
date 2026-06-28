@@ -3,10 +3,14 @@ package com.tripplanning.platform.tenant;
 import java.time.Instant;
 import java.util.List;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tripplanning.platform.branding.BrandingIconService;
+import com.tripplanning.platform.client.TripUserClient;
 import com.tripplanning.platform.config.PlatformProperties;
+import com.tripplanning.platform.infra.TenantInfrastructureProvisioner;
 import com.tripplanning.platform.provisioning.ProvisioningStepDefinitions;
 import com.tripplanning.platform.provisioning.TenantProvisioningService;
 
@@ -22,6 +26,11 @@ public class TenantService {
   private final ProvisioningJson provisioningJson;
   private final PlatformProperties platformProperties;
   private final TenantProvisioningService provisioningService;
+  private final ApplicationEventPublisher eventPublisher;
+  private final BrandingIconService brandingIconService;
+  private final TenantResourceConfigService resourceConfigService;
+  private final TenantInfrastructureProvisioner infrastructureProvisioner;
+  private final TripUserClient tripUserClient;
 
   public List<TenantDtos.TenantDto> list(boolean includeArchived, String tierFilter, String statusFilter) {
     return tenantRepository.findAllByOrderByCreatedAtDesc().stream()
@@ -66,7 +75,11 @@ public class TenantService {
   @Transactional
   public TenantDtos.TenantDto create(TenantDtos.TenantCreateRequest request) {
     String slug = request.slug().trim().toLowerCase();
+    String displayName = request.displayName().trim();
     slugValidator.validate(slug);
+    if (displayName.contains("\n") || displayName.contains("\r")) {
+      throw new IllegalArgumentException("Display name must be a single line");
+    }
     if (tenantRepository.existsBySlug(slug)) {
       throw new IllegalArgumentException("Tenant slug already exists: " + slug);
     }
@@ -75,6 +88,10 @@ public class TenantService {
     if (tier == TenantTier.FREE) {
       throw new IllegalArgumentException("Free tier cannot be created via admin API");
     }
+    if (tier == TenantTier.DEVELOP) {
+      throw new IllegalArgumentException("Develop tier is reserved for the local JVM environment");
+    }
+    validateGeneratedResourceNames(slug, tier);
 
     Instant now = Instant.now();
     String id = "tenant-" + slug;
@@ -85,7 +102,7 @@ public class TenantService {
         TenantEntity.builder()
             .id(id)
             .slug(slug)
-            .displayName(request.displayName().trim())
+            .displayName(displayName)
             .tier(tier)
             .status(TenantStatus.PROVISIONING)
             .hostUrl(TenantNaming.hostUrl(slug, tier, hostBase, enterpriseHostBase))
@@ -96,7 +113,7 @@ public class TenantService {
             .dbUser(TenantNaming.dbUser(slug, tier))
             .searchIndex(TenantNaming.searchIndex(slug, tier))
             .estimatedMonthlyCostEur(TenantNaming.estimatedCost(tier))
-            .headerTitle(request.displayName().trim())
+            .headerTitle(displayName)
             .frontendPath(TenantNaming.frontendPath(slug, tier))
             .imageTag(TenantNaming.imageTag(slug, tier))
             .gcsBucket(TenantNaming.gcsBucket(slug, tier))
@@ -107,8 +124,19 @@ public class TenantService {
             .build();
 
     tenantRepository.save(entity);
-    provisioningService.provisionAsync(id);
+    eventPublisher.publishEvent(new TenantProvisioningRequested(id));
     return tenantMapper.toDto(entity);
+  }
+
+  private static void validateGeneratedResourceNames(String slug, TenantTier tier) {
+    if (tier == TenantTier.STANDARD && slug.length() > 46) {
+      throw new IllegalArgumentException(
+          "Standard tenant slug must be at most 46 characters");
+    }
+    if (tier == TenantTier.ENTERPRISE && slug.length() > 32) {
+      throw new IllegalArgumentException(
+          "Enterprise tenant slug must be at most 32 characters");
+    }
   }
 
   @Transactional
@@ -117,17 +145,73 @@ public class TenantService {
         tenantRepository
             .findById(id)
             .orElseThrow(() -> new IllegalArgumentException("Tenant not found"));
-    if (request.primaryColor() != null) {
-      entity.setPrimaryColor(request.primaryColor());
-    }
     if (request.headerTitle() != null) {
-      entity.setHeaderTitle(request.headerTitle());
+      entity.setHeaderTitle(
+          request.headerTitle().isBlank() ? entity.getDisplayName() : request.headerTitle());
     }
+    entity.setPrimaryColor(request.primaryColor());
     if (request.iconUrl() != null) {
-      entity.setIconUrl(request.iconUrl());
+      brandingIconService.deleteStoredIcon(entity, entity.getIconUrl());
+      entity.setIconUrl(request.iconUrl().isBlank() ? null : request.iconUrl());
+    }
+    if (request.titleRetractToInitials() != null) {
+      entity.setTitleRetractToInitials(request.titleRetractToInitials());
+    }
+    if (request.invertHeaderIcon() != null) {
+      entity.setInvertHeaderIcon(request.invertHeaderIcon());
     }
     entity.setUpdatedAt(Instant.now());
     return tenantMapper.toDto(tenantRepository.save(entity));
+  }
+
+  @Transactional
+  public TenantDtos.TenantDto updateSecurity(String id, TenantDtos.TenantSecurityUpdateRequest request) {
+    TenantEntity entity =
+        tenantRepository
+            .findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("Tenant not found"));
+    entity.setPublicTripAccess(request.publicTripAccess());
+    entity.setPublicImageAccess(request.publicImageAccess());
+    entity.setUpdatedAt(Instant.now());
+    TenantEntity saved = tenantRepository.save(entity);
+    tripUserClient.evictTenantRuntimeCache(TripUserClient.hostHeaderFromUrl(saved.getHostUrl()));
+    return tenantMapper.toDto(saved);
+  }
+
+  @Transactional
+  public TenantDtos.BrandingIconUploadResponse uploadBrandingIcon(
+      String id, TenantDtos.BrandingIconUploadRequest request) {
+    TenantEntity entity =
+        tenantRepository
+            .findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("Tenant not found"));
+    BrandingIconService.SignedUploadInfo signedUpload =
+        brandingIconService.createSignedUpload(entity, request.fileName(), request.contentType());
+    if (brandingIconService.usesStubStorage(entity)) {
+      return new TenantDtos.BrandingIconUploadResponse(
+          signedUpload.uploadUrl(), "", signedUpload.objectName(), signedUpload.contentType());
+    }
+    brandingIconService.deleteStoredIcon(entity, entity.getIconUrl());
+    entity.setIconUrl(signedUpload.objectName());
+    entity.setUpdatedAt(Instant.now());
+    tenantRepository.save(entity);
+    String signedReadUrl = brandingIconService.resolveIconUrl(entity, signedUpload.objectName());
+    return new TenantDtos.BrandingIconUploadResponse(
+        signedUpload.uploadUrl(), signedReadUrl, signedUpload.objectName(), signedUpload.contentType());
+  }
+
+  @Transactional
+  public String completeStubBrandingIconUpload(String tenantId, String token, byte[] body) {
+    TenantEntity entity =
+        tenantRepository
+            .findById(tenantId)
+            .orElseThrow(() -> new IllegalArgumentException("Tenant not found"));
+    brandingIconService.deleteStoredIcon(entity, entity.getIconUrl());
+    String dataUrl = brandingIconService.completeStubUpload(tenantId, token, body);
+    entity.setIconUrl(dataUrl);
+    entity.setUpdatedAt(Instant.now());
+    tenantRepository.save(entity);
+    return dataUrl;
   }
 
   @Transactional
@@ -145,7 +229,49 @@ public class TenantService {
     return tenantMapper.toDto(tenantRepository.save(entity));
   }
 
+  @Transactional
+  public boolean deleteBySlug(String slug) {
+    return tenantRepository
+        .findBySlug(slug.toLowerCase())
+        .map(
+            tenant -> {
+              if ("free".equals(tenant.getSlug())) {
+                throw new IllegalStateException("Free pool cannot be deleted");
+              }
+              tenantRepository.delete(tenant);
+              return true;
+            })
+        .orElse(false);
+  }
+
   public void retry(String id) {
     provisioningService.retry(id);
+  }
+
+  @Transactional
+  public TenantDtos.TenantDto updateResources(
+      String id, TenantDtos.TenantResourceConfigDto request) {
+    TenantEntity entity =
+        tenantRepository
+            .findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("Tenant not found"));
+    if (!entity.getTier().supportsResourceScaling()) {
+      throw new IllegalStateException(
+          "Resource controls are only available for Enterprise and local Develop tenants");
+    }
+    if (entity.getStatus() == TenantStatus.ARCHIVED || entity.getStatus() == TenantStatus.FAILED) {
+      throw new IllegalStateException("Tenant resources can only be changed for active or provisioning tenants");
+    }
+
+    String json = resourceConfigService.write(request);
+    TenantDtos.TenantResourceConfigDto config = resourceConfigService.read(json);
+    entity.setResourceConfigJson(json);
+    entity.setUpdatedAt(Instant.now());
+    TenantEntity saved = tenantRepository.save(entity);
+    if (saved.getTier() == TenantTier.ENTERPRISE) {
+      infrastructureProvisioner.updateEnterpriseTenantResources(
+          saved.getSlug(), resourceConfigService.toWorkflowPayload(config));
+    }
+    return tenantMapper.toDto(saved);
   }
 }

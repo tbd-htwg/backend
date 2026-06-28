@@ -22,7 +22,7 @@ if [[ -f "${BACKEND_DIR}/.env.local" ]]; then
 fi
 
 GOOGLE_PROJECT="${GOOGLE_PROJECT:-tbd-cloudappdev}"
-GCP_STORAGE_BUCKET_NAME="${GCP_STORAGE_BUCKET_NAME:-tbd-test}"
+GCP_STORAGE_BUCKET_NAME="${GCP_STORAGE_BUCKET_NAME:-tbd-cloudappdev-images-bucket}"
 GCP_IMPERSONATE_SERVICE_ACCOUNT="${GCP_IMPERSONATE_SERVICE_ACCOUNT:-tripplanning-image-url-sig@${GOOGLE_PROJECT}.iam.gserviceaccount.com}"
 SA_ACCOUNT_ID="${SA_ACCOUNT_ID:-tripplanning-image-url-sig}"
 

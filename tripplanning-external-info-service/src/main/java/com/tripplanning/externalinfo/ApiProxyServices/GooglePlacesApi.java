@@ -40,12 +40,12 @@ public class GooglePlacesApi {
 
     /** Uncached Google Places details (write path and cache miss). */
     public Mono<PlaceDetailsResult> fetchPlaceDetailsUncached(String placeId) {
-        requireConfiguredKey();
+        String configuredApiKey = requireConfiguredKey();
         String normalizedId = normalizePlaceId(placeId);
         return webClient
                 .get()
                 .uri(baseUrl + "/places/{placeId}", normalizedId)
-                .header("X-Goog-Api-Key", apiKey)
+                .header("X-Goog-Api-Key", configuredApiKey)
                 .header("X-Goog-FieldMask", DETAILS_FIELD_MASK)
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
@@ -54,7 +54,7 @@ public class GooglePlacesApi {
     }
 
     public Mono<List<PlaceSearchResult>> searchLocations(String query) {
-        requireConfiguredKey();
+        String configuredApiKey = requireConfiguredKey();
         String textQuery = query == null ? "" : query.trim();
         if (textQuery.isEmpty()) {
             return Mono.just(List.of());
@@ -62,7 +62,7 @@ public class GooglePlacesApi {
         return webClient
                 .post()
                 .uri(baseUrl + "/places:searchText")
-                .header("X-Goog-Api-Key", apiKey)
+                .header("X-Goog-Api-Key", configuredApiKey)
                 .header("X-Goog-FieldMask", SEARCH_FIELD_MASK)
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(Map.of("textQuery", textQuery))
@@ -195,11 +195,13 @@ public class GooglePlacesApi {
         return placeId;
     }
 
-    private void requireConfiguredKey() {
-        if (apiKey == null || apiKey.isBlank() || "missing_google_key".equals(apiKey)) {
+    private String requireConfiguredKey() {
+        String configuredApiKey = apiKey == null ? "" : apiKey.strip();
+        if (configuredApiKey.isBlank() || "missing_google_key".equals(configuredApiKey)) {
             throw new GooglePlacesApiException(
                     "GOOGLE_MAPS_API_KEY is not configured (set in external-info-service secrets / .env)");
         }
+        return configuredApiKey;
     }
 
     private Throwable wrapApiError(Throwable error) {

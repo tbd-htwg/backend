@@ -58,6 +58,11 @@
       <version>2.56.0</version>
     </dependency>
     <dependency>
+      <groupId>com.google.cloud</groupId>
+      <artifactId>spring-cloud-gcp-starter-storage</artifactId>
+      <version>${spring-cloud-gcp.version}</version>
+    </dependency>
+    <dependency>
       <groupId>com.google.cloud.sql</groupId>
       <artifactId>postgres-socket-factory</artifactId>
       <version>${cloud-sql-socket-factory.version}</version>

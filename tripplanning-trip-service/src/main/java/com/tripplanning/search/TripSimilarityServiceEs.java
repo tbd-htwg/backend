@@ -73,6 +73,7 @@ public class TripSimilarityServiceEs implements TripSimilarityPort {
             }
 
             List<TripSearchDto> content = result.hits().stream()
+                    .filter(TripEntity::isVisible)
                     .map(this::toDto)
                     .collect(Collectors.toList());
 

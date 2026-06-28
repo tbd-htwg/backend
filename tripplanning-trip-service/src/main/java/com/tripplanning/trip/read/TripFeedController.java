@@ -42,34 +42,36 @@ public class TripFeedController {
 
         if ("recommended".equalsIgnoreCase(mode)) {
             long userId = resolveUserId(authentication);
-            return tripFeedService.recommendedFeed(userId, page, size);
+            return tripFeedService.recommendedFeed(userId, page, size, authentication);
         }
         if ("liked".equalsIgnoreCase(mode)) {
             long userId = resolveUserId(authentication, "liked");
-            return tripFeedService.feedLikedBy(userId, page, size);
+            return tripFeedService.feedLikedBy(userId, page, size, authentication);
         }
-        return tripFeedService.feed(page, size);
+        return tripFeedService.feed(page, size, authentication);
     }
 
     @GetMapping("/feed/by-user")
     public TripFeedPage<TripFeedItem> feedByUser(
             @RequestParam("userId") long userId,
             @RequestParam(name = "page", defaultValue = "0") int page,
-            @RequestParam(name = "size", defaultValue = "10") int size) {
-        return tripFeedService.feedByUser(userId, page, size);
+            @RequestParam(name = "size", defaultValue = "10") int size,
+            Authentication authentication) {
+        return tripFeedService.feedByUser(userId, page, size, authentication);
     }
 
     @GetMapping("/feed/liked-by")
     public TripFeedPage<TripFeedItem> feedLikedBy(
             @RequestParam("userId") long userId,
             @RequestParam(name = "page", defaultValue = "0") int page,
-            @RequestParam(name = "size", defaultValue = "10") int size) {
-        return tripFeedService.feedLikedBy(userId, page, size);
+            @RequestParam(name = "size", defaultValue = "10") int size,
+            Authentication authentication) {
+        return tripFeedService.feedLikedBy(userId, page, size, authentication);
     }
 
     @GetMapping("/{id}/detail")
-    public TripFeedDetail detail(@PathVariable("id") long id) {
-        return tripFeedService.detail(id);
+    public TripFeedDetail detail(@PathVariable("id") long id, Authentication authentication) {
+        return tripFeedService.detail(id, authentication);
     }
 
     private static long resolveUserId(Authentication authentication) {

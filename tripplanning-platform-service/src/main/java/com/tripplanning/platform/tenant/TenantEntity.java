@@ -89,8 +89,14 @@ public class TenantEntity {
   @Column(name = "header_title")
   private String headerTitle;
 
-  @Column(name = "icon_url", length = 1024)
+  @Column(name = "icon_url", columnDefinition = "TEXT")
   private String iconUrl;
+
+  @Column(name = "title_retract_to_initials", nullable = false)
+  private boolean titleRetractToInitials;
+
+  @Column(name = "invert_header_icon", nullable = false)
+  private boolean invertHeaderIcon;
 
   @Column(name = "frontend_path", length = 256)
   private String frontendPath;
@@ -98,6 +104,17 @@ public class TenantEntity {
   @Column(name = "image_tag", length = 128)
   private String imageTag;
 
+  @Column(name = "resource_config_json", columnDefinition = "TEXT")
+  private String resourceConfigJson;
+
   @Column(name = "provisioning_steps_json", columnDefinition = "TEXT")
   private String provisioningStepsJson;
+
+  @Column(name = "public_trip_access", nullable = false)
+  @Builder.Default
+  private boolean publicTripAccess = true;
+
+  @Column(name = "public_image_access", nullable = false)
+  @Builder.Default
+  private boolean publicImageAccess = true;
 }

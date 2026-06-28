@@ -15,6 +15,9 @@ public final class TenantNaming {
     if (tier == TenantTier.FREE || "free".equals(slug)) {
       return "https://" + hostBase;
     }
+    if (tier == TenantTier.DEVELOP) {
+      return "http://localhost";
+    }
     if (tier == TenantTier.ENTERPRISE) {
       return "https://" + slug + "." + enterpriseHostBase;
     }
@@ -25,23 +28,21 @@ public final class TenantNaming {
     return switch (tier) {
       case FREE -> "tripplanning-free";
       case STANDARD -> "tripplanning-standard";
-      case ENTERPRISE -> "tripplanning-ent-" + slug;
+      case ENTERPRISE, DEVELOP -> "tripplanning-ent-" + slug;
     };
   }
 
   public static String dbName(String slug, TenantTier tier) {
     return switch (tier) {
-      case FREE -> "tripplanning";
+      case FREE, ENTERPRISE, DEVELOP -> "tripplanning";
       case STANDARD -> "tripplanning_std_" + slug.replace('-', '_');
-      case ENTERPRISE -> "tripplanning";
     };
   }
 
   public static String dbUser(String slug, TenantTier tier) {
     return switch (tier) {
-      case FREE -> "tripplanning_app";
+      case FREE, ENTERPRISE, DEVELOP -> "tripplanning_app";
       case STANDARD -> "tripplanning_app_" + slug.replace('-', '_');
-      case ENTERPRISE -> "tripplanning_app";
     };
   }
 
@@ -60,30 +61,35 @@ public final class TenantNaming {
   public static String frontendPath(String slug, TenantTier tier) {
     return switch (tier) {
       case STANDARD -> "/standard/" + slug + "/";
-      case ENTERPRISE -> "/enterprise/" + slug + "/";
+      case ENTERPRISE, DEVELOP -> "/enterprise/" + slug + "/";
       default -> "/";
     };
   }
 
   public static String gcsBucket(String slug, TenantTier tier) {
-    return tier == TenantTier.ENTERPRISE ? "tripplanning-ent-" + slug + "-images" : null;
+    return tier == TenantTier.ENTERPRISE || tier == TenantTier.DEVELOP
+        ? "tripplanning-ent-" + slug + "-images"
+        : null;
   }
 
   /** Object key prefix within a shared bucket (Standard tier). */
   public static String objectPrefix(String slug, TenantTier tier) {
     if (tier == TenantTier.STANDARD) {
-      return "std/" + slug + "/";
+      return "standard/" + slug + "/";
     }
     return "";
   }
 
   public static String imageTag(String slug, TenantTier tier) {
-    return tier == TenantTier.ENTERPRISE ? "enterprise-" + slug : null;
+    // The backend image workflow publishes immutable commit-SHA tags and
+    // "latest". A per-tenant tag is only valid after a separate custom image
+    // build, which the admin tenant-creation flow does not perform.
+    return tier == TenantTier.ENTERPRISE || tier == TenantTier.DEVELOP ? "latest" : null;
   }
 
   public static java.math.BigDecimal estimatedCost(TenantTier tier) {
     return switch (tier) {
-      case FREE -> java.math.BigDecimal.ZERO;
+      case FREE, DEVELOP -> java.math.BigDecimal.ZERO;
       case STANDARD -> new java.math.BigDecimal("45");
       case ENTERPRISE -> new java.math.BigDecimal("180");
     };

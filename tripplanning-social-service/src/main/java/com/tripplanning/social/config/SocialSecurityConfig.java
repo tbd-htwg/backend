@@ -76,6 +76,8 @@ public class SocialSecurityConfig {
                                         .permitAll()
                                         .requestMatchers("/actuator/health", "/actuator/health/**")
                                         .permitAll()
+                                        .requestMatchers("/actuator/prometheus")
+                                        .permitAll()
                                         .requestMatchers("/internal/**")
                                         .permitAll()
                                         .requestMatchers(ant(HttpMethod.POST, "/api/v2/trips/*/like"))
@@ -93,7 +95,7 @@ public class SocialSecurityConfig {
                                         .anyRequest()
                                         .authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
-                .addFilterBefore(tenantContextFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(tenantContextFilter, BearerTokenAuthenticationFilter.class)
                 .addFilterBefore(internalApiAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         TestBearerImpersonationFilter testBearerFilter = testBearerFilterProvider.getIfAvailable();

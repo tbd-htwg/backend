@@ -90,10 +90,21 @@ Google sign-in uses the same **Firebase / Identity Platform** project as the GKE
 
 **Minimum for local Google sign-in:**
 
-1. OAuth Web client with **`http://localhost:5173`** in authorized JavaScript origins.
-2. Frontend `VITE_FIREBASE_*` in `frontend/.env` from Firebase Console → Project settings → Web app (project **tbd-cloudappdev**).
+1. OAuth Web client with **`http://localhost:5173`** in authorized JavaScript origins (console-managed; see `terraform output google_oauth_console_checklist`).
+2. Frontend `VITE_FIREBASE_*` in `frontend/.env` from Secret Manager (not the Firebase Console default key):
+
+   ```bash
+   gcloud secrets versions access latest \
+     --secret=tripplanning-firebase-web-api-key --project=tbd-cloudappdev
+   ```
+
+   Set `VITE_FIREBASE_AUTH_DOMAIN=tbd-cloudappdev.firebaseapp.com` and `VITE_FIREBASE_PROJECT_ID=tbd-cloudappdev`.
 3. `TRIPPLANNING_AUTH_FIREBASE_PROJECT_ID` in `.env` matches that project (default: `tbd-cloudappdev`).
-4. `gcloud auth application-default login` on the machine running Minikube (trip-service validates ID tokens via ADC).
+4. `gcloud auth application-default login` and set quota project (trip-service validates ID tokens via ADC):
+
+   ```bash
+   gcloud auth application-default set-quota-project tbd-cloudappdev
+   ```
 
 **Without Google:** use **dev-login** ([§11](#11-auth-flows)).
 
@@ -358,7 +369,7 @@ Trip-service uses the **tbd-cloudappdev** dev bucket and signer SA, configured v
 
 | Setting | Default (local Minikube) |
 |---------|--------------------------|
-| Bucket | `tbd-test` |
+| Bucket | `tbd-cloudappdev-images-bucket` |
 | Signer SA | `tripplanning-image-url-sig@tbd-cloudappdev.iam.gserviceaccount.com` |
 
 Override in `.env` with `GCP_STORAGE_BUCKET_NAME` and `GCP_IMPERSONATE_SERVICE_ACCOUNT` if your console setup differs.
@@ -367,7 +378,7 @@ For **GKE / ms2** (`tbd-cloudappdev`), use the ms2 getting-started guide and Ter
 
 ### One-time setup (image uploads)
 
-1. **GCP console** (or `./scripts/local-dev.sh setup-gcs-iam`): bucket `tbd-test` and signer SA `tripplanning-image-url-sig` in project **tbd-cloudappdev**, plus IAM for your user to impersonate the SA.
+1. **GCP console** (or `./scripts/local-dev.sh setup-gcs-iam`): bucket `tbd-cloudappdev-images-bucket` and signer SA `tripplanning-image-url-sig` in project **tbd-cloudappdev**, plus IAM for your user to impersonate the SA.
 
 2. **Application Default Credentials** on your machine:
 
@@ -487,7 +498,7 @@ cd ../infrastructure/ms2/terraform/envs/dev
 | **social-service Firestore errors** | `kubectl logs -n tripplanning deployment/social-service`; ensure `firestore-emulator` pod is Running. |
 | **ImagePullBackOff** | Images must be built **inside** minikube Docker (`eval "$(minikube docker-env)"` is done by `deploy`). Tag must be `:local` with `imagePullPolicy: Never`. |
 | **dev-login 404** | Trip must use `SPRING_PROFILES_ACTIVE=local,k8s,postgres` (ConfigMap from `local-dev.sh`). |
-| **Google sign-in fails** | ADC, OAuth origins, `VITE_FIREBASE_*`, test users on OAuth consent screen. |
+| **Google sign-in fails** | ADC quota project (`gcloud auth application-default set-quota-project tbd-cloudappdev`), OAuth JS origins (`http://localhost:5173`), `VITE_FIREBASE_*` from Secret Manager, test users on OAuth consent screen. |
 | **GCS upload 401 / Anonymous caller** | Run `gcloud auth application-default login`, then `./scripts/local-dev.sh deploy` (syncs `gcp-adc` secret). |
 | **signBlob / impersonation denied** | Grant yourself `roles/iam.serviceAccountTokenCreator` on `tripplanning-image-url-sig@…` — see [§12](#12-gcs-images). |
 | **Browser PUT blocked by CORS** | `./scripts/local-dev.sh setup-gcs` |

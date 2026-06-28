@@ -37,6 +37,12 @@ public class TenantContextFilter extends OncePerRequestFilter {
   }
 
   @Override
+  protected boolean shouldNotFilter(HttpServletRequest request) {
+    String path = request.getRequestURI();
+    return path != null && path.startsWith("/actuator/");
+  }
+
+  @Override
   protected void doFilterInternal(
       HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
       throws ServletException, IOException {
@@ -46,13 +52,18 @@ public class TenantContextFilter extends OncePerRequestFilter {
               request.getHeader("X-Forwarded-Host"), request.getHeader("Host"));
       String slug = HostTenantResolver.resolveSlug(host, hostBase, enterpriseHostBase);
       TenantPlatformClient.TenantRuntime runtime = tenantPlatformClient.resolve(slug);
-      TenantContextHolder.set(new TenantContext(runtime.slug(), runtime.tier()));
+      TenantContextHolder.set(
+          new TenantContext(
+              runtime.slug(),
+              runtime.tier(),
+              runtime.publicTripAccess(),
+              runtime.publicImageAccess()));
 
       if (!"free".equals(slug)) {
         var auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.getPrincipal() instanceof Jwt jwt) {
           String tokenSlug = jwt.getClaimAsString("tenant_slug");
-          if (tokenSlug != null && !tokenSlug.isBlank() && !tokenSlug.equals(slug)) {
+          if (tokenSlug == null || tokenSlug.isBlank() || !tokenSlug.equals(slug)) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN, "Tenant mismatch");
             return;
           }

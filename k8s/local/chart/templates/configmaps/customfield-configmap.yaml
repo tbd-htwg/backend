@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: customfield-service-config
+  labels:
+    {{- include "tripplanning.labels" . | nindent 4 }}
+    app.kubernetes.io/component: customfield-service
+data:
+{{- range $key, $value := .Values.services.customfield.env }}
+  {{ $key }}: {{ $value | quote }}
+{{- end }}

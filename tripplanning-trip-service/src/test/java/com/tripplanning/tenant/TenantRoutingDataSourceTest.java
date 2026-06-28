@@ -3,8 +3,34 @@ package com.tripplanning.tenant;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
+
+import com.tripplanning.common.tenant.TenantContext;
+import com.tripplanning.common.tenant.TenantContextHolder;
 
 class TenantRoutingDataSourceTest {
+
+  @Test
+  void usesConfiguredDefaultDatabaseWhenNoTenantContextExists() {
+    DataSourceProperties properties = new DataSourceProperties();
+    properties.setUrl("jdbc:postgresql://localhost:5432/tripplanning_std_firststand");
+    properties.setUsername("tripplanning_app_firststand");
+    properties.setDriverClassName("org.postgresql.Driver");
+
+    TenantRoutingDataSource dataSource =
+        new TenantRoutingDataSource(
+            properties.initializeDataSourceBuilder().build(),
+            properties,
+            new TenantPlatformClient("http://localhost:8083", ""),
+            new TenantSchemaMigrator());
+
+    TenantContextHolder.clear();
+    assertThat(dataSource.currentDbName()).isEqualTo("tripplanning_std_firststand");
+
+    TenantContextHolder.set(new TenantContext("free", "FREE"));
+    assertThat(dataSource.currentDbName()).isEqualTo("tripplanning_std_firststand");
+    TenantContextHolder.clear();
+  }
 
   @Test
   void withDatabaseNameReplacesSegmentBeforeQuery() {

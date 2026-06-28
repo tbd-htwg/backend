@@ -21,6 +21,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.tripplanning.common.security.InternalApiAuthFilter;
+import com.tripplanning.platform.web.AdminCustomFieldController;
 
 @Configuration
 public class PlatformSecurityConfig {
@@ -38,10 +39,13 @@ public class PlatformSecurityConfig {
             .map(String::trim)
             .filter(s -> !s.isEmpty())
             .toList();
-    config.setAllowedOrigins(origins);
+    List<String> exactOrigins = origins.stream().filter(origin -> !origin.contains("*")).toList();
+    List<String> originPatterns = origins.stream().filter(origin -> origin.contains("*")).toList();
+    config.setAllowedOrigins(exactOrigins);
+    config.setAllowedOriginPatterns(originPatterns);
     config.setAllowedMethods(List.of("GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
     config.setAllowedHeaders(
-        List.of("Authorization", "Content-Type", "Accept", "Origin", "X-Internal-Secret"));
+        List.of("Authorization", "Content-Type", "Accept", "Origin", "X-Internal-Secret", AdminCustomFieldController.ADMIN_TENANT_SLUG_HEADER));
     config.setAllowCredentials(true);
 
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
@@ -86,6 +90,11 @@ public class PlatformSecurityConfig {
                     .requestMatchers(HttpMethod.POST, "/api/v2/auth/google")
                     .permitAll()
                     .requestMatchers(HttpMethod.POST, "/api/v2/auth/dev-login")
+                    .permitAll()
+                    .requestMatchers(
+                        ant(
+                            HttpMethod.PUT,
+                            "/api/v2/admin/tenants/*/branding/icon/stub-upload/*"))
                     .permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/v2/auth/me")
                     .authenticated()
