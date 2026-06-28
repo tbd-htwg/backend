@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - develop
+      - main
     paths:
       - "Dockerfile"
       - "pom.xml"
@@ -38,6 +39,7 @@ jobs:
       social: ${{ steps.detect.outputs.social }}
       external_info: ${{ steps.detect.outputs.external_info }}
       platform: ${{ steps.detect.outputs.platform }}
+      customfield: ${{ steps.detect.outputs.customfield }}
       seed_job: ${{ steps.detect.outputs.seed_job }}
     steps:
       - uses: actions/checkout@v4
@@ -126,6 +128,7 @@ jobs:
           echo "social=${social}" >> "${GITHUB_OUTPUT}"
           echo "external_info=${external_info}" >> "${GITHUB_OUTPUT}"
           echo "platform=${platform}" >> "${GITHUB_OUTPUT}"
+          echo "customfield=${customfield}" >> "${GITHUB_OUTPUT}"
           echo "seed_job=${seed_job}" >> "${GITHUB_OUTPUT}"
 
   build:
@@ -156,7 +159,7 @@ jobs:
             CACHEBUST=${{ github.sha }}
           tags: |
             ${{ env.REGISTRY }}/${{ github.repository }}/${{ matrix.image }}:${{ github.sha }}
-            ${{ env.REGISTRY }}/${{ github.repository }}/${{ matrix.image }}:latest
+            ${{ env.REGISTRY }}/${{ github.repository }}/${{ matrix.image }}:${{ github.ref_name == 'main' && 'prod' || 'develop' }}
 
   deploy:
     needs:
@@ -175,6 +178,8 @@ jobs:
       BUILD_SOCIAL: ${{ needs.detect.outputs.social }}
       BUILD_EXTERNAL_INFO: ${{ needs.detect.outputs.external_info }}
       BUILD_PLATFORM: ${{ needs.detect.outputs.platform }}
+      BUILD_CUSTOMFIELD: ${{ needs.detect.outputs.customfield }}
+      DEPLOY_ENVIRONMENT: ${{ github.ref_name == 'main' && 'prod' || 'dev' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -216,60 +221,170 @@ jobs:
             --region "${GKE_CLUSTER_LOCATION}" \
             --project "${PROJECT_ID}"
 
-      - name: Restart changed deployments
+      - name: Deploy changed images
         shell: bash
         run: |
           set -euo pipefail
 
-          services=()
+          declare -A runtime_images=()
           if [[ "${BUILD_TRIP}" == "true" ]]; then
-            services+=("trip-service")
+            runtime_images["trip-service"]="ghcr.io/${GITHUB_REPOSITORY}/tripplanning-trip-service:${GITHUB_SHA}"
           fi
           if [[ "${BUILD_SOCIAL}" == "true" ]]; then
-            services+=("social-service")
+            runtime_images["social-service"]="ghcr.io/${GITHUB_REPOSITORY}/tripplanning-social-service:${GITHUB_SHA}"
           fi
           if [[ "${BUILD_EXTERNAL_INFO}" == "true" ]]; then
-            services+=("external-info-service")
+            runtime_images["external-info-service"]="ghcr.io/${GITHUB_REPOSITORY}/tripplanning-external-info-service:${GITHUB_SHA}"
+          fi
+          if [[ "${GITHUB_REF_NAME}" == "main" && "${BUILD_CUSTOMFIELD}" == "true" ]]; then
+            runtime_images["customfield-service"]="ghcr.io/${GITHUB_REPOSITORY}/tripplanning-customfield-service:${GITHUB_SHA}"
           fi
 
-          restart_services_in_namespace() {
+          set_images_in_namespace() {
             local namespace="$1"
-            shift
-            local deployments=("$@")
-            if [[ "${#deployments[@]}" -eq 0 ]]; then
+            if [[ "${#runtime_images[@]}" -eq 0 ]]; then
               return
             fi
-            for deployment in "${deployments[@]}"; do
+            for deployment in "${!runtime_images[@]}"; do
               if kubectl -n "${namespace}" get "deployment/${deployment}" >/dev/null 2>&1; then
-                kubectl -n "${namespace}" rollout restart "deployment/${deployment}"
+                kubectl -n "${namespace}" set image \
+                  "deployment/${deployment}" \
+                  "${deployment}=${runtime_images[$deployment]}"
+                kubectl -n "${namespace}" annotate "deployment/${deployment}" \
+                  "tripplanning.htwg.dev/deploy-environment=${DEPLOY_ENVIRONMENT}" \
+                  "tripplanning.htwg.dev/deploy-branch=${GITHUB_REF_NAME}" \
+                  "tripplanning.htwg.dev/deploy-commit=${GITHUB_SHA}" \
+                  "tripplanning.htwg.dev/deploy-run-id=${GITHUB_RUN_ID}" \
+                  --overwrite
                 kubectl -n "${namespace}" rollout status "deployment/${deployment}" --timeout=10m
               fi
             done
           }
 
-          if [[ "${GITHUB_REF_NAME}" != "develop" ]]; then
-            echo "No GKE rollout target configured for branch ${GITHUB_REF_NAME}"
-            exit 0
+          deployment_image() {
+            local namespace="$1"
+            local deployment="$2"
+            local container="$3"
+            kubectl -n "${namespace}" get "deployment/${deployment}" \
+              -o "jsonpath={.spec.template.spec.containers[?(@.name=='${container}')].image}" \
+              2>/dev/null || true
+          }
+
+          refresh_deployment_info() {
+            local namespace="$1"
+            local tier="free"
+            local tenant_id="free"
+            case "${namespace}" in
+              tripplanning-standard)
+                tier="standard"
+                tenant_id="standard-shared"
+                ;;
+              tripplanning-ent-*)
+                tier="enterprise"
+                tenant_id="${namespace#tripplanning-ent-}"
+                ;;
+            esac
+
+            local services
+            services="$(jq -n '{}')"
+            add_service_info() {
+              local key="$1"
+              local deployment="$2"
+              local container="$3"
+              local enabled="$4"
+              local image
+              image="$(deployment_image "${namespace}" "${deployment}" "${container}")"
+              services="$(
+                jq -c \
+                  --arg key "${key}" \
+                  --arg image "${image}" \
+                  --argjson enabled "${enabled}" \
+                  '. + {($key): {enabled: $enabled, image: $image, tag: (if $image == "" then "" else ($image | split(":") | last) end)}}' \
+                  <<<"${services}"
+              )"
+            }
+
+            add_service_info apiRouter api-router api-router true
+            add_service_info trip trip-service trip-service true
+            add_service_info social social-service social-service true
+            add_service_info externalInfo external-info-service external-info-service true
+            if kubectl -n "${namespace}" get deployment/customfield-service >/dev/null 2>&1; then
+              add_service_info customfield customfield-service customfield-service true
+            else
+              add_service_info customfield customfield-service customfield-service false
+            fi
+            platform_image="$(deployment_image tripplanning-system platform-service platform-service)"
+            services="$(
+              jq -c \
+                --arg image "${platform_image}" \
+                '. + {platform: {enabled: true, image: $image, tag: (if $image == "" then "" else ($image | split(":") | last) end)}}' \
+                <<<"${services}"
+            )"
+
+            jq -n \
+              --arg environment "${DEPLOY_ENVIRONMENT}" \
+              --arg branch "${GITHUB_REF_NAME}" \
+              --arg commit "${GITHUB_SHA}" \
+              --arg repository "${GITHUB_REPOSITORY}" \
+              --arg runId "${GITHUB_RUN_ID}" \
+              --arg tier "${tier}" \
+              --arg tenantId "${tenant_id}" \
+              --argjson services "${services}" \
+              '{
+                environment: $environment,
+                branch: $branch,
+                commit: $commit,
+                repository: $repository,
+                runId: $runId,
+                tier: $tier,
+                tenantId: $tenantId,
+                services: $services
+              }' > /tmp/deployment-info.json
+
+            kubectl -n "${namespace}" create configmap api-router-deployment-info \
+              --from-file=deployment-info.json=/tmp/deployment-info.json \
+              --dry-run=client \
+              -o yaml > /tmp/deployment-info-configmap.yaml
+            kubectl -n "${namespace}" apply -f /tmp/deployment-info-configmap.yaml
+          }
+
+          if [[ "${GITHUB_REF_NAME}" == "develop" ]]; then
+            runtime_namespaces=(tripplanning-free)
+          else
+            runtime_namespaces=()
+            if kubectl get namespace tripplanning-standard >/dev/null 2>&1; then
+              runtime_namespaces+=(tripplanning-standard)
+            fi
+            mapfile -t enterprise_namespaces < <(
+              kubectl get namespaces -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' \
+                | grep '^tripplanning-ent-' || true
+            )
+            runtime_namespaces+=("${enterprise_namespaces[@]}")
           fi
 
-          runtime_namespaces=(tripplanning-free)
-          if kubectl get namespace tripplanning-standard >/dev/null 2>&1; then
-            runtime_namespaces+=(tripplanning-standard)
-          fi
-
-          mapfile -t enterprise_namespaces < <(
-            kubectl get namespaces -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' \
-              | grep '^tripplanning-ent-' || true
-          )
-          runtime_namespaces+=("${enterprise_namespaces[@]}")
-
-          if [[ "${#services[@]}" -gt 0 ]]; then
-            echo "Restarting changed runtime services in namespaces: ${runtime_namespaces[*]}"
+          if [[ "${#runtime_images[@]}" -gt 0 ]]; then
+            echo "Deploying changed runtime images to namespaces: ${runtime_namespaces[*]}"
             for namespace in "${runtime_namespaces[@]}"; do
-              restart_services_in_namespace "${namespace}" "${services[@]}"
+              set_images_in_namespace "${namespace}"
             done
           fi
 
           if [[ "${BUILD_PLATFORM}" == "true" ]]; then
-            restart_services_in_namespace tripplanning-system platform-service
+            platform_image="ghcr.io/${GITHUB_REPOSITORY}/tripplanning-platform-service:${GITHUB_SHA}"
+            kubectl -n tripplanning-system set image \
+              deployment/platform-service \
+              platform-service="${platform_image}"
+            kubectl -n tripplanning-system annotate deployment/platform-service \
+              "tripplanning.htwg.dev/deploy-environment=${DEPLOY_ENVIRONMENT}" \
+              "tripplanning.htwg.dev/deploy-branch=${GITHUB_REF_NAME}" \
+              "tripplanning.htwg.dev/deploy-commit=${GITHUB_SHA}" \
+              "tripplanning.htwg.dev/deploy-run-id=${GITHUB_RUN_ID}" \
+              --overwrite
+            kubectl -n tripplanning-system rollout status deployment/platform-service --timeout=10m
+          fi
+
+          if [[ "${#runtime_images[@]}" -gt 0 || "${BUILD_PLATFORM}" == "true" ]]; then
+            for namespace in "${runtime_namespaces[@]}"; do
+              refresh_deployment_info "${namespace}"
+            done
           fi
