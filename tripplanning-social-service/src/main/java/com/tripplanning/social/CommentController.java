@@ -25,6 +25,11 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+/**
+ * comment to test the CI/CD pipeline
+ * CommentController
+ */
+
 @RestController
 @RequestMapping("/api/v2/comments")
 @RequiredArgsConstructor
